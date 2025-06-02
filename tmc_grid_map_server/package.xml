@@ -1,0 +1,30 @@
+<package format="3">
+  <name>tmc_grid_map_server</name>
+  <version>2.0.0</version>
+  <description>This is a package for publishing grid maps.</description>
+  <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
+
+  <license>BSD 3-clause Clear License</license>
+
+  <author>Atsushi Tsutsumi</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sdl</depend>
+  <depend>sdl-image</depend>
+  <depend>yaml-cpp</depend>
+  <depend>tf2</depend>
+  <depend>nav_msgs</depend>
+  <depend>tmc_navigation_msgs</depend>
+  <depend>tmc_pose_2d_lib</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>boost</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

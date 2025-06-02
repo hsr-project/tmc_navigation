@@ -1,0 +1,7 @@
+odometry_switcher:
+  ros__parameters:
+    odom_topics:
+      test1_odom: 'odom1'
+      test2_odom: 'odom2'
+    initial_odom: 'test1_odom'
+

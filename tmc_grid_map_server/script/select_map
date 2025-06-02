@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Copyright (C) 2016 Toyota Motor Corporation
+import sys
+from tmc_grid_map_server.select_map import create_map_link
+
+if __name__ == '__main__':
+    argc = len(sys.argv)
+    if argc != 2:
+        print 'USAGE: rosrun tmc_grid_map_server select_map <map_file_name (e.g. 201_demo_space)>'
+        sys.exit()
+
+    create_map_link(sys.argv[1])

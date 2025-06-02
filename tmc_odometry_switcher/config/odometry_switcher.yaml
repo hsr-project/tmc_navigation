@@ -1,0 +1,9 @@
+odometry_switcher:
+  ros__parameters:
+    # 入力オドメトリトピックリスト
+    odom_topics:
+      # レーザーオドメトリ
+      laser_odom: 'laser_odom'
+      # ホイールオドメトリ
+      wheel_odom: 'wheel_odom'
+
