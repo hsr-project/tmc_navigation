@@ -1,0 +1,129 @@
+safety_velocity_limiter:
+  ros__parameters:
+    base_frame: base_link
+    enable_function: True
+    robot_radius: 0.30
+    slowdown_velocity_threshold: 0.5
+    slowdown_deceleration_threshold: 2.0
+    slowdown_detection_time: 0.0
+    default_bumper_set: combination_bumper
+    maximum_acceleration: 0.25
+    maximum_deceleration: 1.0
+    timeout_interval: 0.5
+    
+    virtual_bumpers:
+      # 以下2種の複合
+      # 1.前方1.2m × 左右30度の扇型により、線形に50%の速度まで減速
+      # 2.前方0.6m 底0.8mの長方形型。範囲内に障害物が入ったら停止
+      combination_bumper:
+        bumpers:
+          type_1:
+            type: TriangleBumper
+            obstacle_search_distance: 1.2
+            obstacle_search_angle: 0.5236
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.5
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.5
+              minimum_ratio: 0.0
+          type_2:
+            type: CupBumper
+            bottom_length: 0.8
+            obstacle_search_distance: 0.6
+            obstacle_search_angle: 0.0
+            robot_radius: 0.30
+            velocity_slope:
+              type: FixedSlope
+              fixed_ratio: 0.0
+      # 前方1.2m × 左右30度の扇型
+      # 線形に10%の速度まで減速し、40%(0.48m)の距離まで障害物が近づいたら停止する
+      triangle_bumper:
+        bumpers:
+          type_1:
+            type: TriangleBumper
+            obstacle_search_distance: 1.2
+            obstacle_search_angle: 0.5236
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.4
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.1
+              minimum_ratio: 0.0
+      # 前方1.2m × 左右30度、底0.8mのカップ型
+      # 線形に10%の速度まで減速し、40%(0.48m)の距離まで障害物が近づいたら停止する
+      cup_bumper:
+        bumpers:
+          type_1:
+            type: CupBumper
+            bottom_length: 0.8
+            obstacle_search_distance: 1.2
+            obstacle_search_angle: 0.1745
+            robot_radius: 0.30
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.4
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.1
+              minimum_ratio: 0.0
+      # 前方に広がる横1.0m × 縦2.0mの楕円形
+      # 線形に10%の速度まで減速し、40%(0.48m)の距離まで障害物が近づいたら停止する
+      ellipse_bumper:
+        bumpers:
+          type_1:
+            type: EllipseBumper
+            radius_x: 1.0
+            radius_y: 0.5
+            center_position_x: 0.78
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.4
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.1
+              minimum_ratio: 0.0
+      # 自己位置のoccupancy値による速度制限
+      occupancy_point_bumper:
+        bumpers:
+          type_1:
+            type: OccupancyPointBumper
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.0
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.0
+              minimum_ratio: 0.0
+      # 自己位置周辺1.0mのoccupancy値の平均値による速度制限
+      occupancy_ellipse_bumper:
+        bumpers:
+          type_1:
+            type: OccupancyEllipseBumper
+            radius_x: 0.5
+            radius_y: 0.5
+            center_position_x: 0.0
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.0
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.0
+              minimum_ratio: 0.0
+      # auto scalingする楕円型
+      auto_scaling_ellipse_bumper:
+        bumpers:
+          type_1:
+            type: EllipseBumper
+            radius_x: 0.40
+            radius_y: 0.40
+            center_position_x: 0.10
+            velocity_slope:
+              type: FixedSlope
+              fixed_ratio: 0.0
+            auto_scaling:
+              max_scale_velocity: 0.5
+              min_scale_velocity: 0.1
+              min_scale: 0.7

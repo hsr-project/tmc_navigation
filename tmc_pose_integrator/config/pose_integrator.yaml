@@ -1,0 +1,14 @@
+pose_integrator:
+  ros__parameters:
+    # 動作周期(s)
+    cycle_time: 0.01
+    # TF更新周期(s)
+    tf_cycle_time: 0.01
+    # 自己位置に対する収束完了時間(s)
+    convergence_time: 0.1
+    # 地図生成用URGを使うときtrue
+    inverted_urg: false
+    # 台車が停止しているとみなす並進速度[m/s]
+    stop_translational_vel_threshold: 0.001
+    # 台車が停止しているとみなすその場旋回速度[rad/s]
+    stop_rotational_vel_threshold: 0.001

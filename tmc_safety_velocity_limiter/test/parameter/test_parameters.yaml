@@ -1,0 +1,235 @@
+safety_velocity_limiter:
+  ros__parameters:
+    enable_function: false
+    robot_radius: 0.22
+    slowdown_velocity_threshold: 0.5
+    slowdown_deceleration_threshold: 2.0
+    slowdown_detection_time: 0.0
+    default_bumper_set: triangle_bumper_test
+    maximum_acceleration: 0.5
+    maximum_deceleration: 1.0
+    timeout_interval: 0.5
+    
+    virtual_bumpers:
+      # 前方1.5m × 左右30度の扇型
+      # 線形に10%の速度まで減速し、30%(0.45m)の距離まで障害物が近づいたら停止する
+      triangle_bumper_test:
+        bumpers:
+          bumper_0:
+            type: TriangleBumper
+            obstacle_search_distance: 1.5
+            obstacle_search_angle: 0.5236
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.3
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.1
+              minimum_ratio: 0.0
+      # 前方1.5m × 左右30度、底[0.44]mのカップ型
+      # 線形に10%の速度まで減速し、30%(0.45m)の距離まで障害物が近づいたら停止する
+      cup_bumper_test:
+        bumpers:
+          bumper_0:
+            type: CupBumper
+            bottom_length: 0.44
+            obstacle_search_distance: 1.5
+            obstacle_search_angle: 0.5236
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.3
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.1
+              minimum_ratio: 0.0
+      # 自己位置前方0.72mを中心として広がる横1.0m × 縦0.5mの楕円形
+      # 線形に10%の速度まで減速し、30%の距離まで障害物が近づいたら停止する
+      ellipse_bumper_test:
+        bumpers:
+          bumper_0:
+            type: EllipseBumper
+            radius_x: 1.0
+            radius_y: 0.5
+            center_position_x: 0.72
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.3
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.1
+              minimum_ratio: 0.0
+      # 自己位置のoccupancy値による速度制限
+      occupancy_point_bumper_test:
+        bumpers:
+          bumper_0:
+            type: OccupancyPointBumper
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.0
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.0
+              minimum_ratio: 0.0
+      # 自己位置半径1.0mのoccupancy値の平均値による速度制限
+      occupancy_ellipse_bumper_test:
+        bumpers:
+          bumper_0:
+            type: OccupancyEllipseBumper
+            radius_x: 1.0
+            radius_y: 1.0
+            center_position_x: 0.0
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.0
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.0
+              minimum_ratio: 0.0
+      # 以下3種の複合
+      # 前方2.0m × 左右30度の扇型により、線形に0%の速度まで減速
+      # 全方位0.5m以内に障害物が近づいたら停止
+      # 自己位置のoccupancy値による速度制限
+      combination_bumper_test:
+        bumpers:
+          triangle_bumper:
+            type: TriangleBumper
+            obstacle_search_distance: 2.0
+            obstacle_search_angle: 0.5236
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.0
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.0
+              minimum_ratio: 0.0
+          circle_bumper:
+            type: EllipseBumper
+            radius_x: 0.5
+            radius_y: 0.5
+            center_position_x: 0.0
+            velocity_slope:
+              type: FixedSlope
+              fixed_ratio: 0.0
+          occupancy_bumper:
+            type: OccupancyPointBumper
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.0
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.0
+              minimum_ratio: 0.0
+      # FxiedSlopeテスト用
+      fixed_slope_test:
+        bumpers:
+          bumper_0:
+            type: TriangleBumper
+            obstacle_search_distance: 1.5
+            obstacle_search_angle: 0.5236
+            velocity_slope:
+              type: FixedSlope
+              fixed_ratio: 0.2
+      # LinearSlopeテスト用
+      linear_slope_test:
+        bumpers:
+          bumper_0:
+            type: TriangleBumper
+            obstacle_search_distance: 1.5
+            obstacle_search_angle: 0.5236
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.0
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.0
+              minimum_ratio: 0.0
+      # LogarithmSlopeテスト用
+      logarithm_slope_test:
+        bumpers:
+          bumper_0:
+            type: TriangleBumper
+            obstacle_search_distance: 1.5
+            obstacle_search_angle: 0.5236
+            velocity_slope:
+              type: LogarithmSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.0
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.0
+              minimum_ratio: 0.0
+              logarithm_base: 10.0
+      # 入力速度に応じてサイズが変化するTriangleBumper
+      triangle_bumper_auto_scaling_test:
+        bumpers:
+          bumper_0:
+            type: TriangleBumper
+            obstacle_search_distance: 1.5
+            obstacle_search_angle: 0.5236
+            auto_scaling:
+              max_scale_velocity: 0.4
+              min_scale_velocity: 0.2
+              min_scale: 0.3
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.3
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.1
+              minimum_ratio: 0.0
+      # 入力速度に応じてサイズが変化するCupBumper
+      cup_bumper_auto_scaling_test:
+        bumpers:
+          bumper_0:
+            type: CupBumper
+            bottom_length: 0.44
+            obstacle_search_distance: 1.5
+            obstacle_search_angle: 0.5236
+            auto_scaling:
+              max_scale_velocity: 0.4
+              min_scale_velocity: 0.2
+              min_scale: 0.3
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.3
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.1
+              minimum_ratio: 0.0
+      # 入力速度に応じてサイズが変化するEllipseBumper
+      ellipse_bumper_auto_scaling_test:
+        bumpers:
+          bumper_0:
+            type: EllipseBumper
+            radius_x: 1.0
+            radius_y: 0.5
+            center_position_x: 0.72
+            auto_scaling:
+              max_scale_velocity: 0.4
+              min_scale_velocity: 0.2
+              min_scale: 0.3
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.3
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.1
+              minimum_ratio: 0.0
+      # 入力速度に応じてサイズが変化するOccupancyEllipseBumper
+      occupancy_ellipse_bumper_auto_scaling_test:
+        bumpers:
+          bumper_0:
+            type: OccupancyEllipseBumper
+            radius_x: 0.4225
+            radius_y: 0.21125
+            center_position_x: 0.2025
+            auto_scaling:
+              max_scale_velocity: 0.4
+              min_scale_velocity: 0.2
+              min_scale: 0.3
+            velocity_slope:
+              type: LinearSlope
+              upper_limit_threshold: 1.0
+              lower_limit_threshold: 0.0
+              upper_limit_ratio: 1.0
+              lower_limit_ratio: 0.0
+              minimum_ratio: 0.0

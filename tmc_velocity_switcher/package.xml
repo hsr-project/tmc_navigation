@@ -1,0 +1,22 @@
+<package format="3">
+  <name>tmc_velocity_switcher</name>
+  <version>2.1.0</version>
+  <description>    Select the input velocity of higher priority, then output it smoothly.</description>
+  <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
+  <license>BSD 3-clause Clear License</license>
+  <author>Syuuhei Shiro</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>boost</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>

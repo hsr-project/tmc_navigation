@@ -39,12 +39,8 @@ int main(int argc, char** argv) {
     option.automatically_declare_parameters_from_overrides(true);
     auto grid_map_server_node = std::make_shared<tmc_grid_map_server::GridMapServerNode>(option);
     grid_map_server_node->Init();
-    rclcpp::WallRate rate(std::chrono::milliseconds(1000));
-    while (rclcpp::ok()) {
-      grid_map_server_node->Run();
-      rclcpp::spin_some(grid_map_server_node);
-      rate.sleep();
-    }
+    grid_map_server_node->Run();
+    rclcpp::spin(grid_map_server_node);
   } catch (...) {
     rclcpp::shutdown();
     RCLCPP_FATAL(rclcpp::get_logger("grid_map_server"), "grid_map_server exception");

@@ -1,0 +1,3 @@
+test_node:
+  ros__parameters:
+    hoge: 1

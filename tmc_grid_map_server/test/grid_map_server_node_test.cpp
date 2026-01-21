@@ -48,9 +48,9 @@ DAMAGE.
 namespace {
 constexpr float kMapOriginZ = 0.0;
 constexpr const char* const kFrameId = "map";
-/// Map update wait timeout[s]
+/// Map update wait timeout [s]
 constexpr double kWaitForMapTimeOut = 10.0;
-/// Map update wait cycle[Hz]
+/// Map update wait cycle [Hz]
 constexpr double kWaitForMapRate = 10.0;
 
 geometry_msgs::msg::Quaternion CreateQuaternionMsgFromYaw(const double yaw) {
@@ -93,10 +93,10 @@ class TestNode : public rclcpp::Node {
   /// Initialization
   void Init() {
     // Read test parameters
-    // Map setting file name
+    // Map configuration file name
     std::string map_yaml;
     EXPECT_TRUE(GetParam(shared_from_this(), "map_yaml", map_yaml));
-    // Map setting file name that reverses distance_map and obstacle_map from map_yaml
+    // Map configuration file name with distance_map and obstacle_map reversed from map_yaml
     EXPECT_TRUE(GetParam(shared_from_this(), "reverse_map_yaml", reverse_map_yaml_));
     // Map width (number of grids)
     EXPECT_TRUE(GetParam(shared_from_this(), "map_width", map_width_));
@@ -112,7 +112,7 @@ class TestNode : public rclcpp::Node {
     EXPECT_TRUE(GetParam(shared_from_this(), "expect_tmc_obstacle_map_data", expect_tmc_obstacle_map_data_));
     // Data issued when updating the map
     EXPECT_TRUE(GetParam(shared_from_this(), "update_map_data", update_map_data_));
-    // Expected value of TMC type distance_map and TMC type obstacle_map data after map update
+    // Expected value of TMC type distance_map and TMC type obstacle_map data as a result of map update
     EXPECT_TRUE(GetParam(shared_from_this(), "expect_update_tmc_map_data", expect_update_tmc_map_data_));
 
     // Read map_yaml
@@ -132,7 +132,7 @@ class TestNode : public rclcpp::Node {
     map_origin_yaw_ = map_origin[2].as<double>();
 
     ResetSubscribeMaps();
-    // Pub, Sub definitions
+    // Pub, Sub definition
     sub_distance_map_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
         "static_distance_ros_map",
         rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
@@ -154,7 +154,7 @@ class TestNode : public rclcpp::Node {
     // Service definition
     srv_reload_map_ = this->create_client<tmc_navigation_msgs::srv::ReloadMap>("/reload_map");
   }
-  // Check if Pub, Sub connections are established
+  // Check if Pub, Sub connection is established
   bool CheckConnection() {
     return sub_distance_map_->get_publisher_count() > 0 &&
            sub_obstacle_map_->get_publisher_count() > 0 &&
@@ -164,7 +164,7 @@ class TestNode : public rclcpp::Node {
   }
 
 
-  /// Publish map topic for online updates
+  /// Publish map topic for online update
   void PublishMapTopic() {
     nav_msgs::msg::OccupancyGrid map;
     map.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
@@ -185,7 +185,7 @@ class TestNode : public rclcpp::Node {
   }
 
   // Call map reload service
-  // Read the configuration file that specifies the distance and obstacle images in reverse
+  // Read configuration file with distance and obstacle images specified oppositely
   void ReloadReverseMap() {
     auto reload_map_request = std::make_shared<tmc_navigation_msgs::srv::ReloadMap::Request>();
     reload_map_request->new_map_yaml = ament_index_cpp::get_package_share_directory("tmc_grid_map_server") +
@@ -193,7 +193,7 @@ class TestNode : public rclcpp::Node {
     srv_reload_map_->async_send_request(reload_map_request);
   }
 
-  /// Initialization of subscription map
+  /// Initialize subscribed map
   void ResetSubscribeMaps() {
     distance_map_ = boost::none;
     obstacle_map_ = boost::none;
@@ -231,23 +231,23 @@ class TestNode : public rclcpp::Node {
   std::vector<int64_t> expect_tmc_obstacle_map_data() { return expect_tmc_obstacle_map_data_; }
   // Data issued when updating the map
   std::vector<int64_t> update_map_data() { return update_map_data_; }
-  // Expected value of TMC type distance_map and TMC type obstacle_map data after map update
+  // Expected value of TMC type distance_map and TMC type obstacle_map data as a result of map update
   std::vector<int64_t> expect_update_tmc_map_data() { return expect_update_tmc_map_data_; }
 
  private:
-  /// Distance map topic subscription callback
+  /// Subscription callback for distance map topic
   void CallbackDistanceMap(const nav_msgs::msg::OccupancyGrid::SharedPtr distance_map) {
     distance_map_ = *distance_map;
   }
-  /// Obstacle map topic subscription callback
+  /// Subscription callback for obstacle map topic
   void CallbackObstacleMap(const nav_msgs::msg::OccupancyGrid::SharedPtr obstacle_map)  {
     obstacle_map_ = *obstacle_map;
   }
-  /// TMC type distance map topic subscription callback
+  /// Subscription callback for TMC type distance map topic
   void CallbackTMCDistanceMap(const tmc_navigation_msgs::msg::OccupancyGridUint::SharedPtr tmc_distance_map) {
     tmc_distance_map_ = *tmc_distance_map;
   }
-  /// TMC type obstacle map topic subscription callback
+  /// Subscription callback for TMC type obstacle map topic
   void CallbackTMCObstacleMap(const tmc_navigation_msgs::msg::OccupancyGridUint::SharedPtr tmc_obstacle_map) {
     tmc_obstacle_map_ = *tmc_obstacle_map;
   }
@@ -260,7 +260,7 @@ class TestNode : public rclcpp::Node {
   rclcpp::Subscription<tmc_navigation_msgs::msg::OccupancyGridUint>::SharedPtr sub_tmc_distance_map_;
   /// Topic subscription (TMC type obstacle map)
   rclcpp::Subscription<tmc_navigation_msgs::msg::OccupancyGridUint>::SharedPtr sub_tmc_obstacle_map_;
-  /// Topic publishing (updated map)
+  /// Topic publication (updated map)
   rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_online_map_;
   /// Service call (map reload)
   rclcpp::Client<tmc_navigation_msgs::srv::ReloadMap>::SharedPtr srv_reload_map_;
@@ -274,7 +274,7 @@ class TestNode : public rclcpp::Node {
   boost::optional<tmc_navigation_msgs::msg::OccupancyGridUint> tmc_obstacle_map_;
   /// Online updated map
   nav_msgs::msg::OccupancyGrid online_map_;
-  // Map setting file name that reverses distance_map and obstacle_map from map_yaml
+  // Map configuration file name with distance_map and obstacle_map reversed from map_yaml
   std::string reverse_map_yaml_;
   // Map resolution
   double map_resolution_;
@@ -296,7 +296,7 @@ class TestNode : public rclcpp::Node {
   std::vector<int64_t> expect_tmc_obstacle_map_data_;
   // Data issued when updating the map
   std::vector<int64_t> update_map_data_;
-  // Expected value of TMC type distance_map and TMC type obstacle_map data after map update
+  // Expected value of TMC type distance_map and TMC type obstacle_map data as a result of map update
   std::vector<int64_t> expect_update_tmc_map_data_;
 };
 
@@ -314,7 +314,7 @@ class TestMapServer : public ::testing::Test {
     option.automatically_declare_parameters_from_overrides(true);
     const std::string yaml_directory = ament_index_cpp::get_package_share_directory("tmc_grid_map_server") +
         "/test/parameter/";
-    // Test node generation
+    // Generate test node
     test_node_ = std::make_shared<TestNode>(option);
     LoadParameterFromYaml(test_node_, yaml_directory, parameter_file);
     test_node_->Init();
@@ -338,7 +338,7 @@ class TestMapServer : public ::testing::Test {
     // Wait until the map is updated
     while (!(test_node_->distance_map() && test_node_->obstacle_map() &&
         test_node_->tmc_distance_map() && test_node_->tmc_obstacle_map())) {
-      // False if wait time times out
+      // False on wait timeout
       if (rclcpp::Clock(RCL_ROS_TIME).now() - start > rclcpp::Duration::from_seconds(kWaitForMapTimeOut)) {
         return false;
       }
@@ -353,7 +353,7 @@ class TestMapServer : public ::testing::Test {
   std::shared_ptr<TestNode> test_node_;
 };
 
-/// Test of map node
+/// Map node test
 TEST_F(TestMapServer, Map) {
   // Spin until subscribing to the map
   ASSERT_TRUE(WaitForMapUpdate());
@@ -363,9 +363,9 @@ TEST_F(TestMapServer, Map) {
   const double map_origin_x = test_node_->map_origin_x();
   const double map_origin_y = test_node_->map_origin_y();
   const double map_origin_yaw = test_node_->map_origin_yaw();
-  // Test of distance_map
+  // Test distance_map
   const nav_msgs::msg::OccupancyGrid distance_map = test_node_->distance_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(distance_map.info.resolution, map_resolution);
   EXPECT_EQ(distance_map.info.width, map_width);
   EXPECT_EQ(distance_map.info.height, map_height);
@@ -378,18 +378,18 @@ TEST_F(TestMapServer, Map) {
   EXPECT_FLOAT_EQ(distance_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(distance_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(distance_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(distance_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
+  // Test data
   const std::vector<int64_t> expect_distance_map_data = test_node_->expect_distance_map_data();
   ASSERT_EQ(expect_distance_map_data.size(), distance_map.data.size());
   for (uint32_t i = 0; i < distance_map.info.width * distance_map.info.height; ++i) {
     EXPECT_EQ(distance_map.data[i], expect_distance_map_data[i]);
   }
 
-  // Test of obstacle_map
+  // Test obstacle_map
   const nav_msgs::msg::OccupancyGrid obstacle_map = test_node_->obstacle_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(obstacle_map.info.resolution, map_resolution);
   EXPECT_EQ(obstacle_map.info.width, map_width);
   EXPECT_EQ(obstacle_map.info.height, map_height);
@@ -401,18 +401,18 @@ TEST_F(TestMapServer, Map) {
   EXPECT_FLOAT_EQ(obstacle_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(obstacle_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(obstacle_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(obstacle_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
+  // Test data
   const std::vector<int64_t> expect_obstacle_map_data = test_node_->expect_obstacle_map_data();
   ASSERT_EQ(expect_obstacle_map_data.size(), obstacle_map.data.size());
   for (uint32_t i = 0; i < obstacle_map.info.width * obstacle_map.info.height; ++i) {
     EXPECT_EQ(obstacle_map.data[i], expect_obstacle_map_data[i]);
   }
 
-  // Test of TMC type distance_map
+  // Test TMC type distance_map
   const tmc_navigation_msgs::msg::OccupancyGridUint tmc_distance_map = test_node_->tmc_distance_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(tmc_distance_map.info.resolution, map_resolution);
   EXPECT_EQ(tmc_distance_map.info.width, map_width);
   EXPECT_EQ(tmc_distance_map.info.height, map_height);
@@ -424,18 +424,18 @@ TEST_F(TestMapServer, Map) {
   EXPECT_FLOAT_EQ(tmc_distance_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(tmc_distance_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(tmc_distance_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(tmc_distance_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
+  // Test data
   const std::vector<int64_t> expect_tmc_distance_map_data = test_node_->expect_tmc_distance_map_data();
   ASSERT_EQ(expect_tmc_distance_map_data.size(), tmc_distance_map.data.size());
   for (uint32_t i = 0; i < tmc_distance_map.info.width * tmc_distance_map.info.height; ++i) {
     EXPECT_EQ(tmc_distance_map.data[i], expect_tmc_distance_map_data[i]);
   }
 
-  // Test of TMC type obstacle_map
+  // Test TMC type obstacle_map
   const tmc_navigation_msgs::msg::OccupancyGridUint tmc_obstacle_map = test_node_->tmc_obstacle_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.resolution, map_resolution);
   EXPECT_EQ(tmc_obstacle_map.info.width, map_width);
   EXPECT_EQ(tmc_obstacle_map.info.height, map_height);
@@ -446,9 +446,9 @@ TEST_F(TestMapServer, Map) {
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(tmc_obstacle_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
+  // Test data
   const std::vector<int64_t> expect_tmc_obstacle_map_data = test_node_->expect_tmc_obstacle_map_data();
   ASSERT_EQ(expect_tmc_obstacle_map_data.size(), tmc_obstacle_map.data.size());
   for (uint32_t i = 0; i < tmc_obstacle_map.info.width * tmc_obstacle_map.info.height; ++i) {
@@ -456,14 +456,14 @@ TEST_F(TestMapServer, Map) {
   }
 }
 
-/// Test of map online update function
+/// Test map online update function
 TEST_F(TestMapServer, OnlineUpdateMap) {
   // Spin until subscribing to the old map
   ASSERT_TRUE(WaitForMapUpdate());
 
-  // Lower the subscribe flag once subscribed
+  // Lower subscription flag after subscribing
   test_node_->ResetSubscribeMaps();
-  /// Publish map topic for online updates
+  /// Publish map topic for online update
   test_node_->PublishMapTopic();
   // Spin until subscribing to the new map
   ASSERT_TRUE(WaitForMapUpdate());
@@ -473,9 +473,9 @@ TEST_F(TestMapServer, OnlineUpdateMap) {
   const double map_origin_x = test_node_->map_origin_x();
   const double map_origin_y = test_node_->map_origin_y();
   const double map_origin_yaw = test_node_->map_origin_yaw();
-  // Test of distance_map
+  // Test distance_map
   const nav_msgs::msg::OccupancyGrid distance_map = test_node_->distance_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(distance_map.info.resolution, map_resolution);
   EXPECT_EQ(distance_map.info.width, map_width);
   EXPECT_EQ(distance_map.info.height, map_height);
@@ -488,18 +488,18 @@ TEST_F(TestMapServer, OnlineUpdateMap) {
   EXPECT_FLOAT_EQ(distance_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(distance_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(distance_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(distance_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
+  // Test data
   const std::vector<int64_t> expect_distance_map_data = test_node_->update_map_data();
   ASSERT_EQ(expect_distance_map_data.size(), distance_map.data.size());
   for (uint32_t i = 0; i < distance_map.info.width * distance_map.info.height; ++i) {
     EXPECT_EQ(distance_map.data[i], expect_distance_map_data[i]);
   }
 
-  // Test of obstacle_map
+  // Test obstacle_map
   const nav_msgs::msg::OccupancyGrid obstacle_map = test_node_->obstacle_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(obstacle_map.info.resolution, map_resolution);
   EXPECT_EQ(obstacle_map.info.width, map_width);
   EXPECT_EQ(obstacle_map.info.height, map_height);
@@ -511,18 +511,18 @@ TEST_F(TestMapServer, OnlineUpdateMap) {
   EXPECT_FLOAT_EQ(obstacle_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(obstacle_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(obstacle_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(obstacle_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
+  // Test data
   const std::vector<int64_t> expect_obstacle_map_data = test_node_->update_map_data();
   ASSERT_EQ(expect_obstacle_map_data.size(), obstacle_map.data.size());
   for (uint32_t i = 0; i < obstacle_map.info.width * obstacle_map.info.height; ++i) {
     EXPECT_EQ(obstacle_map.data[i], expect_obstacle_map_data[i]);
   }
 
-  // Test of TMC type distance_map
+  // Test TMC type distance_map
   const tmc_navigation_msgs::msg::OccupancyGridUint tmc_distance_map = test_node_->tmc_distance_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(tmc_distance_map.info.resolution, map_resolution);
   EXPECT_EQ(tmc_distance_map.info.width, map_width);
   EXPECT_EQ(tmc_distance_map.info.height, map_height);
@@ -534,18 +534,18 @@ TEST_F(TestMapServer, OnlineUpdateMap) {
   EXPECT_FLOAT_EQ(tmc_distance_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(tmc_distance_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(tmc_distance_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(tmc_distance_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
+  // Test data
   const std::vector<int64_t> expect_tmc_distance_map_data = test_node_->expect_update_tmc_map_data();
   ASSERT_EQ(expect_tmc_distance_map_data.size(), tmc_distance_map.data.size());
   for (uint32_t i = 0; i < tmc_distance_map.info.width * tmc_distance_map.info.height; ++i) {
     EXPECT_EQ(tmc_distance_map.data[i], expect_tmc_distance_map_data[i]);
   }
 
-  // Test of TMC type obstacle_map
+  // Test TMC type obstacle_map
   const tmc_navigation_msgs::msg::OccupancyGridUint tmc_obstacle_map = test_node_->tmc_obstacle_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.resolution, map_resolution);
   EXPECT_EQ(tmc_obstacle_map.info.width, map_width);
   EXPECT_EQ(tmc_obstacle_map.info.height, map_height);
@@ -556,9 +556,9 @@ TEST_F(TestMapServer, OnlineUpdateMap) {
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(tmc_obstacle_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
+  // Test data
   const std::vector<int64_t> expect_tmc_obstacle_map_data = test_node_->expect_update_tmc_map_data();
   ASSERT_EQ(expect_tmc_obstacle_map_data.size(), tmc_obstacle_map.data.size());
   for (uint32_t i = 0; i < tmc_obstacle_map.info.width * tmc_obstacle_map.info.height; ++i) {
@@ -566,15 +566,15 @@ TEST_F(TestMapServer, OnlineUpdateMap) {
   }
 }
 
-/// Test of map online update function
-/// Verify that map reload from service is functioning correctly
+/// Test map online update function
+/// Check if map reload from service is done correctly
 TEST_F(TestMapServer, ReloadMap) {
   // Spin until subscribing to the old map
   ASSERT_TRUE(WaitForMapUpdate());
-  // Lower the subscribe flag once subscribed
+  // Lower subscription flag after subscribing
   test_node_->ResetSubscribeMaps();
   // Call map reload service
-  // Read the configuration file that specifies the distance and obstacle images in reverse
+  // Read configuration file with distance and obstacle images specified oppositely
   test_node_->ReloadReverseMap();
   // Spin until subscribing to the new map
   ASSERT_TRUE(WaitForMapUpdate());
@@ -584,9 +584,9 @@ TEST_F(TestMapServer, ReloadMap) {
   const double map_origin_x = test_node_->map_origin_x();
   const double map_origin_y = test_node_->map_origin_y();
   const double map_origin_yaw = test_node_->map_origin_yaw();
-  // Test of distance_map
+  // Test distance_map
   const nav_msgs::msg::OccupancyGrid distance_map = test_node_->distance_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(distance_map.info.resolution, map_resolution);
   EXPECT_EQ(distance_map.info.width, map_width);
   EXPECT_EQ(distance_map.info.height, map_height);
@@ -599,19 +599,19 @@ TEST_F(TestMapServer, ReloadMap) {
   EXPECT_FLOAT_EQ(distance_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(distance_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(distance_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(distance_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
-  // Verify if it matches the data of expect_obstacle_map_data
+  // Test data
+  // Check if data matches expect_obstacle_map_data
   const std::vector<int64_t> expect_distance_map_data = test_node_->expect_obstacle_map_data();
   ASSERT_EQ(expect_distance_map_data.size(), distance_map.data.size());
   for (uint32_t i = 0; i < distance_map.info.width * distance_map.info.height; ++i) {
     EXPECT_EQ(distance_map.data[i], expect_distance_map_data[i]);
   }
 
-  // Test of obstacle_map
+  // Test obstacle_map
   const nav_msgs::msg::OccupancyGrid obstacle_map = test_node_->obstacle_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(obstacle_map.info.resolution, map_resolution);
   EXPECT_EQ(obstacle_map.info.width, map_width);
   EXPECT_EQ(obstacle_map.info.height, map_height);
@@ -623,19 +623,19 @@ TEST_F(TestMapServer, ReloadMap) {
   EXPECT_FLOAT_EQ(obstacle_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(obstacle_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(obstacle_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(obstacle_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
-  // Verify if it matches the data of expect_distance_map_data
+  // Test data
+  // Check if data matches expect_distance_map_data
   const std::vector<int64_t> expect_obstacle_map_data = test_node_->expect_distance_map_data();
   ASSERT_EQ(expect_obstacle_map_data.size(), obstacle_map.data.size());
   for (uint32_t i = 0; i < obstacle_map.info.width * obstacle_map.info.height; ++i) {
     EXPECT_EQ(obstacle_map.data[i], expect_obstacle_map_data[i]);
   }
 
-  // Test of TMC type distance_map
+  // Test TMC type distance_map
   const tmc_navigation_msgs::msg::OccupancyGridUint tmc_distance_map = test_node_->tmc_distance_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(tmc_distance_map.info.resolution, map_resolution);
   EXPECT_EQ(tmc_distance_map.info.width, map_width);
   EXPECT_EQ(tmc_distance_map.info.height, map_height);
@@ -647,19 +647,19 @@ TEST_F(TestMapServer, ReloadMap) {
   EXPECT_FLOAT_EQ(tmc_distance_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(tmc_distance_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(tmc_distance_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(tmc_distance_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
-  // Verify if it matches the data of expect_tmc_obstacle_map_data
+  // Test data
+  // Check if data matches expect_tmc_obstacle_map_data
   const std::vector<int64_t> expect_tmc_distance_map_data = test_node_->expect_tmc_obstacle_map_data();
   ASSERT_EQ(expect_tmc_distance_map_data.size(), tmc_distance_map.data.size());
   for (uint32_t i = 0; i < tmc_distance_map.info.width * tmc_distance_map.info.height; ++i) {
     EXPECT_EQ(tmc_distance_map.data[i], expect_tmc_distance_map_data[i]);
   }
 
-  // Test of TMC type obstacle_map
+  // Test TMC type obstacle_map
   const tmc_navigation_msgs::msg::OccupancyGridUint tmc_obstacle_map = test_node_->tmc_obstacle_map().get();
-  // Test of meta data
+  // Test meta data
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.resolution, map_resolution);
   EXPECT_EQ(tmc_obstacle_map.info.width, map_width);
   EXPECT_EQ(tmc_obstacle_map.info.height, map_height);
@@ -670,10 +670,10 @@ TEST_F(TestMapServer, ReloadMap) {
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.origin.orientation.y, orientation.y);
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.origin.orientation.z, orientation.z);
   EXPECT_FLOAT_EQ(tmc_obstacle_map.info.origin.orientation.w, orientation.w);
-  // Test of header
+  // Test header
   EXPECT_STREQ(tmc_obstacle_map.header.frame_id.c_str(), kFrameId);
-  // Test of data
-  // Verify if it matches the data of expect_tmc_distance_map_data
+  // Test data
+  // Check if data matches expect_tmc_distance_map_data
   const std::vector<int64_t> expect_tmc_obstacle_map_data = test_node_->expect_tmc_distance_map_data();
   ASSERT_EQ(expect_tmc_obstacle_map_data.size(), tmc_obstacle_map.data.size());
   for (uint32_t i = 0; i < tmc_obstacle_map.info.width * tmc_obstacle_map.info.height; ++i) {
@@ -706,8 +706,12 @@ int main(int argc, char **argv) {
   auto grid_map_server_node_thread = std::make_shared<std::thread>([&]() {
       rclcpp::spin(grid_map_server_node);
       });
-  grid_map_server_node_thread->detach();
-
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  const int result = RUN_ALL_TESTS();
+
+  rclcpp::shutdown();
+  grid_map_server_node_thread->join();
+  grid_map_server_node.reset();
+
+  return result;
 }

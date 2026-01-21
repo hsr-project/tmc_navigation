@@ -1,0 +1,46 @@
+velocity_switcher:
+  ros__parameters:
+    input_velocities:
+      input_velocity0:
+        topic_name: input_velocity0
+        priority: 2
+        as_control_target_x: true
+        as_control_target_y: true
+        as_control_target_theta: true
+      input_velocity1:
+        topic_name: input_velocity1
+        priority: 3
+        as_control_target_x: true
+        as_control_target_y: true
+        as_control_target_theta: true
+      input_velocity2:
+        topic_name: input_velocity2
+        priority: 4
+        as_control_target_x: true
+        as_control_target_y: true
+        as_control_target_theta: true
+      input_velocity3:
+        topic_name: input_velocity3
+        priority: 5
+        as_control_target_x: true
+        as_control_target_y: true
+        as_control_target_theta: true
+      input_velocity4:
+        topic_name: input_velocity4
+        priority: 6
+        as_control_target_x: true
+        as_control_target_y: true
+        as_control_target_theta: true
+      input_velocity5:
+        topic_name: input_velocity5
+        priority: 0
+        as_control_target_x: true
+        as_control_target_y: true
+        as_control_target_theta: false
+      input_velocity6:
+        topic_name: input_velocity6
+        priority: 1
+        as_control_target_x: false
+        as_control_target_y: false
+        as_control_target_theta: true
+

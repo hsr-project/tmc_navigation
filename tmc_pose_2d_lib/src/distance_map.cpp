@@ -109,8 +109,8 @@ bool DistanceMap::GetMapPoint(const size_t index_u, const size_t index_v, Point2
 
 bool DistanceMap::CheckIndices(const Point2d& p_map, size_t& index_u, size_t& index_v) const {
   const Point2d p_image = origin_map_image_inverse_ * p_map;
-  // int(1.3) = 1 leads to truncation (rounds down), but
-  // In the case of negative numbers, int(-1.3) = -1 rounds up, so casting negative numbers should be done carefully
+  // int(1.3) = 1 results in truncation (rounding towards the smaller value)
+  // In the case of negative numbers, int(-1.3) = -1 results in a larger value, so be cautious with casting negative numbers
   if (p_image.x() < 0.0 || p_image.y() < 0.0) {
     return false;
   }
@@ -118,7 +118,7 @@ bool DistanceMap::CheckIndices(const Point2d& p_map, size_t& index_u, size_t& in
   index_u = static_cast<size_t>(p_image.x() / resolution_);
   index_v = static_cast<size_t>(p_image.y() / resolution_);
 
-  // Confirm that it is within the image index
+  // Ensure it is within the image index
   return CheckIndexArea(index_u, index_v);
 }
 
@@ -140,7 +140,7 @@ void DistanceMap::CheckTypeAndDistance(const Point2d& p_map, DistanceMap::CellTy
       type = kUnExplored;
       return;
     }
-    // Normalizing (255-val) and multiplying by potential_width_ turns into distance
+    // Normalize (255-val) and multiply by potential_width_ to get the distance
     // UCHAR_MAX = 255
     distance = static_cast<double>((UCHAR_MAX - val)) / static_cast<double>(UCHAR_MAX) * potential_width_;
     type = kHasDistance;
@@ -151,21 +151,21 @@ void DistanceMap::CheckTypeAndDistance(const Point2d& p_map, DistanceMap::CellTy
   }
 }
 
-/// Expand the obstacle area so that occupancy rate decreases as it moves away from the wall to the specified distance
+/// Expand the obstacle area so that the occupancy rate decreases as it moves away from the wall up to the specified distance
 void DistanceMap::InflateMap(const double potential_width) {
   const double potential_grid_width = potential_width / resolution_;
   if (potential_grid_width < std::numeric_limits<double>::epsilon()) {
     return;
   }
 
-  // Calculate grid distance from each grid to the nearest wall
+  // Calculate the grid distance from each grid to the nearest wall
   std::vector<double> grid_distance_to_walls = CalculateGridDistanceToWalls();
 
   for (int32_t y = 0; y < static_cast<int32_t>(height_); y++) {
     for (int32_t x = 0; x < static_cast<int32_t>(width_); x++) {
       const int32_t current = x + (y * width_);
       if (grid_distance_to_walls.at(current) <= potential_grid_width) {
-        // Calculate and store potential values
+        // Calculate and store the potential value
         const unsigned char potential_value = UCHAR_MAX -
             static_cast<unsigned char>(grid_distance_to_walls.at(current) / potential_grid_width *
                                        (kWallValue - kFreeValue));
@@ -178,13 +178,13 @@ void DistanceMap::InflateMap(const double potential_width) {
   potential_width_ = potential_width;
 }
 
-/// Calculate grid distance from each grid to the nearest wall
+/// Calculate the grid distance from each grid to the nearest wall
 std::vector<double> DistanceMap::CalculateGridDistanceToWalls() {
-  // Information about the nearest wall for each grid
+  // Nearest wall information for each grid
   std::vector<int32_t> nearest_wall_indexes;
   nearest_wall_indexes.clear();
   nearest_wall_indexes.resize(height_ * width_);
-  // Where there is a wall, store its own grid index
+  // Store its own grid index where there is a wall
   for (int32_t y = 0; y < static_cast<int32_t>(height_); y++) {
     for (int32_t x = 0; x < static_cast<int32_t>(width_); x++) {
       const int32_t current = x + (y * width_);
@@ -206,7 +206,7 @@ std::vector<double> DistanceMap::CalculateGridDistanceToWalls() {
   const int32_t kRightUp = kRight + kUp;
   const int32_t kLeftDown = kLeft + kDown;
   const int32_t kRightDown = kRight + kDown;
-  // Calculate for the 8 directions: up, down, left, right, and diagonals
+  // Calculate for 8 directions: up, down, left, right, and diagonals
   std::vector<int32_t> neighbors = { kLeftDown, kDown, kRightDown, kRight,
                                      kRightUp, kUp, kLeftUp, kLeft };
   std::vector<double> grid_distance_to_walls;
@@ -245,7 +245,7 @@ std::vector<double> DistanceMap::CalculateGridDistanceToWalls() {
   return grid_distance_to_walls;
 }
 
-/// Update distance to the nearest wall and nearest wall position information
+/// Update the distance to the nearest wall and nearest wall position information
 void DistanceMap::UpdateDistanceAndNearestWall(const int32_t x, const int32_t y, const int32_t neighbor_index,
                                                std::vector<int32_t>& nearest_wall_indexes, double& distance) {
   const int32_t current_index = x + (y * width_);

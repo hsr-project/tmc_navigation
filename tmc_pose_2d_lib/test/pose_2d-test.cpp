@@ -86,8 +86,8 @@ TEST(Pose2dTest, RotationTest) {
   const double theta01 = M_PI / 10.0;
   const double theta02 = M_PI / 20.0;
 
-  const Rotation2d r01(theta01);  // From coordinate system 0 to coordinate system 1 (Rotation transformation from coordinate system 1 to coordinate system 0)
-  const Rotation2d r02(theta02);  // From coordinate system 0 to coordinate system 2 (Rotation transformation from coordinate system 2 to coordinate system 0)
+  const Rotation2d r01(theta01);  // Coordinate system 0's view of coordinate system 1 (rotation transformation from coordinate system 1 to coordinate system 0)
+  const Rotation2d r02(theta02);  // Coordinate system 0's view of coordinate system 2 (rotation transformation from coordinate system 2 to coordinate system 0)
   Rotation2d r3;
 
   // setter, getter
@@ -101,7 +101,7 @@ TEST(Pose2dTest, RotationTest) {
   // Point coordinate transformation
   Point2d p0;  // Coordinates of point p in coordinate system 0
   Point2d p1;  // Coordinates of point p in coordinate system 1.
-  Point2d p2;  // Coordinates of point p in coordinate system 2. p0, p1, p2 refer to the same point viewed from different coordinate systems
+  Point2d p2;  // Coordinates of point p in coordinate system 2. p0, p1, p2 refer to the coordinates of the same point viewed from different coordinate systems
 
   p0 = Point2d(1.0, 0.0);
   p1 = r01.Inverse() * p0;
@@ -120,7 +120,7 @@ TEST(Pose2dTest, PoseTest) {
   const double x01 = 1.0;
   const double y01 = 1.0;
   const double theta01 = M_PI / 10.0;
-  // From coordinate system 0 to coordinate system 1 (Rigid body transformation from coordinate system 1 to coordinate system 0)
+  // Coordinate system 0's view of coordinate system 1 (rigid transformation from coordinate system 1 to coordinate system 0)
   const Pose2d pose01(x01, y01, theta01);
 
   // getter, setter
@@ -149,7 +149,7 @@ TEST(Pose2dTest, PoseTest) {
   // Point coordinate transformation
   Point2d p0;  // Coordinates of point p in coordinate system 0
   Point2d p1;  // Coordinates of point p in coordinate system 1.
-  Point2d p2;  // Coordinates of point p in coordinate system 2. p0, p1, p2 refer to the same point viewed from different coordinate systems
+  Point2d p2;  // Coordinates of point p in coordinate system 2. p0, p1, p2 refer to the coordinates of the same point viewed from different coordinate systems
   p0 = Point2d(1.0, 0.0);
   p1 = pose01.Inverse() * p0;
   ASSERT_DOUBLE_EQ(p1.x(),  -y01 * sin(theta01));
@@ -160,7 +160,7 @@ TEST(Pose2dTest, PoseTest) {
   ASSERT_DOUBLE_EQ(p1.x(),  -y01 * cos(theta01));
   ASSERT_DOUBLE_EQ(p1.y(),   y01 * sin(theta01));
 
-  // Coordinate transformation of point cloud
+  // Point cloud coordinate transformation
   std::vector<Point2d> pts0;
   std::vector<Point2d> pts1;
 

@@ -1,0 +1,33 @@
+base_path_follower:
+  ros__parameters:
+    move_model_name: "diff_drive"
+    diff_drive_velocity_calculator:
+      max_linear_velocity: 0.6
+      max_angular_velocity: 2.0
+      max_linear_acceleration: 1.0
+      max_angular_acceleration: 5.0
+      linear_deceleration_near_goal: 1.2
+      linear_velocity_margin: 0.05
+      linear_alpha_gain: 3.0
+      linear_beta_gain: 1.5
+      angle_error_angular_velocity_rate: 1.0
+      spin_start_error_angle: 0.85
+      spin_end_error_angle: 0.03
+      spin_max_angular_velocity: 0.8
+      spin_min_angular_velocity: 0.05
+    diff_drive_goal_checker:
+      goal_area_length: 0.5
+      goal_line_length: 0.05
+      goal_stop_error_angle: 0.04
+    nearest_path_point_searcher:
+      partial_search_range: 0.5
+      partial_search_permit_error: 0.5
+    use_path_transit_velocity: true
+    path_transit_velocity_calculator:
+      max_linear_velocity: 0.6
+      min_linear_velocity: 0.45
+      max_angular_velocity: 0.8
+      max_linear_acceleration: 0.25
+      max_linear_deceleration: 0.25
+      max_angular_acceleration: 0.5
+      max_angular_deceleration: 0.5

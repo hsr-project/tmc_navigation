@@ -77,36 +77,36 @@ class DistanceMap {
   bool GetValueAt(const size_t index_u, const size_t index_v, unsigned char& value) const;
   /// @brief Obtain coordinate values in map coordinate system from values in image coordinate system
   bool GetMapPoint(const size_t index_u, const size_t index_v, Point2d& point_map) const;
-  /// @brief Determine whether the specified 2D point in map coordinate system is within map data range
+  /// @brief Determine whether a specified 2D point in the map coordinate system is within the map data range
   bool InMap(const Point2d& p_map) const;
-  /// @brief Check the Type of image data at the specified map coordinate point and return the value if a valid distance is entered
+  /// @brief Check the type of image data at the specified map coordinate point, and return the value if a valid distance is present
   void CheckTypeAndDistance(const Point2d& p_map, DistanceMap::CellType& type, double& distance) const;
-  /// @brief Check area with obstacles
+  /// @brief Check the area with obstacles
   void CalcOccupiedRegion();
   /// @brief Coordinate transformation from image coordinate system to map coordinate system
   void ImageToMap(Pose2d& pose);
   /// @brief Coordinate transformation from map coordinate system to image coordinate system
   void MapToImage(Pose2d& pose);
-  /// @brief Expand obstacle area such that occupancy decreases as it moves away from the wall to a specified distance
+  /// @brief Expand the obstacle area so that the occupancy rate decreases as it moves away from the wall up to the specified distance from the wall
   void InflateMap(const double potential_width);
 
  private:
-  /// map->image coordinate system Transformation from image coordinate system to map coordinate system
+  /// map->image coordinate system Conversion from image coordinate system to map coordinate system
   Pose2d origin_map_image_;
-  /// map->image coordinate system Inverse transformation from image coordinate system to map coordinate system
+  /// map->image coordinate system Inverse conversion from image coordinate system to map coordinate system
   Pose2d origin_map_image_inverse_;
   /// Grid size (m)
   double resolution_;
-  /// Width of the map (number of grids)
+  /// Map width (number of grids)
   size_t width_;
-  /// Height of the map (number of grids)
+  /// Map height (number of grids)
   size_t height_;
 
   /// @brief Map data
   std::vector<unsigned char> data_;
 
-  /// Occupied and non-occupied threshold
-  // Normalizing (255-data) and multiplying by potential_width gives the shortest distance to an object in that cell
+  /// Occupied and unoccupied threshold
+  // Normalize (255-data) and multiply by potential_width to get the shortest distance to the object in that cell
   double potential_width_;
 
   // Range of indices where potential values exist
@@ -115,15 +115,15 @@ class DistanceMap {
   size_t max_u_;
   size_t max_v_;
 
-  /// @brief Obtain image coordinate system value for specified 2D point in map coordinate system
+  /// @brief Obtain the value in the image coordinate system for a specified 2D point in the map coordinate system
   bool CheckIndices(const Point2d& p_map, size_t& index_u, size_t& index_v) const;
   bool CheckIndexArea(const size_t index_u, const size_t index_v) const;
 
   bool IsValid() const;
 
-  /// Calculate grid distance to the nearest wall for each grid
+  /// Calculate the grid distance to the nearest wall for each grid
   std::vector<double> CalculateGridDistanceToWalls();
-  /// Update of distance to nearest wall and nearest wall location information
+  /// Update the distance to the nearest wall and nearest wall position information
   void UpdateDistanceAndNearestWall(const int32_t x, const int32_t y, const int32_t neighbor_index,
                                     std::vector<int32_t>& nearest_wall_indexes, double& distance);
 };

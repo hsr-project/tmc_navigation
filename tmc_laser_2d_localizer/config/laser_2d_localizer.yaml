@@ -1,0 +1,43 @@
+laser_2d_localizer:
+  ros__parameters:
+    #初期位置(m,m,deg)
+    init_x: 0.0
+    init_y: 0.0
+    init_theta_deg: 0.0
+    #パーティクル数
+    number_of_particles: 200.0
+    #Neff値の閾値
+    effective_particle_ratio: 0.8
+    #並進x[y]移動量(m)が並進y[x]移動量(m)に与えるノイズの標準偏差
+    standard_deviation_xy_to_yx: 0.1
+    #並進x[y]移動量(m)が並進x[y]移動量(m)に与えるノイズの標準偏差
+    standard_deviation_xy_to_xy: 0.05
+    #並進移動量(m)が角度偏差(rad)に与えるノイズの標準偏差
+    standard_deviation_xy_to_theta: 0.1
+    #角度偏差(rad)が並進移動量(m)に与えるノイズの標準偏差
+    standard_deviation_theta_to_xy: 0.1
+    #角度偏差(rad)が並進移動量(m)に与えるノイズの標準偏差
+    standard_deviation_theta_to_theta: 0.05
+    #初期位置に対するパーティクルのxy座標の標準偏差(m)
+    standard_deviation_init_xy: 0.0
+    #初期位置に対するパーティクルの向きの標準偏差(rad)
+    standard_deviation_init_theta: 0.0
+    #有効レーザ最大距離．現在未使用
+    max_effective_range: 29.0
+    #パーティクルフィルタを実行するトリガとなる移動量閾値(m)
+    #distance_triggering_filter: 0.3
+    distance_triggering_filter: 0.05
+    #パーティクルフィルタを実行するトリガとなる角度偏差閾値(rad)
+    angle_triggering_filter: 0.1
+    #Distance Mapのポテンシャル幅[m]
+    potential_width: 3.0
+    #壁から何m離れたら地図にない障害物とみなすか[m]
+    laser_filter: 0.6
+    #マップマッチングのスコアしきい値
+    localization_score_limit: -0.07
+    # オドメトリTF名
+    odometry_tf_name: odom
+    # 台車TF名
+    base_tf_name: base_footprint
+    # ロボットTF名
+    robot_tf_name: base_link

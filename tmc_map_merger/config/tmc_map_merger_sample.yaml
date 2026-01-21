@@ -1,0 +1,77 @@
+map_merger:
+  ros__parameters:
+    fixed_frame: map
+    origin_frame: base_footprint
+    publish_rate: 2.0
+    root:
+      merger: simple
+      width: 7.0
+      height: 7.0
+      resolution: 0.05
+    inputs:
+      head_rgbd_sensor:
+        enable: True
+        topic_name: "/head_rgbd_sensor/depth_registered/rectified_points"
+        type: "sensor_msgs/PointCloud2"
+        rate: 5.0
+        merger: safety_memory
+        width: 7.0
+        height: 7.0
+        resolution: 0.05
+        keep_time: 5.0
+        default_data: -1
+        point_cloud_filters:
+          voxel_grid:
+            order: 1
+            type: "voxel_grid"
+            leaf_size: 0.05
+          transform:
+            order: 2
+            type: "transform"
+          trimming:
+            order: 3
+            type: "trimming"
+            field_name: "z"
+            min: 0.2
+            max: 0.8
+          noise:
+            type: "noise"
+            radius: 0.1
+            min_neighbors: 1
+        obstacle_circle:
+          forbid_radius: 0.25
+          obstacle_radius: 0.35
+          obstacle_occupancy: 10
+      base_scan:
+        enable: True
+        topic_name: "scan"
+        type: "sensor_msgs/LaserScan"
+        rate: 5.0
+        merger: safety_memory
+        width: 7.0
+        height: 7.0
+        resolution: 0.05
+        keep_time: 5.0
+        default_data: -1
+        point_cloud_filters:
+          voxel_grid:
+            order: 1
+            type: "voxel_grid"
+            leaf_size: 0.05
+          transform:
+            order: 2
+            type: "transform"
+          trimming:
+            order: 3
+            type: "trimming"
+            field_name: "z"
+            min: 0.15
+            max: 1.5
+          noise:
+            type: "noise"
+            radius: 0.1
+            min_neighbors: 1
+        obstacle_circle:
+          forbid_radius: 0.4
+          obstacle_radius: 0.5
+          obstacle_occupancy: 10

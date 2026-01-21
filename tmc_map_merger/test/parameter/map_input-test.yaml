@@ -1,0 +1,116 @@
+test_node:
+  ros__parameters:
+    inputs:
+      head_rgbd_sensor:
+        topic_name: "/hsrb/head_rgbd_sensor/depth_registered/rectified_points"
+        type: "sensor_msgs/PointCloud2"
+        rate: 5.0
+        merger: simple_memory
+        width: 7.0
+        height: 7.0
+        resolution: 0.05
+        keep_time: 5.0
+        default_data: -1
+        point_cloud_filters:
+          voxel_grid:
+            type: "voxel_grid"
+            leaf_size: 0.05
+          transform:
+            type: "transform"
+          trimming:
+            type: "trimming"
+            field_name: "z"
+            min: 0.15
+            max: 1.5
+          noise:
+            type: "noise"
+            radius: 0.1
+            min_neighbors: 1
+        obstacle_circle:
+          forbid_radius: 0.25
+          obstacle_radius: 0.35
+          obstacle_occupancy: 10
+      base_scan:
+        topic_name: "/hsrb/base_scan"
+        type: "sensor_msgs/LaserScan"
+        rate: 5.0
+        merger: simple_memory
+        width: 7.0
+        height: 7.0
+        resolution: 0.05
+        keep_time: 5.0
+        default_data: -1
+        point_cloud_filters:
+          voxel_grid:
+            type: "voxel_grid"
+            leaf_size: 0.05
+          transform:
+            type: "transform"
+          trimming:
+            type: "trimming"
+            field_name: "z"
+            min: 0.15
+            max: 1.5
+          noise:
+            type: "noise"
+            radius: 0.1
+            min_neighbors: 1
+        obstacle_circle:
+          forbid_radius: 0.25
+          obstacle_radius: 0.35
+          obstacle_occupancy: 10
+      obstacle_grid_map:
+        topic_name: "/hsrb/static_distance_map"
+        type: "nav_msgs/OccupancyGrid"
+        merger: simple_memory
+        width: 7.0
+        height: 7.0
+        resolution: 0.05
+        keep_time: 5.0
+        default_data: -1
+        point_cloud_filters:
+          voxel_grid:
+            type: "voxel_grid"
+            leaf_size: 0.05
+          transform:
+            type: "transform"
+          trimming:
+            type: "trimming"
+            field_name: "z"
+            min: 0.15
+            max: 1.5
+          noise:
+            type: "noise"
+            radius: 0.1
+            min_neighbors: 1
+        obstacle_circle:
+          forbid_radius: 0.25
+          obstacle_radius: 0.35
+          obstacle_occupancy: 10
+      xxx:
+        type: "xxx"
+        merger: simple_memory
+        width: 7.0
+        height: 7.0
+        resolution: 0.05
+        keep_time: 5.0
+        default_data: -1
+        point_cloud_filters:
+          voxel_grid:
+            type: "voxel_grid"
+            leaf_size: 0.05
+          transform:
+            type: "transform"
+          trimming:
+            type: "trimming"
+            field_name: "z"
+            min: 0.15
+            max: 1.5
+          noise:
+            type: "noise"
+            radius: 0.1
+            min_neighbors: 1
+        obstacle_circle:
+          forbid_radius: 0.25
+          obstacle_radius: 0.35
+          obstacle_occupancy: 10

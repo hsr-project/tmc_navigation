@@ -111,7 +111,7 @@ class Pose2d {
 
   Pose2d Inverse() const;
 
-  // Coordinate transformation of points
+  // Coordinate transformation of a point
   Point2d operator*(const Point2d& rhs) const;
   // Composite transformation of coordinate systems
   Pose2d operator*(const Pose2d& rhs) const;

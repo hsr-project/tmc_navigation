@@ -33,7 +33,7 @@ DAMAGE.
 
 namespace tmc_odometry_switcher {
 // TODO(syuuhei_shiro): パラメータ取得関数は共通パッケージに置く
-// Retrieve mandatory parameters
+// Retrieve required parameters
 template<typename T>
 bool GetParam(const rclcpp::Node::SharedPtr& node, const std::string& param_name, T& value) {
   rclcpp::Parameter param;

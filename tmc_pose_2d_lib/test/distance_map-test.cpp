@@ -41,7 +41,7 @@ TEST(DistanceMapTest, DispanceMapClassTest) {
   // 50  100 0
   // 0     0 0
 
-  // Number of data doesn't match
+  // The number of data does not match
   EXPECT_THROW(DistanceMap invalid_map(
     Pose2d(1.0, 2.0, M_PI/2.0),
     0.1, 3, 3,
@@ -51,7 +51,7 @@ TEST(DistanceMapTest, DispanceMapClassTest) {
     1, 0, 0, 0}),
     std::runtime_error);
 
-  // Number of data matches
+  // The number of data matches
   DistanceMap map(
     Pose2d(1.0, 2.0, M_PI/2.0),
     0.1, 4, 3,
@@ -106,7 +106,7 @@ TEST(DistanceMapTest, DispanceMapClassTest) {
   ASSERT_TRUE(type == DistanceMap::CellType::kOutside);
 }
 
-// Test that potential can expand within a specified distance range from the wall
+// Test that potential can be expanded within a specified distance range from the wall
 TEST(DistanceMapTest, DispanceMapInflateMapTest) {
   DistanceMap map(
     Pose2d(0.0, 0.0, 0.0),
@@ -121,31 +121,31 @@ TEST(DistanceMapTest, DispanceMapInflateMapTest) {
     0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0});
-  // Map with a wall in the center of the map
+  // Map with a wall in the center
   const int32_t wall_u = 4;
   const int32_t wall_v = 4;
   map.SetValueAt(wall_u, wall_v, 255);
   // Expand
   const double inflate_width = 0.41;
   map.InflateMap(inflate_width);
-  for (int32_t u = 0; u < map.width(); ++u) {
-    for (int32_t v = 0; v < map.height(); ++v) {
+  for (auto u = 0u; u < map.width(); ++u) {
+    for (auto v = 0u; v < map.height(); ++v) {
       const int32_t current = u + v * map.width();
-      const double distance_to_wall = sqrt(pow(map.resolution() * (wall_u - u), 2) +
-                                           pow(map.resolution() * (wall_v - v), 2));
+      const double distance_to_wall = sqrt(pow(map.resolution() * (wall_u - static_cast<int32_t>(u)), 2) +
+                                           pow(map.resolution() * (wall_v - static_cast<int32_t>(v)), 2));
       if (distance_to_wall < inflate_width) {
-        // Within the expanded range, the potential relates to the distance from the wall
+        // Within the expanded range, the potential is based on the distance from the wall
         const unsigned char expect_value = 255 - static_cast<unsigned char>(254 * (distance_to_wall / inflate_width));
         ASSERT_EQ(expect_value, map.data().at(current));
       } else {
-        // Outside the range has not changed
+        // Outside the range, there is no change
         ASSERT_EQ(0, map.data().at(current));
       }
     }
   }
 }
 
-// When expanding potential, the grid between two walls is affected by the closer wall
+// When expanding potential, the grid between two walls is influenced by the closer wall
 TEST(DistanceMapTest, DispanceMapInflateMapByNearestWallTest) {
   DistanceMap map(
     Pose2d(0.0, 0.0, 0.0),
@@ -160,7 +160,7 @@ TEST(DistanceMapTest, DispanceMapInflateMapByNearestWallTest) {
     0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0});
-  // Map with walls in the center and origin of the map
+  // Map with walls at the center and origin
   const int32_t wall1_u = 4;
   const int32_t wall1_v = 4;
   const int32_t wall2_u = 0;
@@ -170,20 +170,20 @@ TEST(DistanceMapTest, DispanceMapInflateMapByNearestWallTest) {
   // Expand
   const double inflate_width = 0.41;
   map.InflateMap(inflate_width);
-  for (int32_t u = 0; u < map.width(); ++u) {
-    for (int32_t v = 0; v < map.height(); ++v) {
+  for (auto u = 0u; u < map.width(); ++u) {
+    for (auto v = 0u; v < map.height(); ++v) {
       const int32_t current = u + v * map.width();
-      const double distance_to_wall1 = sqrt(pow(map.resolution() * (wall1_u - u), 2) +
-                                            pow(map.resolution() * (wall1_v - v), 2));
-      const double distance_to_wall2 = sqrt(pow(map.resolution() * (wall2_u - u), 2) +
-                                            pow(map.resolution() * (wall2_v - v), 2));
+      const double distance_to_wall1 = sqrt(pow(map.resolution() * (wall1_u - static_cast<int32_t>(u)), 2) +
+                                            pow(map.resolution() * (wall1_v - static_cast<int32_t>(v)), 2));
+      const double distance_to_wall2 = sqrt(pow(map.resolution() * (wall2_u - static_cast<int32_t>(u)), 2) +
+                                            pow(map.resolution() * (wall2_v - static_cast<int32_t>(v)), 2));
       if (distance_to_wall1 < inflate_width || distance_to_wall2 < inflate_width) {
-        // Potential according to the distance from the closer wall
+        // Potential is based on the distance from the closer wall
         const double distance_to_wall = std::min(distance_to_wall1, distance_to_wall2);
         const unsigned char expect_value = 255 - static_cast<unsigned char>(254 * (distance_to_wall / inflate_width));
         ASSERT_EQ(expect_value, map.data().at(current));
       } else {
-        // Outside the range has not changed
+        // Outside the range, there is no change
         ASSERT_EQ(0, map.data().at(current));
       }
     }

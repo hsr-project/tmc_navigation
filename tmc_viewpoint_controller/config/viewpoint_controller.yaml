@@ -1,0 +1,10 @@
+viewpoint_controller:
+  ros__parameters:
+    joint_states: hsrb/joint_states
+    command: hsrb/head_trajectory_controller/command
+    map_frame: map
+    base_frame: base_footprint
+    focus_path_length: 0.7
+    max_rotation_once: 3.14
+    rate: 10.0
+    fixed_neck_tilt_angle: -0.5
