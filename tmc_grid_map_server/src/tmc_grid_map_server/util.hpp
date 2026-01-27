@@ -26,33 +26,33 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file     util.hpp
-/// @brief    A set of functions commonly used within this package
+/// @brief    Functions commonly used within this package
 #ifndef TMC_GRID_MAP_SERVER_UTIL_HPP_
 #define TMC_GRID_MAP_SERVER_UTIL_HPP_
 
 namespace tmc_grid_map_server {
-// Free area in PGM files
+// Free area in PGM file
 const uint8_t kPGM_FREE = 255;
 
-// Free area in ROS map topics
+// Free area in ROS map topic
 const int8_t kROS_FREE = 0;
-// Unknown area in ROS map topics
+// Unknown area in ROS map topic
 const int8_t kROS_UNKNOWN = -1;
-// Wall area in ROS map topics
+// Wall area in ROS map topic
 const int8_t kROS_WALL = 100;
 
-// Unknown area in TMC map topics
+// Unknown area in TMC map topic
 const uint8_t kTMC_UNKNOWN = 0;
 
-// Convert a TMC-spec map to a ROS-spec map
+// Convert TMC specification map to ROS specification
 void ConvertMapTmcToRos(const tmc_navigation_msgs::msg::OccupancyGridUint& tmc_map,
     nav_msgs::msg::OccupancyGrid& ros_map);
 
-// Convert a ROS-spec map to a TMC-spec map
+// Convert ROS specification map to TMC specification
 void ConvertMapRosToTmc(const nav_msgs::msg::OccupancyGrid& ros_map,
     tmc_navigation_msgs::msg::OccupancyGridUint& tmc_map);
 
-/// Generate TMC-spec inflated map from a ROS-spec map
+/// Generate TMC specification inflated map from ROS specification map
 bool CreateTmcPotentialMap(const nav_msgs::msg::OccupancyGrid& ros_map, const double potential_width,
     const double occupied_thresh, tmc_navigation_msgs::msg::OccupancyGridUint& tmc_potential_map);
 }  // namespace tmc_grid_map_server

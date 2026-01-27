@@ -40,7 +40,7 @@ DAMAGE.
 #include <Eigen/Geometry>
 #include <nav_msgs/msg/odometry.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tmc_navigation_msgs/srv/odometry_switch.hpp>
 
@@ -49,8 +49,8 @@ namespace tmc_odometry_switcher {
 using OdometryList = std::map<std::string, Eigen::Affine3d, std::less<std::string>,
                      Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > >;
 /// Odometry Switching Class
-/// Ensure that the output odometry does not jump before and after switching.
-/// Calculate the odometry by adding the differences from the position during the odometry switch as a reference.
+/// Ensure that the output odometry does not jump before and after switching
+/// Calculate the odometry by adding the difference from the position at the time of odometry switching
 class OdometrySwitcher {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -66,28 +66,28 @@ class OdometrySwitcher {
   // Initialization
   void Init();
 
-  /// Odometry Switch
+  /// Odometry Switching
   /// @param odom_type [I] Type of odometry
-  /// @ret true: switch successful / false: switch failed
+  /// @ret true: Switching successful / false: Switching failed
   bool SwitchSourceOdom(const std::string& odom_type);
 
   /// Odometry Update
   /// @param odom_type [I] Type of odometry
   /// @param odom_pose [I] Odometry position
   /// @param output_odom_pose [O] Updated odometry position
-  /// @ret true: odometry updated / false: odometry not updated
+  /// @ret true: Odometry updated / false: Odometry not updated
   bool UpdateOdometry(const std::string& odom_type, const Eigen::Affine3d& odom_pose,
                       Eigen::Affine3d& output_odom_pose);
 
  private:
-  /// Calculate Odometry Position
+  /// Calculate odometry position
   Eigen::Affine3d GetCurrentOdometryTransform() const;
 
-  // Type of source odometry to be used
+  // Type of source odometry to use
   std::string source_odom_type_;
   // Odometry list
   OdometryList odom_list_;
-  // Reference transformation during odometry switching
+  // Reference transformation at the time of odometry switching
   Eigen::Affine3d base_transform_;
 };
 
@@ -130,7 +130,7 @@ class OdometrySwitcherNode : public rclcpp::Node {
   void Init();
 
  private:
-  // Odometry switch service callback
+  // Odometry switching service callback
   bool SwitchServiceCallback(
       tmc_navigation_msgs::srv::OdometrySwitch::Request::SharedPtr req,
       tmc_navigation_msgs::srv::OdometrySwitch::Response::SharedPtr res);

@@ -138,7 +138,7 @@ Point2d Pose2d::operator*(const Point2d& point) const {
   return rot_ * point + point_;
 }
 
-// Composite coordinate transformation
+// Composite transformation of coordinates
 Pose2d Pose2d::operator*(const Pose2d& rhs) const {
   const Pose2d pose(*this);
   return std::move(Pose2d(rot_ * rhs.rot(), pose * rhs.point()));

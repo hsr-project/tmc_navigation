@@ -1,0 +1,11 @@
+rate: 1.0
+cache_time: 1.0
+target_topics:
+  - /tf
+static_topics:
+  - /tf_static
+trigger_names:
+  - service_trigger
+
+service_trigger:
+  type: tmc_rosbag_tools.topic_collection_triggers.EmptyServiceTrigger

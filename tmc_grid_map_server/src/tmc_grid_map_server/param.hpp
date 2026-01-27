@@ -32,7 +32,7 @@ DAMAGE.
 
 namespace tmc_grid_map_server {
 // TODO(syuuhei_shiro): パラメータ取得関数は共通パッケージに置く
-// Getting required parameters
+// Retrieve required parameters
 template<typename T>
 bool GetParam(const rclcpp::Node::SharedPtr& node, const std::string& param_name, T& value) {
   rclcpp::Parameter param;
@@ -45,7 +45,7 @@ bool GetParam(const rclcpp::Node::SharedPtr& node, const std::string& param_name
   return true;
 }
 
-// Getting optional parameters
+// Retrieve optional parameters
 template<typename T>
 void GetOptionalParam(const rclcpp::Node::SharedPtr& node, const std::string& param_name, T& value,
                       const T& default_value) {

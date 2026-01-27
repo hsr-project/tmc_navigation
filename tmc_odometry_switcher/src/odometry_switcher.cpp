@@ -67,13 +67,13 @@ OdometrySwitcherNode::OdometrySwitcherNode(const rclcpp::NodeOptions& options)
 
 /// Initialization
 void OdometrySwitcherNode::Init() {
-  // Retrieve the list of odometry topics as source from parameters
+  // Retrieve the list of source odometry topics from parameters
   std::map<std::string, rclcpp::Parameter> odom_topic_list;
   if (!GetGroupParam(shared_from_this(), kOdomInputListName, odom_topic_list)) {
     throw std::runtime_error(std::string(kOdomInputListName) + " parameter was not found.");
   }
 
-  // Get the type of odometry topic to use initially
+  // Get the type of odometry topic to use first
   std::string source_odom_type;
   if (!GetParam(shared_from_this(), kInitialOdomName, source_odom_type)) {
     throw std::runtime_error(std::string(kInitialOdomName) + " parameter was not found.");
@@ -89,14 +89,14 @@ void OdometrySwitcherNode::Init() {
         << "] source for now!");
   }
 
-  // Obtain the parent-child frame names for the output odometry
+  // Get the parent-child frame names for the output odometry
   std::string odom_frame;
   GetOptionalParam(shared_from_this(), kOdomParamName, odom_frame, std::string(kDefaultOdomName));
   std::string odom_child_frame;
   GetOptionalParam(shared_from_this(), kOdomChildParamName, odom_child_frame, std::string(kDefaultOdomChildName));
 
   OdometryList odometry_list;
-  for (const auto odom_topic : odom_topic_list) {
+  for (const auto& odom_topic : odom_topic_list) {
     odometry_list.insert(std::make_pair(odom_topic.first, Eigen::Affine3d::Identity()));
   }
   odometry_switcher_.reset(new OdometrySwitcher(source_odom_type, odometry_list));
@@ -105,7 +105,7 @@ void OdometrySwitcherNode::Init() {
       new OdometryPublisher(shared_from_this(), odom_frame, odom_child_frame));
 
   /// Generate subscribers for each topic in the list
-  for (const auto odom_topic : odom_topic_list) {
+  for (const auto& odom_topic : odom_topic_list) {
     OdometrySubscriber::Ptr subscriber(
         new OdometrySubscriber(shared_from_this(), odom_topic.first, odom_topic.second.get_value<std::string>(),
         odometry_switcher_, publisher));
@@ -131,6 +131,8 @@ bool OdometrySwitcherNode::SwitchServiceCallback(
     RCLCPP_ERROR_STREAM(this->get_logger(), "Odom type is not in list.");
     res->is_success = false;
   }
+
+  return res->is_success;
 }
 
 /// Odometry subscriber class constructor
@@ -181,14 +183,14 @@ void OdometryPublisher::PublishOdometry(const nav_msgs::msg::Odometry& odometry)
   tf_broadcaster_.sendTransform(OdometryMsgToTransform(output_odom));
 }
 
-/// Odometry switching
+/// Odometry switch
 /// @param odom_type [I] Type of odometry
 /// @ret true: switch successful / false: switch failed
 bool OdometrySwitcher::SwitchSourceOdom(const std::string& odom_type) {
   if (odom_list_.find(odom_type) == odom_list_.end()) {
     return false;
   }
-  // Update the position to switch odometry
+  // Update odometry switch position
   const Eigen::Affine3d current_transform = GetCurrentOdometryTransform();
   base_transform_ = current_transform * odom_list_[odom_type].inverse();
   // Update source odometry
@@ -200,21 +202,21 @@ bool OdometrySwitcher::SwitchSourceOdom(const std::string& odom_type) {
 /// @param odom_type [I] Type of odometry
 /// @param odom_pose [I] Odometry position
 /// @param output_odom_pose [O] Updated odometry position
-/// @ret true: odometry has been updated / false: odometry has not been updated
+/// @ret true: odometry updated / false: odometry not updated
 bool OdometrySwitcher::UpdateOdometry(const std::string& odom_type,
                                       const Eigen::Affine3d& odom_pose,
                                       Eigen::Affine3d& output_odom_pose) {
   odom_list_[odom_type] = odom_pose;
-  // Exit if not the source odometry
+  // Terminate except for source odometry
   if (odom_type != source_odom_type_) {
     return false;
   }
-  // Convert and calculate the position based on the switch position reference
+  // Convert and calculate position based on odometry switch position
   output_odom_pose = GetCurrentOdometryTransform();
   return true;
 }
 
-/// Calculate the position of odometry
+/// Calculate odometry position
 Eigen::Affine3d OdometrySwitcher::GetCurrentOdometryTransform() const {
   return base_transform_ * odom_list_.at(source_odom_type_);
 }

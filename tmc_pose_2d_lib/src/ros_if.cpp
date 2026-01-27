@@ -31,20 +31,20 @@ DAMAGE.
 
 #include <rclcpp/time.hpp>
 #include <tf2/utils.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/transform_listener.h>
 
 namespace tmc_pose_2d_lib {
 
 DistanceMap RosMsg2DistanceMap(const nav_msgs::msg::OccupancyGrid& msg) {
-  // Note: The potential_width information is not included in msg, so it needs to be provided separately.
+  // Note: Since there is no potential_width information in msg, it needs to be provided separately
 
-  // Convert the values of OccupancyGrid to the values of DistanceMap.
+  // Convert the values of OccupancyGrid to the values of DistanceMap
   // Initialize elements with unknown for the size
   std::vector<unsigned char> data(msg.data.size(), 0);
   for (uint32_t  i = 0; i < msg.data.size(); ++i) {
-    // Convert values in [0,100] to values stretched and rounded to [1,255].
-    // If negative, it is unknown.
+    // Convert values from [0,100] to rounded values stretched to [1,255]
+    // If negative, it is unknown
     if (msg.data[i] >= 0) {
       data[i] = static_cast<unsigned char>(round((static_cast<double>(msg.data[i]) / 100.0) * 254.0 + 1.0));
     }
@@ -58,7 +58,7 @@ DistanceMap RosMsg2DistanceMap(const nav_msgs::msg::OccupancyGrid& msg) {
   return distance_map;
 }
 DistanceMap RosMsg2DistanceMap(const tmc_navigation_msgs::msg::OccupancyGridUint& msg) {
-  // Note: The potential_width information is not included in msg, so it needs to be provided separately.
+  // Note: Since there is no potential_width information in msg, it needs to be provided separately
 
   DistanceMap distance_map(
     Pose2d(msg.info.origin.position.x,

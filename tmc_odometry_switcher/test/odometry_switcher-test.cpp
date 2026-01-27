@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file odometry_switcher-test.cpp
-/// @brief Test for odometry switching node
+/// @brief Test of the odometry switch node
 #include <cmath>
 #include <limits>
 #include <memory>
@@ -42,7 +42,7 @@ DAMAGE.
 #include <std_msgs/msg/float64.hpp>
 #include <std_srvs/srv/empty.hpp>
 #include <tf2/utils.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tmc_navigation_msgs/srv/odometry_switch.h>
 
@@ -65,11 +65,11 @@ const char* const kBaseFrameName = "base_footprint";
 const double kOdometryPublishPeriod = 5.0;
 /// TF waiting time timeout [s]
 const double kWaitTFDuration = 1.0;
-/// Odometry allowable error ([m] or [rad])
+/// Allowable error of odometry ([m] or [rad])
 const double kOdometryDiffThreshold = 0.1;
 /// Odometry turning speed [rad/s]
 const double kAngularVelocity = M_PI / (2.0 * kOdometryPublishPeriod);
-/// Radius of the circle arc drawn by odometry [m]
+/// Radius of the arc drawn by odometry [m]
 const double kRadius = 1.0;
 
 // TODO(syuuhei_shiro): tmc_rostest_utilをROS2化してそこに置く
@@ -102,7 +102,7 @@ geometry_msgs::msg::Quaternion createQuaternionMsgFromYaw(const double yaw) {
 namespace tmc_odometry_switcher {
 using std::placeholders::_1;
 
-/// Odometry publisher class for testing
+/// Test odometry publisher class
 /// Specify topic name and rotation direction in constructor arguments
 class TestOdometryPublisher {
  public:
@@ -115,7 +115,7 @@ class TestOdometryPublisher {
     // Publisher initialization
     odometry_publisher_ = node->create_publisher<nav_msgs::msg::Odometry>(topic_name, 1);
 
-    // Wait until link with subscriber is established
+    // Wait until the link with the subscriber is established
     rclcpp::Rate wait_rate(kWaitSubscriberRate);
     rclcpp::Time wait_start = rclcpp::Clock(RCL_ROS_TIME).now();
     while (odometry_publisher_->get_subscription_count() == 0) {
@@ -130,11 +130,11 @@ class TestOdometryPublisher {
   }
   ~TestOdometryPublisher() {}
 
-  // Update and publish odometry for specified time
-  // Perform circular motion with radius kRadius[m] starting from origin
-  // Switch between clockwise/anti-clockwise using move_clockwize_
+  // Update and publish odometry for the specified time
+  // Perform circular motion with radius kRadius [m] starting from the origin
+  // Clockwise/counterclockwise is switched by move_clockwize_
   void UpdateOdometry(const double period) {
-    // Switch clockwise/anti-clockwise
+    // Switch clockwise/counterclockwise
     double direction = move_clockwize_ ? -1.0 : 1.0;
     // Odometry update
     double yaw = tf2::getYaw(odometry_.pose.pose.orientation);
@@ -154,7 +154,7 @@ class TestOdometryPublisher {
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odometry_publisher_;
   // Current odometry
   nav_msgs::msg::Odometry odometry_;
-  // Odometry movement direction (clockwise or anti-clockwise)
+  // Odometry movement direction (clockwise or counterclockwise)
   bool move_clockwize_;
 };
 
@@ -171,10 +171,10 @@ class TestNode : public rclcpp::Node {
   /// Initialization
   void Init() {
     SetRate(kUpdateOdometryDefaultRate);
-    // Generate odometry topic publisher 1 (odometry moving in circle anti-clockwise)
+    // Generate odometry topic publisher 1 (odometry performing circular motion counterclockwise)
     TestOdometryPublisher::Ptr publisher1(new TestOdometryPublisher(shared_from_this(), "odom1", false));
     odometry_publishers_.push_back(publisher1);
-    // Generate odometry topic publisher 2 (odometry moving in circle clockwise)
+    // Generate odometry topic publisher 2 (odometry performing circular motion clockwise)
     TestOdometryPublisher::Ptr publisher2(new TestOdometryPublisher(shared_from_this(), "odom2", true));
     odometry_publishers_.push_back(publisher2);
     // Generate odometry subscriber
@@ -186,7 +186,7 @@ class TestNode : public rclcpp::Node {
         "switched_odom_subscribe_rate", 1,
         std::bind(&TestNode::SubscribeRateCallback, this, _1));
 
-    // Service client initial setup
+    // Service client initial settings
     odometry_switch_client_ = this->create_client<tmc_navigation_msgs::srv::OdometrySwitch>("odometry_switch");
     start_check_rate_client_ = this->create_client<std_srvs::srv::Empty>("start_check_rate");
     stop_check_rate_client_ = this->create_client<std_srvs::srv::Empty>("stop_check_rate");
@@ -197,7 +197,7 @@ class TestNode : public rclcpp::Node {
     rclcpp::spin_some(shared_from_this());
   }
 
-  /// Switch odometry sources
+  /// Switch odometry source
   bool SwitchOdom(const std::string& odom_type) {
     auto request = std::make_shared<tmc_navigation_msgs::srv::OdometrySwitch::Request>();
     request->odom_type.data = odom_type;
@@ -220,7 +220,7 @@ class TestNode : public rclcpp::Node {
     rclcpp::spin_until_future_complete(shared_from_this(), result_future);
   }
 
-  /// Publish odometry for specified time
+  /// Publish odometry for the specified time
   void PublishOdometries(const double period) {
     rclcpp::Time start_time = rclcpp::Clock(RCL_ROS_TIME).now();
     while ((rclcpp::Clock(RCL_ROS_TIME).now() - start_time).seconds() <= period) {
@@ -234,7 +234,7 @@ class TestNode : public rclcpp::Node {
     }
   }
 
-  /// Run cycle without doing anything for specified time
+  /// Rotate the cycle without doing anything for the specified time
   void RunWithoutDoAnything(const double period) {
     rclcpp::Time start_time = rclcpp::Clock(RCL_ROS_TIME).now();
     while ((rclcpp::Clock(RCL_ROS_TIME).now() - start_time).seconds() <= period) {
@@ -273,7 +273,7 @@ class TestNode : public rclcpp::Node {
     subscribe_rate_ = msg->data;
   }
 
-  // Obtain odometry
+  // Acquired odometry
   nav_msgs::msg::Odometry odometry_;
   // Odometry update cycle
   std::shared_ptr<rclcpp::Rate> rate_;
@@ -287,11 +287,11 @@ class TestNode : public rclcpp::Node {
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_subscriber_;
   // Subscriber for odometry reception cycle
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr rate_subscriber_;
-  // Odometry switching service client
+  // Odometry switch service client
   rclcpp::Client<tmc_navigation_msgs::srv::OdometrySwitch>::SharedPtr odometry_switch_client_;
-  // Service client to start odometry reception cycle check
+  // Odometry reception cycle check start service client
   rclcpp::Client<std_srvs::srv::Empty>::SharedPtr start_check_rate_client_;
-  // Service client to stop odometry reception cycle check
+  // Odometry reception cycle check stop service client
   rclcpp::Client<std_srvs::srv::Empty>::SharedPtr stop_check_rate_client_;
   // Odometry reception cycle
   double subscribe_rate_;
@@ -316,18 +316,18 @@ class OdometrySwitcherTest : public testing::Test {
   std::shared_ptr<TestNode> test_node_;
 };
 
-/// Switching test of 2D odometry
-/// Check if the service to switch input odometry succeeds
-/// Check if the result is reflected in the output odometry
-/// Check if the output odometry is calculated as a relative value during switching, not the absolute value of the input odometry
+/// 2D odometry switch test
+/// Whether the switch service for input odometry succeeds
+/// Whether the result is reflected in the output odometry
+/// Whether the output odometry is calculated as a relative value to the switch, not the absolute value of the input odometry
 TEST_F(OdometrySwitcherTest, Switch2DOdometry) {
-  // Publish odometry for specified time with odometry 1 input setup
-  // Rotate one-fourth of a circle anti-clockwise
+  // Publish odometry for the specified time with odometry 1 input settings
+  // Make a quarter turn counterclockwise
   test_node_->PublishOdometries(kOdometryPublishPeriod);
   nav_msgs::msg::Odometry odometry = test_node_->odometry();
 
   // Compare expected odometry topic with actual odometry topic
-  // After rotating one-fourth of a circle anti-clockwise, x and y should both take the radius value and yaw should be PI/2
+  // When making a quarter turn counterclockwise, both x and y should take the radius value, and yaw should be PI/2
   double expected_x = kRadius;
   double expected_y = kRadius;
   double expected_yaw = M_PI / 2.0;
@@ -353,17 +353,17 @@ TEST_F(OdometrySwitcherTest, Switch2DOdometry) {
   EXPECT_LT(fabs(current_tf_y - expected_y), kOdometryDiffThreshold);
   EXPECT_LT(angles::shortest_angular_distance(current_tf_yaw, expected_yaw), kOdometryDiffThreshold);
 
-  // Check if it can switch to odometry 2
+  // Check if it can be switched to odometry 2
   ASSERT_TRUE(test_node_->SwitchOdom("test2_odom"));
 
-  // Publish odometry for specified time with odometry 2 input setup
-  // Rotate one-fourth of a circle clockwise
+  // Publish odometry for the specified time with odometry 2 input settings
+  // Make a quarter turn clockwise
   test_node_->PublishOdometries(kOdometryPublishPeriod);
   odometry = test_node_->odometry();
   // Compare expected odometry topic with actual odometry topic
-  // The output odometry should be the relative change added since the odometry switch
-  // After moving one-fourth of a circle anti-clockwise, then connecting the trajectory of one-fourth of a circle clockwise
-  // It should take an S-shaped trajectory, with x, y taking twice the radius value, and yaw should become zero
+  // The odometry output should be the relative change added from the switch
+  // After moving a quarter turn counterclockwise, connect the trajectory of a quarter turn clockwise
+  // It should take an S-shaped trajectory, both x and y should take twice the radius value, and yaw should be zero
   expected_x += kRadius;
   expected_y += kRadius;
   expected_yaw -= M_PI/ 2.0;
@@ -391,16 +391,16 @@ TEST_F(OdometrySwitcherTest, Switch2DOdometry) {
 
 
 /// Output cycle test
-/// Confirm it becomes a cycle according to input
+/// Confirm that the cycle corresponds to the input
 TEST_F(OdometrySwitcherTest, OutputRate) {
   // Cycle is kUpdateOdometryDefaultRate
   test_node_->SetRate(kUpdateOdometryDefaultRate);
   test_node_->StartCheckRate();
-  // Publish odometry for specified time
+  // Publish odometry for the specified time
   test_node_->PublishOdometries(kOdometryPublishPeriod);
-  // Run cycle to process remaining topics in the queue
+  // Rotate the cycle to process the remaining topics in the queue
   test_node_->RunWithoutDoAnything(3.0);
-  // Published cycle and subscribed cycle should be close (less than 5% difference)
+  // The published cycle and the subscribed cycle should approximate (difference less than 5%)
   EXPECT_LT(fabs(kUpdateOdometryDefaultRate - test_node_->subscribe_rate()) / kUpdateOdometryDefaultRate, 0.05);
   test_node_->StopCheckRate();
 
@@ -408,25 +408,25 @@ TEST_F(OdometrySwitcherTest, OutputRate) {
   test_node_->SetRate(kUpdateOdometryChangeRate);
   test_node_->StartCheckRate();
   test_node_->ClearSubscribeRate();
-  // Publish odometry for specified time
+  // Publish odometry for the specified time
   test_node_->PublishOdometries(kOdometryPublishPeriod);
-  // Run cycle to process remaining topics in the queue
+  // Rotate the cycle to process the remaining topics in the queue
   test_node_->RunWithoutDoAnything(3.0);
-  // Published cycle and subscribed cycle should be close (less than 5% difference)
+  // The published cycle and the subscribed cycle should approximate (difference less than 5%)
   EXPECT_LT(fabs(kUpdateOdometryChangeRate - test_node_->subscribe_rate()) / kUpdateOdometryChangeRate, 0.05);
   test_node_->StopCheckRate();
 
-  // When there is no publish
+  // In case of no publish
   test_node_->StartCheckRate();
   test_node_->ClearSubscribeRate();
   test_node_->RunWithoutDoAnything(kOdometryPublishPeriod);
-  // There should be no callback while there is no publish
+  // There should be no callback during no publish
   EXPECT_LT(test_node_->subscribe_rate(), std::numeric_limits<double>::epsilon());
   test_node_->StopCheckRate();
 }
 
-/// Odometry switching test
-/// Check if specifying a name not in the list returns a failure
+/// Odometry switch test
+/// Whether it returns failure when specifying an odometry name not in the list
 TEST_F(OdometrySwitcherTest, WrongOdomName) {
   EXPECT_FALSE(test_node_->SwitchOdom("wrong_odom"));
 }
@@ -446,20 +446,25 @@ int main(int argc, char** argv) {
   LoadParameterFromYaml(odometry_switcher_node, yaml_directory, "odometry_switcher-test.yaml");
 
   odometry_switcher_node->Init();
-  // Create a thread to spin and detach
+  // Create a thread to spin
   auto odometry_switcher_node_thread = std::make_shared<std::thread>([&]() {
       rclcpp::spin(odometry_switcher_node);
       });
-  odometry_switcher_node_thread->detach();
   // Generate subscribe_rate_checker node
   auto subscribe_rate_checker_node = std::make_shared<tmc_odometry_switcher::SubscribeRateChecker>(option);
   subscribe_rate_checker_node->Init();
-  // Create a thread to spin and detach
+  // Create a thread to spin
   auto subscribe_rate_checker_node_thread = std::make_shared<std::thread>([&]() {
       rclcpp::spin(subscribe_rate_checker_node);
       });
-  subscribe_rate_checker_node_thread->detach();
-
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  const int result = RUN_ALL_TESTS();
+
+  rclcpp::shutdown();
+  odometry_switcher_node_thread->join();
+  odometry_switcher_node.reset();
+  subscribe_rate_checker_node_thread->join();
+  subscribe_rate_checker_node.reset();
+
+  return result;
 }

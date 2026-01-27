@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file     util.cpp
-/// @brief Functions commonly used within this package
+/// @brief    Functions commonly used within this package
 #include <vector>
 
 #include <nav_msgs/msg/occupancy_grid.hpp>
@@ -55,16 +55,16 @@ void ConvertMapTmcToRos(const tmc_navigation_msgs::msg::OccupancyGridUint& tmc_m
   ros_map.header = tmc_map.header;
   ros_map.info = tmc_map.info;
 
-  // Conversion from tmc specification to ros specification
-  // Since tmc data starts from the top-left and ros starts from the bottom-left, store in reverse order in the height direction
+  // Convert from tmc specification to ros specification
+  // Since tmc specification data starts from the top left and ros specification starts from the bottom left, store in reverse order in the height direction
   for (int32_t i = (tmc_map.info.height - 1); i >= 0; --i) {
-    for (int32_t j = 0; j <= (tmc_map.info.width - 1); ++j) {
+    for (auto j = 0u; j <= (tmc_map.info.width - 1); ++j) {
       const uint8_t tmc_data = tmc_map.data[tmc_map.info.width * i + j];
       int8_t data = 0;
       if (tmc_data == kTMC_UNKNOWN) {
           data = kROS_UNKNOWN;
       } else {
-        // Convert from tmc range [1,255] to ros range [0,100]
+        // Convert from tmc specification range [1,255] to ros specification range [0,100]
         data = static_cast<int8_t>(round((static_cast<double>(tmc_data - 1) / 254.0) * 100.0));
       }
       ros_map.data.push_back(data);
@@ -87,16 +87,16 @@ void ConvertMapRosToTmc(const nav_msgs::msg::OccupancyGrid& ros_map,
   tmc_map.header = ros_map.header;
   tmc_map.info = ros_map.info;
 
-  // Conversion from ros specification to tmc specification
-  // Since tmc data starts from the top-left and ros starts from the bottom-left, store in reverse order in the height direction
+  // Convert from ros specification to tmc specification
+  // Since tmc specification data starts from the top left and ros specification starts from the bottom left, store in reverse order in the height direction
   for (int32_t i = (ros_map.info.height - 1); i >= 0; --i) {
-    for (int32_t j = 0; j <= (ros_map.info.width - 1); ++j) {
+    for (auto j = 0u; j <= (ros_map.info.width - 1); ++j) {
       const int8_t ros_data = ros_map.data[ros_map.info.width * i + j];
       uint8_t data = 0;
       if (ros_data == kROS_UNKNOWN) {
           data = kTMC_UNKNOWN;
       } else {
-        // Convert from ros range [0,100] to tmc range [1,255]
+        // Convert from ros specification range [0,100] to tmc specification range [1,255]
         data = static_cast<uint8_t>(round((static_cast<double>(ros_data) * 254.0) / 100.0) + 1.0);
       }
       tmc_map.data.push_back(data);
@@ -117,9 +117,9 @@ bool CreateTmcPotentialMap(const nav_msgs::msg::OccupancyGrid& ros_map, const do
 
   nav_msgs::msg::OccupancyGrid ros_convert_wall_map = ros_map;
   if (occupied_thresh > 0.0 && occupied_thresh < 1.0) {
-    // Set locations exceeding occupied_thresh as walls
+    // Set areas exceeding occupied_thresh as walls
     const int8_t occupied_thresh_value = static_cast<int8_t>(kROS_WALL * occupied_thresh);
-    for (int32_t i = 0; i < ros_convert_wall_map.data.size(); ++i) {
+    for (auto i = 0u; i < ros_convert_wall_map.data.size(); ++i) {
       if (ros_convert_wall_map.data.at(i) > occupied_thresh_value) {
         ros_convert_wall_map.data.at(i) = kROS_WALL;
       }
@@ -128,8 +128,8 @@ bool CreateTmcPotentialMap(const nav_msgs::msg::OccupancyGrid& ros_map, const do
 
   tmc_navigation_msgs::msg::OccupancyGridUint tmc_map;
   // Convert to tmc specification
-  // If converted to DistanceMap with ros specification, range specification differences are absorbed
-  // Specification differences in data order are not absorbed, so convert to tmc once
+  // If converted to DistanceMap while in ros specification, the range specification difference is absorbed
+  // The data order specification difference is not absorbed, so convert to tmc specification once
   ConvertMapRosToTmc(ros_convert_wall_map, tmc_map);
 
   // Convert to DistanceMap

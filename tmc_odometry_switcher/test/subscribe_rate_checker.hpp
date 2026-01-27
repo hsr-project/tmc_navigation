@@ -36,12 +36,12 @@ namespace tmc_odometry_switcher {
 using std::placeholders::_1;
 using std::placeholders::_2;
 /// Reception cycle check class
-/// Drop-off occurs with spin_some, so the cycle cannot be accurately checked.
-/// Start separately from the test node and check the reception cycle.
+/// Because spin_some may cause data loss and cannot accurately check the cycle,
+/// Launch separately from the test node to check the reception cycle
 class SubscribeRateChecker : public rclcpp::Node {
  public:
   explicit SubscribeRateChecker(const rclcpp::NodeOptions& options)
-      : Node("subscribe_rate_checker", options), is_start_(false), subscribe_count_(0) {}
+      : Node("subscribe_rate_checker", options), subscribe_count_(0), is_start_(false) {}
 
   void Init() {
     // publisher
@@ -94,7 +94,7 @@ class SubscribeRateChecker : public rclcpp::Node {
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr stop_server_;
   // Reception start time
   rclcpp::Time start_time_;
-  // Reception count
+  // Number of receptions
   uint32_t subscribe_count_;
   // Start
   bool is_start_;

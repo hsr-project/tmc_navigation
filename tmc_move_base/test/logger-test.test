@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <test test-name="logger_test" pkg="tmc_move_base" type="logger_test">
+    <param name="navigation_log_record_service_name" value="navigation_log_recorder/record" />
+    <rosparam param="record_parameter_node_names">
+      - "node_1"
+      - "node/2"
+      - "/node/3"
+    </rosparam>
+  </test>
+
+  <node name="navigation_log_recorder" pkg="tmc_rosbag_tools" type="topic_collection_node.py">
+    <rosparam command="load" file="$(find tmc_move_base)/test/navigation_log_recorder.yaml" />
+    <param name="output_dir" value="log/latest/log" />
+    <param name="service_trigger/service_name" value="~record" />
+  </node>
+</launch>

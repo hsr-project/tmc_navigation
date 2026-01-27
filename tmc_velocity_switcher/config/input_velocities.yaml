@@ -1,0 +1,15 @@
+velocity_switcher:
+  ros__parameters:
+    input_velocities:
+      velocity_1:
+        topic_name: velocity_1
+        priority: 1
+        as_control_target_x: true
+        as_control_target_y: true
+        as_control_target_theta: true
+      velocity_2:
+        topic_name: velocity_2
+        priority: 2
+        as_control_target_x: true
+        as_control_target_y: true
+        as_control_target_theta: true

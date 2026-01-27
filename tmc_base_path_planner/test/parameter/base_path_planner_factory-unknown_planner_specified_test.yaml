@@ -1,0 +1,21 @@
+test_node:
+  ros__parameters:
+    base_path_planner:
+      type: "hoge_path_planner"
+      astar_path_planner:
+        exclusive_size: 0.2
+        potential_size: 0.3
+        cost_unknown: 0
+        single_cost: 50
+        diagonal_cost: 71
+        cost_factor: 450.0
+        cost_on_preferred_path: 0
+        cost_around_preferred_path: 0
+      map_filter:
+        map_filter_range_around_start: 0.1
+        map_filter_range_around_goal: 0.5
+        map_filter_distance_goal_limit: 1.0
+      path_updater:
+        distance_on_prev_path: 0.15
+        grid_error: 0.06
+        same_point_num_merge_path: 3

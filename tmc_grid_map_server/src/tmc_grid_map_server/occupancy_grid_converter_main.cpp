@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file     occupancy_grid_converter_main.cpp
-/// @brief Functionality to convert a map from ROS format to TMC format with potential
+/// @brief    Functionality to convert a ROS format map to a TMC format map with potential
 #include <memory>
 #include "occupancy_grid_converter.hpp"
 

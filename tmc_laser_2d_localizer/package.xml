@@ -1,0 +1,33 @@
+<package format="3">
+  <name>tmc_laser_2d_localizer</name>
+  <version>2.1.0</version>
+  <description>Estimate self-position using two-dimensional distance data</description>
+  <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
+
+  <license>BSD 3-clause Clear License</license>
+
+  <author>Yoshiaki Asahara</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_sensor_msgs</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tmc_navigation_msgs</depend>
+  <depend>tmc_pose_2d_lib</depend>
+  <depend>pcl_ros</depend>
+  <depend>angles</depend>
+  <depend>tf_transformations</depend>
+  <test_depend>launch_testing_ament_cmake</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

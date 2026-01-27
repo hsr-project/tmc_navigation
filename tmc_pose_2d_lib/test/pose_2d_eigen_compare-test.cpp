@@ -148,7 +148,7 @@ TEST_F(EigenCompareTest, SpeedTest) {
   printf("t_eigen_affine  :  %f [micro-sec] \n", t_eigen_affine);
   printf("t_eigen_isometry:  %f [micro-sec] \n", t_eigen_isometry);
 
-  // pose2d < isometry < affine should be the order; pose2d is about 100 times faster
+  // The order should be pose2d < isometry < affine, with pose2d being about 100 times faster.
   ASSERT_LT(t_pose2d, t_eigen_affine);
   ASSERT_LT(t_pose2d, t_eigen_isometry);
 }

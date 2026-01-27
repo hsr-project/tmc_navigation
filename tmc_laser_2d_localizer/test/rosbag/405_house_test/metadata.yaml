@@ -1,0 +1,66 @@
+rosbag2_bagfile_information:
+  compression_format: ''
+  compression_mode: ''
+  custom_data: null
+  duration:
+    nanoseconds: 89178021014
+  files:
+  - duration:
+      nanoseconds: 89178021014
+    message_count: 83997
+    path: 405_house_test.db3
+    starting_time:
+      nanoseconds_since_epoch: 1422962911255317132
+  message_count: 83997
+  relative_file_paths:
+  - 405_house_test.db3
+  ros_distro: rosbags
+  starting_time:
+    nanoseconds_since_epoch: 1422962911255317132
+  storage_identifier: sqlite3
+  topics_with_message_count:
+  - message_count: 1
+    topic_metadata:
+      name: /static_distance_map
+      offered_qos_profiles: "- avoid_ros_namespace_conventions: false\n  deadline:
+        {nsec: 4294967295, sec: 2147483647}\n  depth: 0\n  durability: 1\n  history:
+        3\n  lifespan: {nsec: 4294967295, sec: 2147483647}\n  liveliness: 1\n  liveliness_lease_duration:
+        {nsec: 4294967295, sec: 2147483647}\n  reliability: 1"
+      serialization_format: cdr
+      type: tmc_navigation_msgs/msg/OccupancyGridUint
+      type_description_hash: RIHS01_72f54d15e78b0b7340fdb7c6a1407f4dd22eb218c8daee90d72be53c5e7d5100
+  - message_count: 80090
+    topic_metadata:
+      name: /tf
+      offered_qos_profiles: ''
+      serialization_format: cdr
+      type: tf2_msgs/msg/TFMessage
+      type_description_hash: RIHS01_e369d0f05a23ae52508854b66f6aa0437f3449d652e8cbf22d5abe85d020f087
+  - message_count: 708
+    topic_metadata:
+      name: /laser_2d_pose_ref
+      offered_qos_profiles: "- avoid_ros_namespace_conventions: false\n  deadline:
+        {nsec: 4294967295, sec: 2147483647}\n  depth: 0\n  durability: 1\n  history:
+        3\n  lifespan: {nsec: 4294967295, sec: 2147483647}\n  liveliness: 1\n  liveliness_lease_duration:
+        {nsec: 4294967295, sec: 2147483647}\n  reliability: 1"
+      serialization_format: cdr
+      type: geometry_msgs/msg/PoseStamped
+      type_description_hash: RIHS01_10f3786d7d40fd2b54367835614bff85d4ad3b5dab62bf8bca0cc232d73b4cd8
+  - message_count: 1
+    topic_metadata:
+      name: /static_distance_map_ref
+      offered_qos_profiles: "- avoid_ros_namespace_conventions: false\n  deadline:
+        {nsec: 4294967295, sec: 2147483647}\n  depth: 0\n  durability: 1\n  history:
+        3\n  lifespan: {nsec: 4294967295, sec: 2147483647}\n  liveliness: 1\n  liveliness_lease_duration:
+        {nsec: 4294967295, sec: 2147483647}\n  reliability: 1"
+      serialization_format: cdr
+      type: nav_msgs/msg/OccupancyGrid
+      type_description_hash: RIHS01_8d348150c12913a31ee0ec170fbf25089e4745d17035792a1ba94d6f0bc0cfc7
+  - message_count: 3197
+    topic_metadata:
+      name: /extracted_point_cloud
+      offered_qos_profiles: ''
+      serialization_format: cdr
+      type: sensor_msgs/msg/PointCloud2
+      type_description_hash: RIHS01_9198cabf7da3796ae6fe19c4cb3bdd3525492988c70522628af5daa124bae2b5
+  version: 8

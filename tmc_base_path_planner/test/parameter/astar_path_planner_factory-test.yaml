@@ -1,0 +1,14 @@
+test_node:
+  ros__parameters:
+    all_parameter_specified_test:
+      astar_path_planner:
+        exclusive_size: 0.2
+        potential_size: 0.3
+        cost_unknown: 0
+        single_cost: 50
+        diagonal_cost: 71
+        cost_factor: 150.0
+        cost_on_preferred_path: 0
+        cost_around_preferred_path: 0
+    no_parameter_specified_test:
+      hoge: 1

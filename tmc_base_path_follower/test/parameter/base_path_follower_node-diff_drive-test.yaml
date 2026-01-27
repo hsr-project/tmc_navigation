@@ -1,0 +1,79 @@
+base_path_follower:
+  ros__parameters:
+    # 自己位置タイムアウト時間
+    global_pose_timeout: 1.0
+    # 移動モデル omni/diff_drive
+    move_model_name: "diff_drive"
+    # 差動二輪速度計算モデルパラメータ
+    diff_drive_velocity_calculator:
+      # 最大並進速度
+      max_linear_velocity: 0.6
+      # 最大旋回速度
+      max_angular_velocity: 2.0
+      # 最大並進加速度
+      max_linear_acceleration: 1.0
+      # 最大旋回加速度
+      max_angular_acceleration: 5.0
+      # ゴール付近並進減速度
+      linear_deceleration_near_goal: 1.2
+      # 並進最低速度マージン
+      linear_velocity_margin: 0.05
+      # 並進速度αゲインパラメータ
+      linear_alpha_gain: 3.0
+      # 並進速度βゲインパラメータ
+      linear_beta_gain: 1.5
+      # 角度誤差に対する回転速度の比率
+      angle_error_angular_velocity_rate: 1.0
+      # その場旋回を開始する角度誤差
+      spin_start_error_angle: 0.85
+      # その場旋回を終了する角度誤差
+      spin_end_error_angle: 0.03
+      # その場旋回の最大旋回速度
+      spin_max_angular_velocity: 0.8
+      # その場旋回の最低旋回速度
+      spin_min_angular_velocity: 0.05
+    # 経路生成クラスパラメータ
+    path_info_creator:
+      # 経路補間で二点間の補間点数
+      interpolation_number: 10
+      # 最大並進速度
+      max_linear_velocity: 0.2
+    # ゴール判定クラスパラメータ
+    diff_drive_goal_checker:
+      # ゴールエリア判定距離
+      goal_area_length: 0.5
+      # ゴールエリア判定用ラインのゴールからの距離
+      goal_line_length: 0.05
+      # ゴール判定用の角度偏差閾値
+      goal_stop_error_angle: 0.03
+    # 最寄り経路点探索クラスパラメータ
+    nearest_path_point_searcher:
+      # 経路最寄り点部分探索 前回の最寄り点からの探索範囲
+      partial_search_range: 0.5
+      # 経路最寄り点部分探索 探索結果と自己位置との許容するエラー値
+      partial_search_permit_error: 0.5
+    # 経路通過速度制御を行うか否か
+    use_path_transit_velocity: true
+    # 経路通過速度制御クラスパラメータ
+    path_transit_velocity_calculator:
+      # 最大並進速度
+      max_linear_velocity: 0.6
+      # 最低並進速度
+      min_linear_velocity: 0.3
+      # 最大旋回速度
+      max_angular_velocity: 0.8
+      # 最大並進加速度
+      max_linear_acceleration: 0.25
+      # 最大並進減速度
+      max_linear_deceleration: 0.25
+      # 最大旋回加速度
+      max_angular_acceleration: 0.5
+      # 最大旋回減速度
+      max_angular_deceleration: 0.5
+      # 曲率に応じた通過速度計算時に旋回速度にかける倍率
+      # 計算式は max_angular_velocity * transit_velocity_angular_velocity_ratio / 曲率
+      transit_velocity_angular_velocity_ratio: 0.6
+test_node:
+  ros__parameters:
+    max_linear_error_threshold: 0.15
+    goal_linear_error_threshold: 0.1

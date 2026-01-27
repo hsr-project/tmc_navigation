@@ -58,9 +58,9 @@ class GridMapServerNode : public rclcpp::Node {
   bool LoadConfig(const std::string& config_name);
   /// Convert Pgm values to three values of OccupancyGrid
   int8_t ConvertPgmToOccupancyGridTrinaryValue(const uint8_t pgm_value);
-  /// Generate map
+  /// Map generation
   void CreateMap(const std::string& map_file, nav_msgs::msg::OccupancyGrid& map);
-  // Subscribe to a map topic for online map updates
+  // Subscribe to map topic for online map updates
   void CallbackMap(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
   // Map reload service callback
   void CallbackServiceSetGoal(
@@ -68,7 +68,7 @@ class GridMapServerNode : public rclcpp::Node {
       tmc_navigation_msgs::srv::ReloadMap::Response::SharedPtr res);
   // Generate and distribute potential map
   void CreateMapsAndPublish(void);
-  // Publish distance map and obstacle map. Publish in both TMC format and ROS format
+  // Publish distance map and obstacle map. Publish both TMC format and ROS format
   void PublishMaps(const nav_msgs::msg::OccupancyGrid& distance_map,
                    const nav_msgs::msg::OccupancyGrid& obstacle_map);
 

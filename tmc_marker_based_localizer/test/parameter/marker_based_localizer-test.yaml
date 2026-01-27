@@ -1,0 +1,15 @@
+marker_based_localizer:
+  ros__parameters:
+    base_tf_name: "base_footprint"
+    travel_distance_threshold: 5.0
+    joint_stopping_vel: 0.005
+    joints_list: ["left_drive_wheel_joint", "right_drive_wheel_joint", "base_roll_joint", "head_pan_joint", "head_tilt_joint", "arm_lift_joint"]
+    marker_objects:
+      object_1:
+        object_id: 507
+        translation: [0.6, 0.0, 0.0]
+        rotation: [-0.5, 0.5, -0.5, 0.5]
+      object_2:
+        object_id: 508
+        translation: [0.0, 0.0, 0.6]
+        rotation: [0.5, -0.5, 0.5, -0.5]

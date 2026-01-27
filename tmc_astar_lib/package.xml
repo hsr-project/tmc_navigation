@@ -1,0 +1,27 @@
+<package format="3">
+  <name>tmc_astar_lib</name>
+  <version>2.1.0</version>
+  <description>A* path planning library.</description>
+  <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
+
+  <license>BSD 3-clause Clear License</license>
+
+  <author>Syuuhei Shiro</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>libboost-dev</depend>
+  <depend>libconsole-bridge-dev</depend>
+  <depend>tmc_pose_2d_lib</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

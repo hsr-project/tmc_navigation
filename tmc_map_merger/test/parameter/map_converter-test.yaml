@@ -1,0 +1,9 @@
+test_node:
+  ros__parameters:
+    inputs:
+      rgbd_sensor:
+        obstacle_circle:
+          forbid_radius: 0.25
+      laser_scan:
+        obstacle_circle:
+          forbid_radius: 0.25
