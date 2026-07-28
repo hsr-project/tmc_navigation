@@ -1,7 +1,7 @@
 <package format="3">
   <name>tmc_base_path_follower</name>
-  <version>2.1.0</version>
-  <description>Base path follower</description>
+  <version>3.0.0</version>
+  <description>base path follower</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
 
   <license>BSD 3-clause Clear License</license>

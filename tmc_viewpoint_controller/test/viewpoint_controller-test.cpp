@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file viewpoint_controller-test.cpp
-/// @brief Test of viewpoint control node
+/// @brief Test of the viewpoint control node
 
 #include <chrono>
 #include <string>
@@ -52,14 +52,14 @@ constexpr double kRate = 10.0;
 constexpr double kThreshEqual = 0.0001;
 constexpr const char* const kNeckYawName = "head_pan_joint";
 constexpr const char* const kNeckPitchName = "head_tilt_joint";
-constexpr double kMaxRotationOnceRad = 0.6;    // Maximum rotation amount of neck pan axis per cycle [rad]
+constexpr double kMaxRotationOnceRad = 0.6;    // Maximum neck pan axis rotation per cycle [rad]
 
-constexpr double kForwardX = 0.3;       // X-axis forward distance [m]
-constexpr double kNearGoalX = 0.5;      // X-axis near goal (left diagonal path) distance [m]
-constexpr double kNearGoalY = 0.5;      // Y-axis near goal (left diagonal path) distance [m]
-constexpr double kCloseGoalX = 0.7;     // X-axis close goal (left diagonal path) distance [m]
-constexpr double kCloseGoalY = 0.7;     // Y-axis close goal (left diagonal path) distance [m]
-constexpr double kBackX = -2.0;         // X-axis backward distance [m]
+constexpr double kForwardX = 0.3;       // Forward distance on X-axis [m]
+constexpr double kNearGoalX = 0.5;      // Near goal distance on X-axis (left diagonal path) [m]
+constexpr double kNearGoalY = 0.5;      // Near goal distance on Y-axis (left diagonal path) [m]
+constexpr double kCloseGoalX = 0.7;     // Close goal distance on X-axis (left diagonal path) [m]
+constexpr double kCloseGoalY = 0.7;     // Close goal distance on Y-axis (left diagonal path) [m]
+constexpr double kBackX = -2.0;         // Backward distance on X-axis [m]
 
 constexpr double kTurnRightDeg = -5.0;  // Right turn angle [deg]
 constexpr double kTurnLeftDeg = 5.0;    // Left turn angle [deg]
@@ -272,7 +272,7 @@ class TestNode : public rclcpp::Node {
   void CallSetViewpointTrackingTargetService() {
     CallEmptyService(set_viewpoint_mode_tracking_service_client_);
   }
-  // Spin test node
+  // Spin the test node
   void SpinOnce() {
     rclcpp::spin_some(shared_from_this());
   }
@@ -335,7 +335,7 @@ class TestNode : public rclcpp::Node {
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 };
 
-/// Class to test viewpoint control node
+/// Class to test the viewpoint control node
 class ViewpointControllerTest : public testing::Test {
  public:
   ViewpointControllerTest() {}
@@ -346,7 +346,7 @@ class ViewpointControllerTest : public testing::Test {
     // Generate test node
     test_node_ = std::make_shared<TestNode>();
     test_node_->Init();
-    // Wait until linked with publisher/subscriber
+    // Wait until linked with publisher and subscriber
     if (!test_node_->WaitForConnectionEstablished()) {
       RCLCPP_FATAL(rclcpp::get_logger("viewpoint_controller_test"), "Can not link to test target.");
       exit(EXIT_FAILURE);
@@ -368,13 +368,13 @@ class ViewpointControllerTest : public testing::Test {
   std::shared_ptr<TestNode> test_node_;
 };
 
-// Normal case: straight path
+// Normal case: Straight path
 TEST_F(ViewpointControllerTest, StraightPath) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
   nav_msgs::msg::Path path;
 
-  // Publish start neck pan angle (0.0)
+  // Publish initial neck pan angle (0.0)
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
   // Publish 2m straight path
@@ -397,7 +397,7 @@ TEST_F(ViewpointControllerTest, StraightPath) {
   EXPECT_NEAR(test_node_->command_trajectory().points[0].positions[0], 0.0, kThreshEqual);
 }
 
-// Normal case: right curve path
+// Normal case: Right curve path
 TEST_F(ViewpointControllerTest, RightCurvePath) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -409,7 +409,7 @@ TEST_F(ViewpointControllerTest, RightCurvePath) {
   // Publish start position (0.0, 0.0)
   CreateGlobalPoseOrigin(robot_pose);
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
-  // Publish start neck pan angle (0.0)
+  // Publish initial neck pan angle (0.0)
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
   // Wait for result (neck pan angle)
@@ -431,7 +431,7 @@ TEST_F(ViewpointControllerTest, RightCurvePath) {
   EXPECT_NEAR(test_node_->command_trajectory().points[0].positions[0], path_angle, kThreshEqual);
 }
 
-// Normal case: left curve path
+// Normal case: Left curve path
 TEST_F(ViewpointControllerTest, LeftCurvePath) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -443,7 +443,7 @@ TEST_F(ViewpointControllerTest, LeftCurvePath) {
   // Publish start position (0.0, 0.0)
   CreateGlobalPoseOrigin(robot_pose);
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
-  // Publish start neck pan angle (0.0)
+  // Publish initial neck pan angle (0.0)
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
   // Wait for result (neck pan angle)
@@ -465,7 +465,7 @@ TEST_F(ViewpointControllerTest, LeftCurvePath) {
   EXPECT_NEAR(test_node_->command_trajectory().points[0].positions[0], path_angle, kThreshEqual);
 }
 
-// Normal case: right diagonal path
+// Normal case: Right diagonal path
 TEST_F(ViewpointControllerTest, RightSlopePath) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -477,7 +477,7 @@ TEST_F(ViewpointControllerTest, RightSlopePath) {
   // Publish start position (0.0, 0.0)
   CreateGlobalPoseOrigin(robot_pose);
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
-  // Publish start neck pan angle (0.0)
+  // Publish initial neck pan angle (0.0)
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
   // Wait for result (neck pan angle)
@@ -498,7 +498,7 @@ TEST_F(ViewpointControllerTest, RightSlopePath) {
               path_angle - Deg2Rad(kTurnRightDeg), kThreshEqual);
 }
 
-// Normal case: left diagonal path
+// Normal case: Left diagonal path
 TEST_F(ViewpointControllerTest, LeftSlopePath) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -510,7 +510,7 @@ TEST_F(ViewpointControllerTest, LeftSlopePath) {
   // Publish start position (0.0, 0.0)
   CreateGlobalPoseOrigin(robot_pose);
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
-  // Publish start neck pan angle (0.0)
+  // Publish initial neck pan angle (0.0)
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
   // Wait for result (neck pan angle)
@@ -531,7 +531,7 @@ TEST_F(ViewpointControllerTest, LeftSlopePath) {
               path_angle - Deg2Rad(kTurnLeftDeg), kThreshEqual);
 }
 
-// Normal case: backward path
+// Normal case: Backward path
 TEST_F(ViewpointControllerTest, BackPath) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -543,7 +543,7 @@ TEST_F(ViewpointControllerTest, BackPath) {
   // Publish start position (0.0, 0.0)
   CreateGlobalPoseOrigin(robot_pose);
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
-  // Publish start neck pan angle (0.0)
+  // Publish initial neck pan angle (0.0)
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
   // Wait for result (neck pan angle)
@@ -558,12 +558,12 @@ TEST_F(ViewpointControllerTest, BackPath) {
   test_node_->PublishJointStates(joint_states);
 
   ASSERT_TRUE(test_node_->WaitForResult(kTimeout));
-  // Ensure the angle is the maximum rotation angle from the current neck pan angle
+  // Ensure the angle is rotated by the maximum rotation angle relative to the current neck pan angle
   EXPECT_NEAR(test_node_->command_trajectory().points[0].positions[0],
               kMaxRotationOnceRad + Deg2Rad(kNeckLeftDeg), kThreshEqual);
 }
 
-// Normal case: near goal
+// Normal case: Near goal
 TEST_F(ViewpointControllerTest, AroundGoal) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -595,7 +595,7 @@ TEST_F(ViewpointControllerTest, AroundGoal) {
   EXPECT_NEAR(test_node_->command_trajectory().points[0].positions[0], 0.0, kThreshEqual);
 }
 
-// Normal case: check if On/Off service functions
+// Normal case: Check if the On/Off service for functionality works
 TEST_F(ViewpointControllerTest, EnableService) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -609,7 +609,7 @@ TEST_F(ViewpointControllerTest, EnableService) {
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
-  // Confirm no result is published
+  // Confirm that no results are published
   ASSERT_FALSE(test_node_->WaitForResult(kNoResultTimeout));
 
   // Turn On
@@ -626,7 +626,7 @@ TEST_F(ViewpointControllerTest, EnableService) {
   EXPECT_NEAR(test_node_->command_trajectory().points[0].positions[0], 0.0, kThreshEqual);
 }
 
-// Normal case: check if switching to tracking target mode service functions
+// Normal case: Check if the service to switch to tracking target mode works
 TEST_F(ViewpointControllerTest, TrackingMode) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -644,20 +644,20 @@ TEST_F(ViewpointControllerTest, TrackingMode) {
   // Publish start position (0.0, 0.0)
   CreateGlobalPoseOrigin(robot_pose);
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
-  // Publish start neck pan angle (0.0)
+  // Publish initial neck pan angle (0.0)
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
   // Wait for result (neck pan angle)
   ASSERT_TRUE(test_node_->WaitForResult(kTimeout));
-  // Verify result, confirm it is in the direction of the latest target position
+  // Verify result: Confirm that it is in the direction of the latest target position
   double target_angle = atan2(target_path.poses.back().pose.position.y, target_path.poses.back().pose.position.x);
   EXPECT_NEAR(test_node_->command_trajectory().points[0].positions[0], target_angle, kThreshEqual);
   // Switch back to movement path mode
   test_node_->CallSetViewpointModePathService();
 }
 
-/// Normal case: in tracking target mode, if the target cannot be tracked,
-/// does the viewpoint not move?
+/// Normal case: In tracking target mode, check if the viewpoint does not move when the target is not being tracked
+/// Does not move the viewpoint
 TEST_F(ViewpointControllerTest, TrackingModeLost) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -665,23 +665,23 @@ TEST_F(ViewpointControllerTest, TrackingModeLost) {
 
   // Switch to tracking target mode
   test_node_->CallSetViewpointTrackingTargetService();
-  // Movement path is left curve, do not publish tracking target
+  // Movement path is left curve, tracking target is not published
   CreateLeftCurvePath(path);
   test_node_->PublishBasePath(path);
 
   // Publish start position (0.0, 0.0)
   CreateGlobalPoseOrigin(robot_pose);
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
-  // Publish start neck pan angle (0.0)
+  // Publish initial neck pan angle (0.0)
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
-  // Confirm no result is published
+  // Confirm that no results are published
   ASSERT_FALSE(test_node_->WaitForResult(kNoResultTimeout));
   // Switch back to movement path mode
   test_node_->CallSetViewpointModePathService();
 }
 
-// Normal case: check if switching to movement path mode service functions
+// Normal case: Check if the service to switch to movement path mode works
 TEST_F(ViewpointControllerTest, PathMode) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -701,12 +701,12 @@ TEST_F(ViewpointControllerTest, PathMode) {
   // Publish start position (0.0, 0.0)
   CreateGlobalPoseOrigin(robot_pose);
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
-  // Publish start neck pan angle (0.0)
+  // Publish initial neck pan angle (0.0)
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
   // Wait for result (neck pan angle)
   ASSERT_TRUE(test_node_->WaitForResult(kTimeout));
-  // Verify result, confirm it is on the left curve side
+  // Verify result: Confirm it is on the left curve side
   double path_angle = atan2(path.poses[2].pose.position.y - path.poses[1].pose.position.y,
                             path.poses[2].pose.position.x - path.poses[1].pose.position.x);
   EXPECT_NEAR(test_node_->command_trajectory().points[0].positions[0], path_angle, kThreshEqual);
@@ -725,11 +725,11 @@ TEST_F(ViewpointControllerTest, NoPath) {
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
-  // Confirm no result is published
+  // Confirm that no results are published
   ASSERT_FALSE(test_node_->WaitForResult(kNoResultTimeout));
 }
 
-// Abnormal case: when the robot and path are separated
+// Abnormal case: When the robot and the path are far apart
 TEST_F(ViewpointControllerTest, ExeedLimitNearestDistance) {
   tf2::Transform robot_pose;
   sensor_msgs::msg::JointState joint_states;
@@ -742,7 +742,7 @@ TEST_F(ViewpointControllerTest, ExeedLimitNearestDistance) {
   test_node_->SendTransform(robot_pose, "map", "base_footprint");
   CreateNeckPose(joint_states, 0.0);
   test_node_->PublishJointStates(joint_states);
-  // Confirm no result is published
+  // Confirm that no results are published
   ASSERT_FALSE(test_node_->WaitForResult(kNoResultTimeout));
 }
 }  // namespace tmc_viewpoint_controller
@@ -755,7 +755,7 @@ int main(int argc, char** argv) {
   // Generate viewpoint_controller node
   auto viewpoint_controller_node = std::make_shared<tmc_viewpoint_controller::ViewpointControllerNode>(option);
   viewpoint_controller_node->Init();
-  // Create thread to run
+  // Create a thread to run
   auto viewpoint_controller_node_thread = std::make_shared<std::thread>([&]() {
       viewpoint_controller_node->Run();
       });

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file virtual_bumper.hpp
-/// @brief Virtual bumper base class
+/// @brief Base class for virtual bumpers
 #ifndef TMC_SAFETY_VELOCITY_LIMITER_VIRTUAL_BUMPER_HPP_
 #define TMC_SAFETY_VELOCITY_LIMITER_VIRTUAL_BUMPER_HPP_
 #include <map>
@@ -46,17 +46,17 @@ class VirtualBumper {
   /// Constructor
   VirtualBumper(std::map<std::string, rclcpp::Parameter>& parameters, const VelocitySlope::Ptr& velocity_slope);
 
-  /// Returns the speed limit multiplier for the input speed
-  /// Outputs the coordinates that are the cause if a restriction is applied
-  /// @param input_velocity [I] Input speed
+  /// Returns the speed limit ratio for the input velocity
+  /// Outputs the coordinates that caused the restriction if a limit is applied
+  /// @param input_velocity [I] Input velocity
   /// @param obstacle_pose [O] Outputs the coordinates of the obstacle that caused the restriction
-  /// @return Restriction multiplier (0.0 to 1.0)
+  /// @return Restriction ratio (0.0 to 1.0)
   virtual double LimitVelocityRatio(const Twist& input_velocity, geometry_msgs::msg::PoseStamped& obstacle_pose) = 0;
 
  protected:
-  /// Determines the bumper size multiplier from the magnitude of the movement speed
-  /// @param input_velocity [I] Movement speed
-  /// @return Bumper size multiplier
+  /// Calculates the bumper size ratio based on the magnitude of the moving speed
+  /// @param input_velocity [I] Moving speed
+  /// @return Bumper size ratio
   double CalcBumperScale(const Twist& input_velocity);
 
   VelocitySlope::Ptr velocity_slope_;
@@ -65,7 +65,7 @@ class VirtualBumper {
   double min_scale_;
 
  private:
-  /// Obtain common parameters that are not affected by derived classes
+  /// Retrieves common parameters that are not affected by derived classes
   void GetCommonParameters(std::map<std::string, rclcpp::Parameter>& parameters);
 };
 }  // namespace tmc_safety_velocity_limiter

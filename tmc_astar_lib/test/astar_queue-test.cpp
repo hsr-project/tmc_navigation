@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -32,9 +32,9 @@ DAMAGE.
 #include <tmc_astar_lib/node_direction.hpp>
 
 namespace {
-// Maximum cost for normal cases, set to a value that does not exceed
+// Maximum cost in the normal case, set to a value that does not exceed
 constexpr int32_t kMaxCost = 200;
-// Base cost used for testing, express size by adding/subtracting from this
+// Reference cost used for testing, expressing magnitude by adding/subtracting to/from this
 constexpr int32_t kTestCost = 100;
 }  // anonymous namespace
 
@@ -54,16 +54,16 @@ class AstarQueueTest : public ::testing::Test {
 };
 
 /// AstarQueue test
-/// Ensure nodes already inserted are cleared in Initialize
+/// Ensures that nodes already inserted are cleared during Initialize
 TEST_F(AstarQueueTest, Initialize) {
   // exercise
-  // Initialize after PUSH, then POP
+  // Perform Initialize after PUSH, then POP
   queue_->Initialize(kMaxCost);
   AstarNode node(MapIndex(0, 0));
   node.Update(nullptr, kTestCost, 0, true, static_cast<int32_t>(NodeDirection::DIR_0));
   queue_->Push(&node);
   queue_->Initialize(kMaxCost);
-  // Confirm null is POPed
+  // Confirm that null is returned upon POP
   const AstarNode* popped = queue_->Pop();
 
   // verify
@@ -71,11 +71,11 @@ TEST_F(AstarQueueTest, Initialize) {
 }
 
 /// AstarQueue test
-/// PUSH in order of small cost → medium cost → large cost, confirm they are POPed in order of smallest cost
+/// Push in the order of small cost → medium cost → large cost, and confirm they are popped in ascending order of cost
 TEST_F(AstarQueueTest, SameOrder) {
   // exercise
   queue_->Initialize(kMaxCost);
-  // Set arbitrarily as only cost values are referenced from the queue
+  // Set arbitrarily since only cost values are referenced from the queue
   AstarNode node_low(MapIndex(0, 0));
   node_low.Update(nullptr, kTestCost, 0, true, static_cast<int32_t>(NodeDirection::DIR_0));
   AstarNode node_middle(MapIndex(1, 0));
@@ -88,7 +88,7 @@ TEST_F(AstarQueueTest, SameOrder) {
   const AstarNode* popped1 = queue_->Pop();
   const AstarNode* popped2 = queue_->Pop();
   const AstarNode* popped3 = queue_->Pop();
-  // Confirm null is returned after it becomes empty
+  // Confirm that null is returned after the queue becomes empty
   const AstarNode* popped4 = queue_->Pop();
 
   // verify
@@ -99,7 +99,7 @@ TEST_F(AstarQueueTest, SameOrder) {
 }
 
 /// AstarQueue test
-/// PUSH in order of large cost → medium cost → small cost, confirm they are POPed in order of smallest cost
+/// Push in the order of large cost → medium cost → small cost, and confirm they are popped in ascending order of cost
 TEST_F(AstarQueueTest, ReverseOrder) {
   // exercise
   queue_->Initialize(kMaxCost);
@@ -115,7 +115,7 @@ TEST_F(AstarQueueTest, ReverseOrder) {
   const AstarNode* popped1 = queue_->Pop();
   const AstarNode* popped2 = queue_->Pop();
   const AstarNode* popped3 = queue_->Pop();
-  // Confirm null is returned after it becomes empty
+  // Confirm that null is returned after the queue becomes empty
   const AstarNode* popped4 = queue_->Pop();
 
   // verify
@@ -126,7 +126,7 @@ TEST_F(AstarQueueTest, ReverseOrder) {
 }
 
 /// AstarQueue test
-/// PUSH multiple nodes with the same cost, confirm all can be POPed
+/// Push multiple nodes with the same cost and confirm all can be popped
 TEST_F(AstarQueueTest, SamePriority) {
   // exercise
   queue_->Initialize(kMaxCost);
@@ -145,12 +145,12 @@ TEST_F(AstarQueueTest, SamePriority) {
   const AstarNode* popped4 = queue_->Pop();
 
   // verify
-  // In the current implementation, nodes with the same priority are POPed in FILO order
+  // In the current implementation, nodes with the same priority are popped in FILO order
   EXPECT_EQ(&node3, popped1);
   EXPECT_EQ(&node2, popped2);
   EXPECT_EQ(&node1, popped3);
   EXPECT_EQ(nullptr, popped4);
-  // Confirm the list link of the POPed node is cleared
+  // Confirm that the linked list of popped nodes is cleared
   EXPECT_EQ(nullptr, popped1->prev());
   EXPECT_EQ(nullptr, popped1->next());
   EXPECT_EQ(-1, popped1->queue_index());
@@ -163,7 +163,7 @@ TEST_F(AstarQueueTest, SamePriority) {
 }
 
 /// AstarQueue test
-/// When a node at the head of the same priority list is re-PUSHed with a different cost value, confirm it is removed from the original position and inserted at the new position
+/// When a node at the head of the same-priority list is re-pushed with a different cost value, it is removed from its original position and inserted into the new position
 TEST_F(AstarQueueTest, RemoveHead) {
   // exercise
   queue_->Initialize(kMaxCost);
@@ -176,7 +176,7 @@ TEST_F(AstarQueueTest, RemoveHead) {
   queue_->Push(&node1);
   queue_->Push(&node2);
   queue_->Push(&node3);
-  // Re-PUSH node3 at the head of the list with a lower priority
+  // Re-push node3 at the head of the list with a lower priority
   node3.Update(nullptr, kTestCost + 1, 0, true, static_cast<int32_t>(NodeDirection::DIR_0));
   queue_->Push(&node3);
   const AstarNode* popped1 = queue_->Pop();
@@ -192,7 +192,7 @@ TEST_F(AstarQueueTest, RemoveHead) {
 }
 
 /// AstarQueue test
-/// When a node in the middle of the same priority list is re-PUSHed with a different cost value, confirm it is removed from the original position and inserted at the new position
+/// When a node in the middle of the same-priority list is re-pushed with a different cost value, it is removed from its original position and inserted into the new position
 TEST_F(AstarQueueTest, RemoveMiddle) {
   // exercise
   queue_->Initialize(kMaxCost);
@@ -205,7 +205,7 @@ TEST_F(AstarQueueTest, RemoveMiddle) {
   queue_->Push(&node1);
   queue_->Push(&node2);
   queue_->Push(&node3);
-  // Re-PUSH node2 in the middle of the list with a higher priority
+  // Re-push node2 in the middle of the list with a higher priority
   node2.Update(nullptr, kTestCost - 1, 0, true, static_cast<int32_t>(NodeDirection::DIR_0));
   queue_->Push(&node2);
   const AstarNode* popped1 = queue_->Pop();
@@ -221,7 +221,7 @@ TEST_F(AstarQueueTest, RemoveMiddle) {
 }
 
 /// AstarQueue test
-/// When a node at the end of the same priority list is re-PUSHed with a different cost value, confirm it is removed from the original position and inserted at the new position
+/// When a node at the end of the same-priority list is re-pushed with a different cost value, it is removed from its original position and inserted into the new position
 TEST_F(AstarQueueTest, RemoveTail) {
   // exercise
   queue_->Initialize(kMaxCost);
@@ -234,7 +234,7 @@ TEST_F(AstarQueueTest, RemoveTail) {
   queue_->Push(&node1);
   queue_->Push(&node2);
   queue_->Push(&node3);
-  // Re-PUSH node1 at the end of the list with a higher priority
+  // Re-push node1 at the end of the list with a higher priority
   node1.Update(nullptr, kTestCost - 1, 0, true, static_cast<int32_t>(NodeDirection::DIR_0));
   queue_->Push(&node1);
   const AstarNode* popped1 = queue_->Pop();
@@ -250,7 +250,7 @@ TEST_F(AstarQueueTest, RemoveTail) {
 }
 
 /// AstarQueue test
-/// When all nodes in the same priority list are re-PUSHed with different cost values, confirm they are removed from the original positions and inserted at the new positions
+/// When all nodes in the same-priority list are re-pushed with different cost values, they are removed from their original positions and inserted into new positions
 TEST_F(AstarQueueTest, RemoveLast) {
   // exercise
   queue_->Initialize(kMaxCost);
@@ -263,7 +263,7 @@ TEST_F(AstarQueueTest, RemoveLast) {
   queue_->Push(&node1);
   queue_->Push(&node2);
   queue_->Push(&node3);
-  // Re-PUSH all nodes with different priorities
+  // Re-push all nodes with different priorities
   node1.Update(nullptr, kTestCost - 2, 0, true, static_cast<int32_t>(NodeDirection::DIR_0));
   queue_->Push(&node1);
   node2.Update(nullptr, kTestCost - 1, 0, true, static_cast<int32_t>(NodeDirection::DIR_0));

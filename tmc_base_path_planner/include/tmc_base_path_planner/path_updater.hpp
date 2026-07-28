@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -67,9 +67,9 @@ class PathUpdater : public IPathUpdater {
         same_point_num_merge_path = kSamePointNumMergePathDefault;
       }
     }
-    // Distance to the previous path to be considered on the previous path [m]
+    // Distance to consider being on the previous path [m]
     double distance_on_prev_path;
-    // Allowable deviation between each path point when determining path update [m]
+    // Allowable deviation between each path point during path update judgment [m]
     double grid_error;
     // Threshold for merging paths if they match up to a certain number of points [num]
     int32_t same_point_num_merge_path;
@@ -86,21 +86,21 @@ class PathUpdater : public IPathUpdater {
   /// If not found, output the self-position as the start position
   /// @param [I] global_pose Self-position
   /// @param [O] start_pose Start position
-  /// @return Index on the previous path of the start position
+  /// @return Index of the start position on the previous path
   std::optional<uint32_t> SearchStartPoseOnPrevPath(const Pose2d& global_pose, Pose2d& start_pose);
 
   /// Update the path based on the previous path and the input path
   /// @param [I] path Input path
-  /// @param [I] start_index_on_prev_path Index on the previous path of the start position
+  /// @param [I] start_index_on_prev_path Index of the start position on the previous path
   /// @param [O] update_path Updated path
-  /// @return true: Update needed false: No update needed
+  /// @return true: Update required false: No update required
   bool UpdatePath(const PoseSeq& path, const std::optional<uint32_t>& start_index_on_prev_path,
                   PoseSeq& update_path);
 
  private:
   /// Result of CheckUpdatePath_
   enum CheckUpdatePathResult {
-    /// No update needed
+    /// No update required
     kNoUpdate,
     /// Partial update
     kMergeUpdate,
@@ -109,8 +109,8 @@ class PathUpdater : public IPathUpdater {
   };
   /// Compare the previous path and the input path to determine if an update is needed
   /// @param[I] path Input path
-  /// @param[I] start_index_on_prev_path Index on the previous path of the start position of the input path
-  /// @return kNoUpdate: No update needed kMergeUpdate: Partial update kAllUpdate: Full update
+  /// @param[I] start_index_on_prev_path Index of the start position on the previous path for the input path
+  /// @return kNoUpdate: No update required kMergeUpdate: Partial update kAllUpdate: Full update
   CheckUpdatePathResult CheckUpdatePath_(const PoseSeq& path, const uint32_t start_index_on_prev_path);
 
   // Previous path

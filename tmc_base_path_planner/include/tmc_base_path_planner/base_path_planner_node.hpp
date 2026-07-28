@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -53,7 +53,7 @@ using tmc_pose_2d_lib::GetPose2dFromRosMsg;
 using tmc_pose_2d_lib::GetPoseMsg;
 using nav2_util::SimpleActionServer;
 
-/// Node class
+/// Node Class
 class BasePathPlannerNode : public rclcpp::Node {
  public:
   /// Constructor
@@ -96,83 +96,83 @@ class BasePathPlannerNode : public rclcpp::Node {
     }
     // Drive cycle [hz]
     double rate;
-    // Dynamic map timeout time [s]
+    // Dynamic map timeout duration [s]
     double dynamic_map_timeout;
-    // Self-position timeout time [s]
+    // Self-position timeout duration [s]
     double global_pose_timeout;
     // Distance to expand the obstacle area of the static map from the wall [m]
     double static_map_potential_width;
   };
 
-  /// Route planning ACTION server callback
+  /// Path Planning ACTION Server Callback
   void PathPlanActionCallback_();
 
-  // Route following ActionClient callback
+  // Path Following Action Client Callback
   void goal_response_callback(const PathFollowGoalHandle::SharedPtr& future);
   void feedback_callback(PathFollowGoalHandle::SharedPtr,
       const std::shared_ptr<const PathFollowActionClient::Feedback> feedback);
   void result_callback(const PathFollowGoalHandle::WrappedResult& result);
 
-  /// Static map callback
+  /// Static Map Callback
   void StaticMapCallback_(const nav_msgs::msg::OccupancyGrid::SharedPtr static_map);
-  /// Dynamic map callback
+  /// Dynamic Map Callback
   void DynamicMapCallback_(const nav_msgs::msg::OccupancyGrid::SharedPtr dynamic_map);
-  /// Self-position callback
+  /// Self-position Callback
   void GlobalPoseCallback_(const geometry_msgs::msg::PoseStamped::SharedPtr global_pose);
-  // Parameter reading
+  // Parameter Reading
   void LoadParameter_();
 
-  /// Check topic timeout, perform necessary termination processing and return true if timed out
+  /// Check Topic Timeout. If timed out, perform necessary termination processing and return true
   bool CheckTopicTimeoutAndTerminate_();
-  /// Check cancel request, perform necessary termination processing and return true if canceled
+  /// Check Cancel Request. If canceled, perform necessary termination processing and return true
   bool CheckCancelAndTerminate_();
-  /// Check Follower's action completion, perform necessary termination processing and return true if completed
+  /// Check Follower Action Completion. If completed, perform necessary termination processing and return true
   bool CheckFollowActionCompleteAndTerminate_();
 
-  /// Send route following action
+  /// Send Path Following Action
   void SendFollowAction_(const nav_msgs::msg::Path& path);
-  /// Cancel route following action
+  /// Cancel Path Following Action
   void CancelFollowAction_();
 
-  /// Check error code, output action status, and return whether route planning can continue
-  /// Output action feedback and return true if continuation is possible
-  /// Output action result and return false if continuation is not possible
+  /// Check Error Code, Output Action Status, and Return Whether Path Planning Can Continue
+  /// If Continuable, Output Action Feedback and Return True
+  /// If Not Continuable, Output Action Result and Return False
   bool CheckErrorCodeAndAssignActionStatus_(const BasePathPlannerErrorCode& code,
       std::shared_ptr<BasePathPlanActionServer::Feedback>& feedback,
       std::shared_ptr<BasePathPlanActionServer::Result>& result);
 
   /// Planner
   BasePathPlanner::Ptr base_path_planner_;
-  /// Route planning action server
+  /// Path Planning Action Server
   std::shared_ptr<SimpleActionServer<BasePathPlanActionServer>> action_server_;
-  /// Route following action client
+  /// Path Following Action Client
   rclcpp_action::Client<PathFollowActionClient>::SharedPtr path_follow_action_client_;
-  /// Static map subscriber
+  /// Static Map Subscriber
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr sub_static_map_;
-  /// Dynamic map subscriber
+  /// Dynamic Map Subscriber
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr sub_dynamic_map_;
-  /// Self-position subscriber
+  /// Self-position Subscriber
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr sub_global_pose_;
-  /// Route publisher
+  /// Path Publisher
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_base_path_;
 
 
   PathFollowGoalHandle::SharedPtr follower_goal_handle_;
-  /// tf buffer
+  /// tf Buffer
   tf2_ros::Buffer tf_buffer_;
-  /// tf listener
+  /// tf Listener
   tf2_ros::TransformListener tf_listener_;
-  /// Whether the route following action is active
+  /// Whether Path Following Action is Active
   bool is_follower_goal_active_;
-  /// Current self-position
+  /// Current Self-position
   geometry_msgs::msg::PoseStamped current_global_pose_;
-  /// Current dynamic map
+  /// Current Dynamic Map
   nav_msgs::msg::OccupancyGrid current_dynamic_map_;
-  /// GridCells issuance
+  /// GridCells Publishing
   std::shared_ptr<GridCellsPublisher> grid_cells_publisher_;
   /// Parameters
   Parameter param_;
-  // Exclusive control
+  // Exclusive Control
   std::mutex path_plan_mutex_;
 };
 

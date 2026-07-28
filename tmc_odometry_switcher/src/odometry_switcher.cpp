@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -73,13 +73,13 @@ void OdometrySwitcherNode::Init() {
     throw std::runtime_error(std::string(kOdomInputListName) + " parameter was not found.");
   }
 
-  // Get the type of odometry topic to use first
+  // Get the type of the first odometry topic to use
   std::string source_odom_type;
   if (!GetParam(shared_from_this(), kInitialOdomName, source_odom_type)) {
     throw std::runtime_error(std::string(kInitialOdomName) + " parameter was not found.");
   }
 
-  // Check if the set initial odom is valid
+  // Check if the configured initial odometry is valid
   auto found_odom = odom_topic_list.find(source_odom_type);
   if (found_odom == odom_topic_list.end()) {
     source_odom_type = odom_topic_list.begin()->first;
@@ -89,7 +89,7 @@ void OdometrySwitcherNode::Init() {
         << "] source for now!");
   }
 
-  // Get the parent-child frame names for the output odometry
+  // Get the parent and child frame names for the output odometry
   std::string odom_frame;
   GetOptionalParam(shared_from_this(), kOdomParamName, odom_frame, std::string(kDefaultOdomName));
   std::string odom_child_frame;
@@ -118,7 +118,7 @@ void OdometrySwitcherNode::Init() {
 }
 
 
-/// Odometry switch service callback
+/// Callback for odometry switching service
 bool OdometrySwitcherNode::SwitchServiceCallback(
     tmc_navigation_msgs::srv::OdometrySwitch::Request::SharedPtr req,
     tmc_navigation_msgs::srv::OdometrySwitch::Response::SharedPtr res) {
@@ -183,14 +183,14 @@ void OdometryPublisher::PublishOdometry(const nav_msgs::msg::Odometry& odometry)
   tf_broadcaster_.sendTransform(OdometryMsgToTransform(output_odom));
 }
 
-/// Odometry switch
+/// Odometry switching
 /// @param odom_type [I] Type of odometry
-/// @ret true: switch successful / false: switch failed
+/// @ret true: Switching successful / false: Switching failed
 bool OdometrySwitcher::SwitchSourceOdom(const std::string& odom_type) {
   if (odom_list_.find(odom_type) == odom_list_.end()) {
     return false;
   }
-  // Update odometry switch position
+  // Update the position for odometry switching
   const Eigen::Affine3d current_transform = GetCurrentOdometryTransform();
   base_transform_ = current_transform * odom_list_[odom_type].inverse();
   // Update source odometry
@@ -202,16 +202,16 @@ bool OdometrySwitcher::SwitchSourceOdom(const std::string& odom_type) {
 /// @param odom_type [I] Type of odometry
 /// @param odom_pose [I] Odometry position
 /// @param output_odom_pose [O] Updated odometry position
-/// @ret true: odometry updated / false: odometry not updated
+/// @ret true: Odometry updated / false: Odometry not updated
 bool OdometrySwitcher::UpdateOdometry(const std::string& odom_type,
                                       const Eigen::Affine3d& odom_pose,
                                       Eigen::Affine3d& output_odom_pose) {
   odom_list_[odom_type] = odom_pose;
-  // Terminate except for source odometry
+  // Terminate all except source odometry
   if (odom_type != source_odom_type_) {
     return false;
   }
-  // Convert and calculate position based on odometry switch position
+  // Convert and calculate position based on the odometry switching reference position
   output_odom_pose = GetCurrentOdometryTransform();
   return true;
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -46,7 +46,7 @@ class DynamicObstacleCostCorrectorTest : public ::testing::Test {
 
  protected:
   virtual void SetUp() {
-    // This CostCorrector does not depend on setup parameters, so call the initialization method with arbitrary values
+    // Since this CostCorrector does not depend on setup parameters, call the initialization method with arbitrary values
     std::vector<MapIndex> preferred_path_indexes;
     ICostCorrector::SetupParams setup_param(50, 50, preferred_path_indexes);
     corrector_ = std::make_shared<DynamicObstacleCostCorrector>(DynamicObstacleCostCorrector());
@@ -56,7 +56,7 @@ class DynamicObstacleCostCorrectorTest : public ::testing::Test {
 };
 
 /// DynamicObstacleCostCorrector test
-/// Not corrected in the case of Free
+/// No correction is applied in the case of Free
 TEST_F(DynamicObstacleCostCorrectorTest, Free) {
   // exercise
   ICostCorrector::GetAdditionalCostParams param(
@@ -68,7 +68,7 @@ TEST_F(DynamicObstacleCostCorrectorTest, Free) {
 }
 
 /// DynamicObstacleCostCorrector test
-/// Not corrected in the gradient section from Free to Wall
+/// No correction is applied in the gradient section from Free to Wall
 TEST_F(DynamicObstacleCostCorrectorTest, FreeNorWall) {
   // exercise
   ICostCorrector::GetAdditionalCostParams param(
@@ -80,7 +80,7 @@ TEST_F(DynamicObstacleCostCorrectorTest, FreeNorWall) {
 }
 
 /// DynamicObstacleCostCorrector test
-/// As a result of considering potential, in the case of Wall, it is corrected to twice the original cost value
+/// As a result of considering potential, in the case of Wall, the value is corrected to twice the original cost value
 TEST_F(DynamicObstacleCostCorrectorTest, Wall) {
   // exercise
   ICostCorrector::GetAdditionalCostParams param(
@@ -88,7 +88,7 @@ TEST_F(DynamicObstacleCostCorrectorTest, Wall) {
   const int32_t additional_cost = corrector_->GetAdditionalCost(param);
 
   // verify
-  // The difference between the value multiplied by the cost multiplier and the original cost is returned as the correction value
+  // The difference between the value multiplied by the cost ratio and the original cost is returned as the correction value
   EXPECT_EQ(static_cast<int32_t>(static_cast<double>(param.dynamic_cost) * (kObstacleCostFactor - 1.0)),
             additional_cost);
 }

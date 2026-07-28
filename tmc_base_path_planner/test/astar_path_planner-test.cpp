@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -40,10 +40,10 @@ const int32_t kDynamicMapSize = 500;
 const double kResolution = 0.05;
 // Map parameters
 const tmc_astar_lib::LayeredCostMap::Parameter kMapParam(0.2, 0.5, 1.0, 100.0, 0, 50, 71);
-// Dynamic map origin
+// Origin of the dynamic map
 const Pose2d kDynamicMapOrigin = Pose2d(12.5, 12.5, 0.0);
 // Position of a single-point obstacle
-// Adding resolution/2 to point to the center of the grid to avoid rounding errors when converting map to grid coordinates
+// To avoid rounding errors when converting map to grid coordinates, resolution/2 is added to point to the center of the grid
 const Pose2d kPointObstalce(30.0 + (kResolution / 2.0), 25.0 + (kResolution / 2.0), 0.0);
 // Position of rectangular obstacles
 const Pose2d kRectObstacleLeftBottom(32.5 + (kResolution / 2.0), 27.5 + (kResolution / 2.0), 0.0);
@@ -51,7 +51,7 @@ const Pose2d kRectObstacleRightTop(37.5 + (kResolution / 2.0), 32.5 + (kResoluti
 // Start and goal for normal test cases
 const Pose2d kStart(30.0 + (kResolution / 2.0), 30.0 + (kResolution / 2.0), 0.0);
 const Pose2d kGoal(30.0 + (kResolution / 2.0), 32.0 + (kResolution / 2.0), 0.0);
-// Goal within the same grid as the start
+// Goal located within the same grid as the start
 const Pose2d kGoalSameGrid(30.0 + (kResolution / 3.0), 30.0 + (kResolution / 4.0), 0.0);
 }  // anonymous namespace
 
@@ -64,10 +64,10 @@ class AstarPathPlannerTest : public ::testing::Test {
 
  protected:
   virtual void SetUp() {
-    // Generation of static map
+    // Generation of the static map
     Pose2d static_map_origin(0.0, 0.0, 0.0);
     std::vector<uint8_t> static_map_data(kStaticMapSize * kStaticMapSize, 1);
-    // Place obstacles at one point and in a square area for success/failure determination
+    // Place a single-point and square-shaped obstacle for success/failure determination
     const int32_t point_obstacle_x = static_cast<int32_t>(kPointObstalce.x() / kResolution);
     const int32_t point_obstacle_y = static_cast<int32_t>(kPointObstalce.y() / kResolution);
     static_map_data[kStaticMapSize * point_obstacle_y + point_obstacle_x] = kWallValue;
@@ -84,7 +84,7 @@ class AstarPathPlannerTest : public ::testing::Test {
         CostMap(static_map_origin, kResolution, kStaticMapSize, kStaticMapSize, static_map_data));
     LayeredCostMap::Ptr map = std::make_shared<LayeredCostMap>(LayeredCostMap(kMapParam, static_map));
 
-    // Generation of dynamic map. In this test, the state of the dynamic map is not questioned, so set the entire area to Free
+    // Generation of the dynamic map. In this test, the state of the dynamic map is not considered, so the entire area is set to Free
     std::vector<uint8_t> dynamic_map_data(kDynamicMapSize * kDynamicMapSize, 1);
     dynamic_map_ = std::make_shared<CostMap>(
         CostMap(kDynamicMapOrigin, kResolution, kDynamicMapSize, kDynamicMapSize, dynamic_map_data));
@@ -99,11 +99,11 @@ class AstarPathPlannerTest : public ::testing::Test {
   PoseSeq preferred_path_;
 };
 
-/// AsarPathPlanner test
-/// Normal case: Return true if the lower module does not result in an error
+/// Test for AsarPathPlanner
+/// Normal case: Returns true if lower modules do not encounter errors
 TEST_F(AstarPathPlannerTest, NormalCase) {
   // exercise
-  // Set start and goal at positions without obstacles
+  // Set start and goal positions in areas without obstacles
   PoseSeq output_path;
   const bool result = planner_->PlanPath(
       kStart, kGoal, dynamic_map_, kDynamicMapOrigin, false, preferred_path_, output_path);
@@ -111,11 +111,11 @@ TEST_F(AstarPathPlannerTest, NormalCase) {
   EXPECT_TRUE(result);
 }
 
-/// AsarPathPlanner test
-/// With enable_adaptive_start_positioning = false, path planning fails if the start position is an obstacle
+/// Test for AsarPathPlanner
+/// When enable_adaptive_start_positioning = false, path planning fails if the start position is on an obstacle
 TEST_F(AstarPathPlannerTest, NotAdjustStartPosition) {
   // exercise
-  // Set start at the position of a single-point obstacle and goal at an appropriate position
+  // Set the start position on a single-point obstacle and the goal at an arbitrary position
   PoseSeq output_path;
   const bool result = planner_->PlanPath(
       kPointObstalce, kGoal, dynamic_map_, kDynamicMapOrigin, false, preferred_path_, output_path);
@@ -123,11 +123,11 @@ TEST_F(AstarPathPlannerTest, NotAdjustStartPosition) {
   EXPECT_FALSE(result);
 }
 
-/// AsarPathPlanner test
-/// With enable_adaptive_start_positioning = true, path planning succeeds if the start position is an obstacle
+/// Test for AsarPathPlanner
+/// When enable_adaptive_start_positioning = true, path planning succeeds even if the start position is on an obstacle
 TEST_F(AstarPathPlannerTest, AdjustStartPosition) {
   // exercise
-  // Set start at the position of a single-point obstacle and goal at an appropriate position
+  // Set the start position on a single-point obstacle and the goal at an arbitrary position
   PoseSeq output_path;
   const bool result = planner_->PlanPath(
       kPointObstalce, kGoal, dynamic_map_, kDynamicMapOrigin, true, preferred_path_, output_path);
@@ -135,11 +135,11 @@ TEST_F(AstarPathPlannerTest, AdjustStartPosition) {
   EXPECT_TRUE(result);
 }
 
-/// AsarPathPlanner test
-/// Return false if start position adjustment fails
+/// Test for AsarPathPlanner
+/// Returns false if start position adjustment fails
 TEST_F(AstarPathPlannerTest, StartPositionAdjustingFail) {
   // exercise
-  // Set start at the center of a rectangular obstacle and goal at an appropriate position
+  // Set the start position at the center of a rectangular obstacle and the goal at an arbitrary position
   const Pose2d start((kRectObstacleLeftBottom.x() + kRectObstacleRightTop.x()) / 2.0,
                      (kRectObstacleLeftBottom.y() + kRectObstacleRightTop.y()) / 2.0, 0.0);
   PoseSeq output_path;
@@ -149,11 +149,11 @@ TEST_F(AstarPathPlannerTest, StartPositionAdjustingFail) {
   EXPECT_FALSE(result);
 }
 
-/// AsarPathPlanner test
-/// Return false if path planning by AstarCore fails
+/// Test for AsarPathPlanner
+/// Returns false if path planning with AstarCore fails
 TEST_F(AstarPathPlannerTest, AstarCoreFail) {
   // exercise
-  // Set goal at the center of an obstacle and start at an appropriate position
+  // Set the goal at the center of an obstacle and the start at an arbitrary position
   const Pose2d goal((kRectObstacleLeftBottom.x() + kRectObstacleRightTop.x()) / 2.0,
                     (kRectObstacleLeftBottom.y() + kRectObstacleRightTop.y()) / 2.0, 0.0);
   PoseSeq output_path;
@@ -163,16 +163,16 @@ TEST_F(AstarPathPlannerTest, AstarCoreFail) {
   EXPECT_FALSE(result);
 }
 
-/// AsarPathPlanner test
-/// Return a two-point path if start and goal are in the same grid
+/// Test for AsarPathPlanner
+/// Returns a two-point path if the start and goal are in the same grid
 TEST_F(AstarPathPlannerTest, StartGoalOnSameGrid) {
   // exercise
-  // Set start and goal at slightly different coordinates within the same grid
+  // Set start and goal positions at slightly different coordinates within the same grid
   PoseSeq output_path;
   const bool result = planner_->PlanPath(
       kStart, kGoalSameGrid, dynamic_map_, kDynamicMapOrigin, false, preferred_path_, output_path);
   // verify
-  // Successful planning with a two-point path, storing start and goal coordinates as they are
+  // Path planning succeeds with a two-point path, and the start and goal coordinates are stored as is
   ASSERT_TRUE(result);
   ASSERT_EQ(2, output_path.size());
   EXPECT_DOUBLE_EQ(kStart.x(), output_path[0].x());

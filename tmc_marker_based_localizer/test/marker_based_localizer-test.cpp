@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -33,19 +33,19 @@ DAMAGE.
 
 namespace tmc_marker_based_localizer {
 /// Normal case
-/// Able to correct self-position using markers
+/// Self-position correction can be performed using markers
 TEST_F(MarkerBasedLocalizerNodeTest, LocalizeBasedOnMarker) {
   // parameter
-  // Information of the marker recognized by the camera
-  // If greater than marker_to_base_distance_threshold (def 1.5), the process is not executed
+  // Information about the marker recognized by the camera
+  // If the distance is greater than marker_to_base_distance_threshold (def 1.5), the process will not be executed
   const int object_id = 507;
   const geometry_msgs::msg::Pose camera_marker_object_pose = CreatePose(0.65, 0.86, 1.12, 0.48, -0.43, 0.54, 0.53);
   // tf from cart to camera
   const tf2::Transform robot_pose = CreateTransform(0.01, 0.04, 0.0, 0.0, 0.0, 0.0, 1.0);
-  // If below joint_stopping_vel (def:0.005), it is stopped
+  // If joint_stopping_vel (def:0.005) or less, it is considered stopped
   const std::string joint_state_name = "left_drive_wheel_joint";
   const double joint_state_velocity = 0.005;
-  // If the movement amount of the odom's x, y-axis is less than travel_distance_threshold (def:5.0), the process is not executed
+  // If the movement of the odom x, y axes is less than travel_distance_threshold (def:5.0), the process will not be executed
   const double odom_x_init = 0.0;
   const double odom_y_init = 0.0;
   const double odom_x = 5.0;
@@ -54,9 +54,9 @@ TEST_F(MarkerBasedLocalizerNodeTest, LocalizeBasedOnMarker) {
   geometry_msgs::msg::Pose localized_pose;
 
   // exercise
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -66,7 +66,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, LocalizeBasedOnMarker) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -76,7 +76,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, LocalizeBasedOnMarker) {
   EXPECT_EQ(test_node_->localized_pose()->pose.pose, localized_pose);
 }
 
-/// Able to correct self-position with a different marker than "LocalizeBasedOnMarker"
+/// Self-position correction can be performed using a marker other than "LocalizeBasedOnMarker"
 TEST_F(MarkerBasedLocalizerNodeTest, LocalizeBasedOnOtherMarker) {
   // parameter
   const int object_id = 508;
@@ -92,9 +92,9 @@ TEST_F(MarkerBasedLocalizerNodeTest, LocalizeBasedOnOtherMarker) {
   geometry_msgs::msg::Pose localized_pose;
 
   // exercise
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -104,7 +104,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, LocalizeBasedOnOtherMarker) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -114,7 +114,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, LocalizeBasedOnOtherMarker) {
   EXPECT_EQ(test_node_->localized_pose()->pose.pose, localized_pose);
 }
 
-/// Able to switch self-position estimation by marker ON and OFF via service
+/// Self-position estimation using markers can be toggled ON and OFF via a service
 TEST_F(MarkerBasedLocalizerNodeTest, SwitchMarkerBasedLocalizerService) {
   // parameter
   const int object_id = 507;
@@ -130,12 +130,12 @@ TEST_F(MarkerBasedLocalizerNodeTest, SwitchMarkerBasedLocalizerService) {
   geometry_msgs::msg::Pose localized_pose;
 
   // exercise
-  // By default, the self-position correction function by marker is ON, so test from function OFF via service
+  // By default, the self-position correction function using markers is ON, so start testing with the function turned OFF via the service
   // Stop the service
   test_node_->CallStopService();
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -145,7 +145,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, SwitchMarkerBasedLocalizerService) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -156,9 +156,9 @@ TEST_F(MarkerBasedLocalizerNodeTest, SwitchMarkerBasedLocalizerService) {
   // exercise
   // Execute the service
   test_node_->CallStartService();
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -168,7 +168,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, SwitchMarkerBasedLocalizerService) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -179,7 +179,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, SwitchMarkerBasedLocalizerService) {
 }
 
 /// Semi-normal case
-/// If there is no matching object_id, do not correct self-position
+/// If there is no matching object_id, self-position correction is not performed
 TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoObjctId) {
   // parameter
   const int object_id = 506;
@@ -195,9 +195,9 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoObjctId) {
   geometry_msgs::msg::Pose localized_pose;
 
   // exercise
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -207,7 +207,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoObjctId) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -216,7 +216,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoObjctId) {
   ASSERT_FALSE(test_node_->WaitForResult(kNoResultTimeout));
 }
 
-/// If not stopped, do not correct self-position
+/// If not stopped, self-position correction is not performed
 TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoStop) {
   // parameter
   const int object_id = 507;
@@ -232,9 +232,9 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoStop) {
   geometry_msgs::msg::Pose localized_pose;
 
   // exercise
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -244,7 +244,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoStop) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -253,7 +253,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoStop) {
   ASSERT_FALSE(test_node_->WaitForResult(kNoResultTimeout));
 }
 
-/// If the marker has not moved from the last recognized location, do not correct self-position
+/// If the marker has not moved from the previously recognized location, self-position correction is not performed
 TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoMoveFromPrevLocalize) {
   // parameter
   const int object_id = 507;
@@ -268,11 +268,11 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoMoveFromPrevLocalize) {
   geometry_msgs::msg::TransformStamped transform_stamped;
   geometry_msgs::msg::Pose localized_pose;
 
-  // Identify the marker normally once and update the last recognized position
+  // Successfully identify the marker once and update the previous identification location
   // exercise
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -282,7 +282,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoMoveFromPrevLocalize) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -290,7 +290,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoMoveFromPrevLocalize) {
   // verify
   ASSERT_TRUE(test_node_->WaitForResult(kNoResultTimeout));
 
-  // Identify the marker at the same location as the last recognized position
+  // Identify the marker at the same location as the previous identification
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
   // Update odometry
@@ -299,7 +299,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoMoveFromPrevLocalize) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -308,7 +308,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoMoveFromPrevLocalize) {
   ASSERT_FALSE(test_node_->WaitForResult(kNoResultTimeout));
 }
 
-/// If the distance from the marker is far, do not correct self-position
+/// If the distance from the marker is too far, self-position correction is not performed
 TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForFarMarker) {
   // parameter
   const int object_id = 507;
@@ -324,9 +324,9 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForFarMarker) {
   geometry_msgs::msg::Pose localized_pose;
 
   // exercise
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -336,7 +336,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForFarMarker) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -346,7 +346,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForFarMarker) {
 }
 
 /// Abnormal case
-/// If there is no matching JointState, output an error and do not correct self-position
+/// If there is no matching JointState, output an error and do not perform self-position correction
 TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoJointState) {
   // parameter
   const int object_id = 507;
@@ -360,11 +360,11 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoJointState) {
   geometry_msgs::msg::Pose localized_pose;
 
   // exercise
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
-  // Publish joint_state with dummy axis name
+  // Publish joint_state with a dummy axis name
   test_node_->PublishDummyJointState();
   // Update odometry
   test_node_->PublishOdometry(odom_x, odom_y);
@@ -372,7 +372,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoJointState) {
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -381,7 +381,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForNoJointState) {
   ASSERT_FALSE(test_node_->WaitForResult(kNoResultTimeout));
 }
 
-/// If tf conversion fails, output an error and do not correct self-position
+/// If tf conversion fails, output an error and do not perform self-position correction
 TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForCannotTransform) {
   // parameter
   const int object_id = 507;
@@ -397,9 +397,9 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForCannotTransform) {
   geometry_msgs::msg::Pose localized_pose;
 
   // exercise
-  // First odometry transmission
+  // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -409,7 +409,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotLocalizeForCannotTransform) {
   test_node_->SendTransform(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
   // Generate expected value
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Waiting for the above transmission to complete
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -433,7 +433,7 @@ int main(int argc, char** argv) {
   tmc_marker_based_localizer::LoadParameterFromYaml(marker_based_localizer_node,
                                                     yaml_directory, "marker_based_localizer-test.yaml");
 
-  // Since the marker_based_localizer node waits to receive the topic "joint_state" in Init, create a node to publish "joint_state"
+  // Since the marker_based_localizer node waits to receive the "joint_state" topic during Init, create a node to publish "joint_state"
   auto pub_joint_state_test_node_ = std::make_shared<tmc_marker_based_localizer::PubJointStateTestNode>(option);
   pub_joint_state_test_node_->Init();
   // Start a thread to publish "joint_state"
@@ -443,7 +443,7 @@ int main(int argc, char** argv) {
 
   marker_based_localizer_node->Init();
 
-  // Once the Init of the marker_based_localizer node is complete, stop publishing "joint_state"
+  // Stop publishing "joint_state" once the Init of the marker_based_localizer node is complete
   pub_joint_state_test_node_->StopPublishJointState();
   pub_joint_state_test_node_thread->join();
   pub_joint_state_test_node_.reset();
@@ -453,7 +453,7 @@ int main(int argc, char** argv) {
     try {
       rclcpp::spin(marker_based_localizer_node);
     } catch (const std::exception& e) {
-      // There is a possibility of an exception occurring during the termination process
+      // Exceptions may occur during the termination process
       std::cout << "marker_based_localizer_node : " << e.what() << std::endl;
     }
   });

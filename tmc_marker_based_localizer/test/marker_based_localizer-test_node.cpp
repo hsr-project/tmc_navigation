@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -152,12 +152,12 @@ void TestNode::SpinOnce() {
   rclcpp::spin_some(shared_from_this());
 }
 
-// Start Service
+// Start service
 void TestNode::CallStartService() {
   CallEmptyService(start_service_client_);
 }
 
-// Stop Service
+// Stop service
 void TestNode::CallStopService() {
   CallEmptyService(stop_service_client_);
 }
@@ -225,7 +225,7 @@ void TestNode::LocalizedPoseSubscriptionCallback_(const geometry_msgs::msg::Pose
   is_sub_result_ = true;
 }
 
-// Execute Service
+// Execute service
 void TestNode::CallEmptyService(rclcpp::Client<std_srvs::srv::Empty>::SharedPtr& client) {
   auto empty_request = std::make_shared<std_srvs::srv::Empty::Request>();
   auto result_future = client->async_send_request(empty_request);
@@ -288,7 +288,7 @@ void MarkerBasedLocalizerNodeTest::SetUp() {
   // Generate test node
   test_node_ = std::make_shared<TestNode>();
   test_node_->Init();
-  // Wait until linked with publisher and subscriber
+  // Wait until publisher and subscriber are linked
   if (!test_node_->WaitForConnectionEstablished()) {
     RCLCPP_FATAL(rclcpp::get_logger("marker_based_localizer_test"), "Can not link to test target.");
     exit(EXIT_FAILURE);

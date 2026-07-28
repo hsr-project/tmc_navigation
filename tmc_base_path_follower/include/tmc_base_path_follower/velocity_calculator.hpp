@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -43,33 +43,33 @@ class IVelocityCalculator {
   virtual ~IVelocityCalculator() = default;
 
   /// Speed Calculation
-  /// @param[I] path_info Route Information
-  /// @param[I] global_pose Self Position
-  /// @param[I] current_path_index Index on the Route
-  /// @param[I] last_velocity Previous Velocity
-  /// @param[I] time_interval Time Interval from Previous Velocity Calculation
-  /// @param[I] is_arrived_goal_area Whether Entered Goal Area
-  /// @param[I] transit_velocity Transit Velocity
-  /// @param[O] output_velocity Output Velocity
-  /// @return Speed Calculation Success or Failure
+  /// @param[I] path_info Route information
+  /// @param[I] global_pose Self-position
+  /// @param[I] current_path_index Index on the route
+  /// @param[I] last_velocity Previous velocity
+  /// @param[I] time_interval Time interval since the last velocity calculation
+  /// @param[I] is_arrived_goal_area Whether it has entered the goal area
+  /// @param[I] transit_velocity Transit velocity
+  /// @param[O] output_velocity Output velocity
+  /// @return Success or failure of speed calculation
   virtual bool CalculateVelocity(const PathInfo& path_info, const Pose2d& global_pose,
                                  const uint32_t current_path_index, const Vector3d& last_velocity,
                                  const double time_interval, const bool is_arrived_goal_area,
                                  const std::optional<double>& transit_velocity, Vector3d& output_velocity) = 0;
 
  protected:
-  // Speed Limit
+  // Speed limit
   void LimitVelocity(Vector3d& velocity, const Vector3d& last_velocity, const double time_interval,
                       const Vector3d& max_velocity, const Vector3d& max_acceleration) {
     for (int32_t i = 0; i < kNumBasePoseCoordinates; ++i) {
       double dv = velocity(i) - last_velocity(i);
       double sign = 0.0;
-      // Apply Maximum Acceleration Limit
+      // Apply maximum acceleration limit
       if (fabs(dv) >= max_acceleration(i) * time_interval) {
         sign = dv / fabs(dv);
         velocity(i) = last_velocity(i) + sign * max_acceleration(i) * time_interval;
       }
-      // Apply Maximum Speed Limit
+      // Apply maximum speed limit
       if (fabs(velocity(i)) > std::numeric_limits<double>::epsilon()) {
         sign = velocity(i) / fabs(velocity(i));
         velocity(i) = sign * std::min<double>(fabs(velocity(i)), max_velocity(i));

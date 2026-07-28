@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -35,8 +35,8 @@ DAMAGE.
 namespace tmc_odometry_switcher {
 using std::placeholders::_1;
 using std::placeholders::_2;
-/// Reception cycle check class
-/// Because spin_some may cause data loss and cannot accurately check the cycle,
+/// Reception Cycle Check Class
+/// Since spin_some may cause data loss and cannot accurately check the cycle,
 /// Launch separately from the test node to check the reception cycle
 class SubscribeRateChecker : public rclcpp::Node {
  public:
@@ -60,20 +60,20 @@ class SubscribeRateChecker : public rclcpp::Node {
   ~SubscribeRateChecker() {}
 
  private:
-  // Cycle check start service
+  // Cycle Check Start Service
   void StartCheckRateService(std_srvs::srv::Empty::Request::SharedPtr req,
       std_srvs::srv::Empty::Response::SharedPtr res) {
     subscribe_count_ = 0;
     start_time_ = rclcpp::Clock(RCL_ROS_TIME).now();
     is_start_ = true;
   }
-  // Cycle check stop service
+  // Cycle Check Stop Service
   void StopCheckRateService(std_srvs::srv::Empty::Request::SharedPtr req,
       std_srvs::srv::Empty::Response::SharedPtr res) {
     is_start_ = false;
   }
 
-  // Odometry callback
+  // Odometry Callback
   void OdometryCallback(const nav_msgs::msg::Odometry::SharedPtr msg) {
     if (is_start_) {
       subscribe_count_++;
@@ -88,13 +88,13 @@ class SubscribeRateChecker : public rclcpp::Node {
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscriber_;
   // Publisher
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr publisher_;
-  // Start service
+  // Start Service
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr start_server_;
-  // Stop service
+  // Stop Service
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr stop_server_;
-  // Reception start time
+  // Reception Start Time
   rclcpp::Time start_time_;
-  // Number of receptions
+  // Reception Count
   uint32_t subscribe_count_;
   // Start
   bool is_start_;

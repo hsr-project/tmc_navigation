@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -37,41 +37,41 @@ DAMAGE.
 #include "param.hpp"
 
 namespace {
-// node name
+// Node name
 const char* kNodeName = "safety_velocity_limiter";
-// service name
-const char* const kStartServiceName = "~/start";                        // Function On service name
-const char* const kStopServiceName = "~/stop";                          // Function Off service name
-const char* const kSwitchBumperSetServiceName = "~/switch_bumper_set";  // Bumper set switch service name
+// Service name
+const char* const kStartServiceName = "~/start";                        // Service name to turn the function on
+const char* const kStopServiceName = "~/stop";                          // Service name to turn the function off
+const char* const kSwitchBumperSetServiceName = "~/switch_bumper_set";  // Service name to switch bumper sets
 const char* const kResetToDefaultServiceName = "~/reset_to_default";    // Service name to reset to default settings
 const char* const kGetCurrentSettingServiceName = "~/get_current_setting";  // Service name to get current settings
-// topic name
+// Topic name
 const char* kTopicInputVelocity = "input_velocity";       // Input velocity topic name
 const char* kTopicOutputVelocity = "output_velocity";     // Output velocity topic name
 const char* kTopicSlowingDown = "slowing_down";           // Sudden deceleration detection topic name
-const char* kTopicObservedObstaclePose = "~/observed_obstacle_pose";  // Speed limit factor coordinates topic name
+const char* kTopicObservedObstaclePose = "~/observed_obstacle_pose";  // Coordinates of speed-limiting factors topic name
 const char* kTopicRatio = "~/ratio";  // Deceleration ratio topic name
 const char* kTopicZeroVelocity = "zero_velocity";        // Zero velocity detection topic name
 // ROS parameter name
-const char* kEnableFunction = "enable_function";                                 // Function enable/disable
+const char* kEnableFunction = "enable_function";                                 // Enable/disable function
 const char* kDefaultBumperSet = "default_bumper_set";                            // Default bumper set
-const char* kVirtualBumpers = "virtual_bumpers";                                 // Virtual bumper definition
+const char* kVirtualBumpers = "virtual_bumpers";                                 // Virtual bumper definitions
 const char* kSlowdownVelocityThreshold = "slowdown_velocity_threshold";          // Minimum speed for sudden deceleration detection [m/s]
 const char* kSlowdownDecelerationThreshold = "slowdown_deceleration_threshold";  // Acceleration considered as sudden deceleration [m/s^2]
-const char* kSlowdownDetectionTime = "slowdown_detection_time";                  // Sudden deceleration judgment time [s]
+const char* kSlowdownDetectionTime = "slowdown_detection_time";                  // Sudden deceleration detection time [s]
 const char* kMaximumAcceleration = "maximum_acceleration";                       // Maximum acceleration (during acceleration) [m/s^2]
 const char* kMaximumDeceleration = "maximum_deceleration";                       // Maximum acceleration (during deceleration) [m/s^2]
-const char* kTimeoutInterval = "timeout_interval";                               // Speed timeout judgment time [s]
-// ROS parameter default value
-const bool kEnableFunctionDef = false;                  // Function enable/disable
+const char* kTimeoutInterval = "timeout_interval";                               // Speed timeout detection time [s]
+// ROS parameter default values
+const bool kEnableFunctionDef = false;                  // Enable/disable function
 const double kSlowdownVelocityThresholdDef = 0.5;       // Minimum speed for sudden deceleration [m/s]
 const double kSlowdownDecelerationThresholdDef = 2.0;   // Acceleration considered as sudden deceleration [m/s^2]
-const double kSlowdownDetectionTimeDef = 0.0;           // Sudden deceleration judgment time [s]
+const double kSlowdownDetectionTimeDef = 0.0;           // Sudden deceleration detection time [s]
 const double kMaximumAccelerationDef = 0.5;             // Maximum acceleration (during acceleration) [m/s^2]
 const double kMaximumDecelerationDef = 1.0;             // Maximum acceleration (during deceleration) [m/s^2]
-const double kTimeoutIntervalDef = 0.5;                 // Speed timeout judgment time [s]
-// Fixed parameter
-const double kMinimumInterval = 0.001;  // Minimum value of speed update cycle [s]
+const double kTimeoutIntervalDef = 0.5;                 // Speed timeout detection time [s]
+// Fixed parameters
+const double kMinimumInterval = 0.001;  // Minimum speed update interval [s]
 const double kEpsilon = std::numeric_limits<double>::epsilon();
 
 }  // anonymous namespace
@@ -85,23 +85,23 @@ VelocityLimiter::VelocityLimiter(const rclcpp::NodeOptions& options) :
 
 void VelocityLimiter::Init() {
   is_slowing_down_ = false;
-  // Retrieve ros parameter
+  // Retrieve ROS parameters
   UpdateParameters();
-  // Register subscriber
+  // Register subscribers
   sub_velocity_ = this->create_subscription<Twist>(kTopicInputVelocity, 1,
       std::bind(&VelocityLimiter::VelocityCallback, this, _1));
-  // Register publisher
+  // Register publishers
   pub_velocity_ = this->create_publisher<Twist>(kTopicOutputVelocity, 1);
   pub_slowing_down_ = this->create_publisher<std_msgs::msg::Bool>(kTopicSlowingDown, 1);
   pub_observed_obstacle_pose_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(kTopicObservedObstaclePose, 1);
   pub_ratio_ = this->create_publisher<std_msgs::msg::Float64>(kTopicRatio, 1);
   pub_zero_velocity_ = this->create_publisher<std_msgs::msg::Bool>(kTopicZeroVelocity, 1);
-  // Function On, Off service
+  // Function On/Off services
   start_service_ = this->create_service<std_srvs::srv::Empty>(kStartServiceName,
       std::bind(&VelocityLimiter::StartServiceCallback, this, _1, _2));
   stop_service_ = this->create_service<std_srvs::srv::Empty>(kStopServiceName,
       std::bind(&VelocityLimiter::StopServiceCallback, this, _1, _2));
-  // Bumper set switch service
+  // Bumper set switching service
   switch_bumper_set_service_ = this->create_service<tmc_navigation_msgs::srv::SwitchBumperSet>(
       kSwitchBumperSetServiceName, std::bind(&VelocityLimiter::SwitchBumperSetServiceCallback, this, _1, _2));
   // Service to reset to default settings
@@ -124,7 +124,7 @@ void VelocityLimiter::Init() {
 /// Destructor
 VelocityLimiter::~VelocityLimiter() {}
 
-/// Retrieve ROS PRAM
+/// Retrieve ROS parameters
 void VelocityLimiter::UpdateParameters() {
   // Default function On/Off state
   GetOptionalParam(shared_from_this(), kEnableFunction, default_enable_function_, kEnableFunctionDef);
@@ -155,7 +155,7 @@ void VelocityLimiter::UpdateParameters() {
     maximum_deceleration_ = kMaximumDecelerationDef;
   }
 
-  // Retrieve timeout judgment time
+  // Retrieve timeout detection time
   GetOptionalParam(shared_from_this(), kTimeoutInterval, timeout_interval_, kTimeoutIntervalDef);
   if (timeout_interval_ <= 0.0) {
     RCLCPP_WARN(this->get_logger(), "Parameter [%s] is invalid (%lf). Use default value (%lf)",
@@ -183,7 +183,7 @@ void VelocityLimiter::UpdateParameters() {
     }
   }
 
-  // Retrieve and set default bumper set
+  // Retrieve and set the default bumper set
   if (!GetParam(shared_from_this(), kDefaultBumperSet, default_bumper_set_) ||
       !SwitchBumperSet(default_bumper_set_, std::vector<std::string>(0))) {
     throw std::runtime_error("Default bumper " + default_bumper_set_ + " is not registered in virtual_bumpers.");
@@ -195,28 +195,28 @@ void VelocityLimiter::VelocityCallback(const TwistPtr msg) {
   rclcpp::Time now = this->get_clock()->now();
   Twist output_velocity = *msg;
   if (enable_function_) {
-    // Speed update cycle to determine acceleration
-    // Since the processing cycle depends on the upper node, determine from the actual callback invocation time
+    // Speed update interval for calculating acceleration
+    // Since the processing cycle depends on the upper node, calculate from the actual callback invocation time
     rclcpp::Duration interval = now - previous_operation_time_;
     if (interval.seconds() < kMinimumInterval) {
-      // Set a guard as interval may become zero
+      // Add a guard as the interval may become zero
       interval = rclcpp::Duration::from_seconds(kMinimumInterval);
     } else if (interval.seconds() > timeout_interval_) {
-      // If speed has timed out (stopped), calculate with previous value 0 and minimum cycle
+      // If the speed has timed out (stopped), calculate with the previous value as 0 and the minimum interval
       previous_velocity_ = Twist();
       interval = rclcpp::Duration::from_seconds(kMinimumInterval);
     }
 
     geometry_msgs::msg::PoseStamped observed_obstacle_pose;
     double velocity_limit_ratio = 1.0;
-    // Speed limit
+    // Speed limitation
     if (current_bumper_set_.second->LimitVelocity(*msg, current_disable_bumpers_, output_velocity,
                                                   observed_obstacle_pose, velocity_limit_ratio)) {
-      // If speed limit is applied, publish the coordinates of the obstacle that caused the limit
+      // If speed limitation is applied, publish the coordinates of the obstacle that caused the limitation
       pub_observed_obstacle_pose_->publish(observed_obstacle_pose);
     }
     double acceleration_limit_ratio = 1.0;
-    // Acceleration limit
+    // Acceleration limitation
     LimitAcceleration(output_velocity, interval, acceleration_limit_ratio);
     // Sudden deceleration detection
     SlowdownDetection(output_velocity, interval);
@@ -248,11 +248,11 @@ void VelocityLimiter::StopServiceCallback(
     std_srvs::srv::Empty::Request::SharedPtr req,
     std_srvs::srv::Empty::Response::SharedPtr res) {
   enable_function_ = false;
-  // Reset sudden deceleration detection state while function is OFF
+  // Reset sudden deceleration detection state while the function is OFF
   ClearSlowdownDetectStatus();
 }
 
-/// Bumper set switch service
+/// Bumper set switching service
 void VelocityLimiter::SwitchBumperSetServiceCallback(
     tmc_navigation_msgs::srv::SwitchBumperSet::Request::SharedPtr req,
     tmc_navigation_msgs::srv::SwitchBumperSet::Response::SharedPtr res) {
@@ -270,10 +270,10 @@ void VelocityLimiter::ResetToDefaultServiceCallback(
     std_srvs::srv::Empty::Response::SharedPtr res) {
   enable_function_ = default_enable_function_;
   if (!enable_function_) {
-    // Reset sudden deceleration detection state while function is OFF
+    // Reset sudden deceleration detection state while the function is OFF
     ClearSlowdownDetectStatus();
   }
-  // Since it is confirmed at startup that changes to default settings can be made, assume success and do not return results
+  // Since it is confirmed at startup that changes to default settings are possible, assume success and do not return a result
   SwitchBumperSet(default_bumper_set_, std::vector<std::string>(0));
 }
 
@@ -301,7 +301,7 @@ void VelocityLimiter::ClearSlowdownDetectStatus() {
   }
 }
 
-/// Bumper set switch
+/// Switch bumper set
 bool VelocityLimiter::SwitchBumperSet(
     const std::string& bumper_set, const std::vector<std::string>& disable_bumpers) {
   if (bumper_sets_.find(bumper_set) != bumper_sets_.end()) {
@@ -323,11 +323,11 @@ void VelocityLimiter::LimitAcceleration(Twist& output_velocity, const rclcpp::Du
   double output_velocity_norm = sqrt(output_velocity.linear.x * output_velocity.linear.x +
                                      output_velocity.linear.y * output_velocity.linear.y);
 
-  /// Do not limit if output speed is 0
-  /// Do not limit if the reception interval from the previous speed is 0
+  /// Do not limit if output speed is zero
+  /// Do not limit if the interval from the previous speed reception is zero
   if (output_velocity_norm > std::numeric_limits<double>::epsilon() &&
       fabs(interval.seconds()) > std::numeric_limits<double>::epsilon()) {
-    // Determine acceleration from the difference between previous speed and previous output time
+    // Calculate acceleration from the difference between the previous speed and the previous output time
     double previous_velocity_norm = sqrt(previous_velocity_.linear.x * previous_velocity_.linear.x +
                                          previous_velocity_.linear.y * previous_velocity_.linear.y);
     double acceleration = (output_velocity_norm - previous_velocity_norm) / interval.seconds();
@@ -358,15 +358,15 @@ void VelocityLimiter::LimitAcceleration(Twist& output_velocity, const rclcpp::Du
 
 /// Sudden deceleration detection
 void VelocityLimiter::SlowdownDetection(const Twist& output_velocity, const rclcpp::Duration& interval) {
-  /// Do not judge sudden deceleration if the reception interval from the previous speed is 0
+  /// Do not judge sudden deceleration if the interval from the previous speed reception is zero
   if (fabs(interval.seconds()) < std::numeric_limits<double>::epsilon()) {
     return;
   }
 
   rclcpp::Time now = this->get_clock()->now();
 
-  // Determine acceleration from the difference between previous speed and previous output time
-  // Since only deceleration is targeted, determine acceleration from the absolute value of speed, not considering direction
+  // Calculate acceleration from the difference between the previous speed and the previous output time
+  // Since only deceleration is targeted, calculate acceleration from the absolute value of speed without considering direction
   const double previous_velocity_norm = sqrt(previous_velocity_.linear.x * previous_velocity_.linear.x +
       previous_velocity_.linear.y * previous_velocity_.linear.y);
   const double output_velocity_norm = sqrt(output_velocity.linear.x * output_velocity.linear.x +
@@ -374,17 +374,17 @@ void VelocityLimiter::SlowdownDetection(const Twist& output_velocity, const rclc
   const double deceleration = -(output_velocity_norm - previous_velocity_norm) / interval.seconds();
 
   // Sudden deceleration detection judgment
-  // Previous speed is greater than the reference value, and deceleration is greater than the reference value
+  // The previous speed is greater than the threshold, and the deceleration is greater than the threshold
   const bool detected =
       ((previous_velocity_norm > slowdown_velocity_threshold_) && (deceleration > slowdown_deceleration_threshold_));
 
-  // Record time if the judgment result differs from the previous one
+  // Record the time if the judgment result differs from the previous one
   if ((detected && !is_slowing_down_) || (!detected && is_slowing_down_)) {
     is_slowing_down_ = detected;
     slowdown_status_update_time_ = now;
   }
 
-  // Reflect in the topic if the detection state/non-detection state persists for a specified time
+  // Reflect in the topic if the detection state/non-detection state persists for the specified time
   const double duration = (now - slowdown_status_update_time_).seconds();
   if (detected) {
     if (!is_slowing_down_topic_.data && slowdown_detection_time_ <= duration) {

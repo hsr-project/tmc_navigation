@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file obstacle.hpp
-/// @brief Obstacle class
+/// @brief Obstacle Class
 #ifndef TMC_SAFETY_VELOCITY_LIMITER_OBSTACLE_HPP_
 #define TMC_SAFETY_VELOCITY_LIMITER_OBSTACLE_HPP_
 #include <string>
@@ -37,14 +37,14 @@ DAMAGE.
 #include "common.hpp"
 
 namespace tmc_safety_velocity_limiter {
-/// Obstacle class Singleton
+/// Obstacle Class Singleton
 class Obstacle : private boost::noncopyable {
  public:
   static Obstacle* GetInstance();
 
   void Init(const rclcpp::Node::SharedPtr node);
 
-  /// Get obstacle cloud
+  /// Get Obstacle Cloud
   PointCloudPtr ObstacleCloud();
 
  private:
@@ -52,19 +52,19 @@ class Obstacle : private boost::noncopyable {
   Obstacle();
   /// Destructor
   virtual ~Obstacle();
-  /// Pointcloud callback
+  /// Pointcloud Callback
   void ObstacleCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
 
-  /// Point cloud coordinate transformation
+  /// Point Cloud Coordinate Transformation
   void TransformPointCloud(const PointCloudPtr& input, const std::string& frame, PointCloudPtr& output);
 
-  // Point cloud Subscriber
+  // Point Cloud Subscriber
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_pointcloud_;
-  // Frame name of base coordinates
+  // Frame Name of Base Coordinates
   std::string base_frame_;
-  // Obstacle cloud
+  // Obstacle Cloud
   PointCloudPtr obstacle_cloud_;
-  // Coordinate transformation
+  // Coordinate Transformation
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
 };

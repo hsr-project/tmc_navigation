@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file logarithm_slope.cpp
-/// @brief Logarithmic speed gradient
+/// @brief Logarithmic velocity gradient
 #include "logarithm_slope.hpp"
 #include <boost/utility.hpp>
 
@@ -34,12 +34,12 @@ DAMAGE.
 
 namespace {
 // ROS parameter name
-const char* kUpperLimitThreshold = "upper_limit_threshold";  // Input ratio upper limit [-]
-const char* kLowerLimitThreshold = "lower_limit_threshold";  // Input ratio lower limit [-]
+const char* kUpperLimitThreshold = "upper_limit_threshold";  // Upper limit of input ratio [-]
+const char* kLowerLimitThreshold = "lower_limit_threshold";  // Lower limit of input ratio [-]
 const char* kUpperLimitRatio = "upper_limit_ratio";          // Maximum output ratio [-]
 const char* kLowerLimitRatio = "lower_limit_ratio";          // Linear lower output ratio [-]
 const char* kMinimumRatio = "minimum_ratio";                 // Minimum output ratio [-]
-const char* kLogarithmBase = "logarithm_base";               // Base of the logarithm [-]
+const char* kLogarithmBase = "logarithm_base";               // Base of logarithm [-]
 
 // ROS parameter default values
 const double kUpperLimitThresholdDef = 1.0;
@@ -57,15 +57,15 @@ LogarithmSlope::LogarithmSlope(std::map<std::string, rclcpp::Parameter>& paramet
   UpdateParameters(parameters);
 }
 
-/// Calculate speed ratio from input information
+/// Calculate velocity ratio from input information
 double LogarithmSlope::CalcRatio(const double distance_ratio) {
   if (distance_ratio > upper_limit_threshold_) {
     // Return max value if above the upper limit
     return upper_limit_ratio_;
   } else if (distance_ratio > lower_limit_threshold_) {
-    // Scale input to be between 1.0 and logarithm_base,
+    // Scale input to range from 1.0 to logarithm_base,
+    // and ensure log() output ranges from 0.0 to 1.0
     // between lower_limit_threshold and upper_limit_threshold
-    // Ensure log() output is between 0.0 and 1.0
     double normalized_ratio = 1.0 +
                               (distance_ratio - lower_limit_threshold_) /
                               (upper_limit_threshold_ - lower_limit_threshold_) *
@@ -86,7 +86,7 @@ double LogarithmSlope::CalcRatio(const double distance_ratio) {
 void LogarithmSlope::UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters) {
   GetOptionalParam(parameters, kLowerLimitThreshold, lower_limit_threshold_, kLowerLimitThresholdDef);
   GetOptionalParam(parameters, kUpperLimitThreshold, upper_limit_threshold_, kUpperLimitThresholdDef);
-  // Use default values if upper is not greater than lower, or if values are not between 0.0 and 1.0
+  // Use default values if upper is not greater than lower or values are not in the range 0.0 to 1.0
   if (upper_limit_threshold_ <= lower_limit_threshold_ ||
       0.0 > upper_limit_threshold_ || 1.0 < upper_limit_threshold_ ||
       0.0 > lower_limit_threshold_ || 1.0 < lower_limit_threshold_) {
@@ -100,7 +100,7 @@ void LogarithmSlope::UpdateParameters(std::map<std::string, rclcpp::Parameter>& 
 
   GetOptionalParam(parameters, kUpperLimitRatio, upper_limit_ratio_, kUpperLimitRatioDef);
   GetOptionalParam(parameters, kLowerLimitRatio, lower_limit_ratio_, kLowerLimitRatioDef);
-  // Use default values if upper is not greater than lower, or if values are not between 0.0 and 1.0
+  // Use default values if upper is not greater than lower or values are not in the range 0.0 to 1.0
   if (upper_limit_ratio_ <= lower_limit_ratio_ ||
       0.0 > upper_limit_ratio_ || 1.0 < upper_limit_ratio_ ||
       0.0 > lower_limit_ratio_ || 1.0 < lower_limit_ratio_) {

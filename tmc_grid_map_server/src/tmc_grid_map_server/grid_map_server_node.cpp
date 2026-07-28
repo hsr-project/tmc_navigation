@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file     grid_map_server_node.cpp
-/// @brief    Send map data for autonomous navigation
+/// @brief    Transmit map data for autonomous navigation
 #include "grid_map_server_node.hpp"
 
 #include <fstream>
@@ -55,7 +55,7 @@ const char* const kParameterNameMapOriginX = "map_origin_x";
 const char* const kParameterNameMapOriginY = "map_origin_y";
 /// Map origin position (yaw)
 const char* const kParameterNameMapOriginYaw = "map_origin_yaw";
-/// Map file path
+/// Path to the map file
 const char* const kParameterNameBaseMapFilePath = "map_file_path";
 /// Default grid size [m/grid]
 double const kDefaultBaseGridSize = 0.05;
@@ -73,7 +73,7 @@ const char* const kPublishTopicNameObstacleMap = "static_obstacle_map";
 const char* const kPublishTopicNameDistanceRosMap = "static_distance_ros_map";
 /// Topic name for static obstacle map (nav_msgs/OccupancyGrid type)
 const char* const kPublishTopicNameObstacleRosMap = "static_obstacle_ros_map";
-/// Service name for map reload
+/// Service name for map reloading
 const char* const kServiceNameReloadMap = "reload_map";
 /// Map frame name
 const char* const kMapFrameName = "map";
@@ -81,7 +81,7 @@ const char* const kMapFrameName = "map";
 double const kDefaultPotentialWidth = 3.0;
 /// Default value for converting Unknown to Free
 const bool kDefaultConvertUnknownToFree = true;
-/// Map topic name for online map update
+/// Map topic name for online map updates
 const char* const kDefaultSubscribeMapName = "update_map";
 }  // namespace
 
@@ -121,7 +121,7 @@ void GridMapServerNode::Init() {
   GetOptionalParam(shared_from_this(), "potential_width", potential_width_, kDefaultPotentialWidth);
   GetOptionalParam(shared_from_this(), "convert_unknown_to_free", convert_unknown_to_free_,
                    kDefaultConvertUnknownToFree);
-  // Set Publisher, Subscriber
+  // Configure Publisher, Subscriber
   pub_distance_map_ = this->create_publisher<tmc_navigation_msgs::msg::OccupancyGridUint>(
       kPublishTopicNameDistanceMap, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
 
@@ -136,12 +136,12 @@ void GridMapServerNode::Init() {
 
   sub_map_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(kDefaultSubscribeMapName, 1,
       std::bind(&GridMapServerNode::CallbackMap, this, _1));
-  // Set ServiceServer
+  // Configure ServiceServer
   reload_map_ =  this->create_service<tmc_navigation_msgs::srv::ReloadMap>(
       kServiceNameReloadMap, std::bind(&GridMapServerNode::CallbackServiceSetGoal, this, _1, _2));
 }
 
-// Subscribe to map topic for online map update
+// Subscribe to map topic for online map updates
 void GridMapServerNode::CallbackMap(const nav_msgs::msg::OccupancyGrid::SharedPtr msg) {
   PublishMaps(*msg, *msg);
   RCLCPP_INFO(rclcpp::get_logger("grid_map_server"), "update static_distance_map");
@@ -160,18 +160,18 @@ void GridMapServerNode::CallbackServiceSetGoal(
     // Generate and distribute map
     CreateMapsAndPublish();
   } catch (const std::exception& e) {
-    // Return false in service Response if map reload fails
+    // Return false in service response if map reload fails
     RCLCPP_ERROR(rclcpp::get_logger("grid_map_server"), "%s", e.what());
     res->is_success = false;
     return;
   }
-  // Return true in service Response if map reload succeeds
+  // Return true in service response if map reload succeeds
   res->is_success = true;
 }
 
-/// Load map settings file (map.yaml)
+/// Load map configuration file (map.yaml)
 bool GridMapServerNode::LoadConfig(const std::string& config_name) {
-  // Allow home to be loaded with ~/
+  // Enable loading home directory with ~/
   wordexp_t exp_result;
   wordexp(config_name.c_str(), &exp_result, 0);
   std::string full_path_config_name(exp_result.we_wordv[0]);
@@ -233,7 +233,7 @@ bool GridMapServerNode::LoadConfig(const std::string& config_name) {
     RCLCPP_ERROR(rclcpp::get_logger("grid_map_server"), "Could not read 'image' of map.yaml");
     return false;
   }
-  // Prioritize if distance_map is specified
+  // Prioritize distance_map if specified
   if (config["distance_map"]) {
     std::string filename("");
     filename = config["distance_map"].as<std::string>();
@@ -246,7 +246,7 @@ bool GridMapServerNode::LoadConfig(const std::string& config_name) {
     RCLCPP_DEBUG(rclcpp::get_logger("grid_map_server"), "distance_map found");
   }
 
-  // Prioritize if obstacle_map is specified
+  // Prioritize obstacle_map if specified
   if (config["obstacle_map"]) {
     std::string filename("");
     filename = config["obstacle_map"].as<std::string>();
@@ -275,12 +275,12 @@ void GridMapServerNode::LoadMap(const std::string& file_path, nav_msgs::msg::Occ
   }
   uint8_t* pixels = static_cast<uint8_t*>(map_image->pixels);
   uint8_t* p;
-  // Data loaded from pgm file has the top left of the image as the origin
-  // In OccupancyGrid, the bottom left of the image is the origin, so store height in reverse order
+  // Data loaded from pgm file has the top-left corner as the origin
+  // In OccupancyGrid, the bottom-left corner is the origin, so height is stored in reverse order
   for (int32_t j = (static_cast<int32_t>(map_image->h) - 1); j >= 0; --j) {
     for (int32_t i = 0; i <= (static_cast<int32_t>(map_image->w) - 1); ++i) {
       p = pixels + (j * map_image->pitch) + (i * map_image->format->BytesPerPixel);
-      // Convert pgm values to three values of OccupancyGrid and store
+      // Convert pgm values to three values in OccupancyGrid and store
       map.data.push_back(ConvertPgmToOccupancyGridTrinaryValue(*p));
     }
   }
@@ -291,23 +291,23 @@ void GridMapServerNode::LoadMap(const std::string& file_path, nav_msgs::msg::Occ
   SDL_FreeSurface(map_image);
 }
 
-/// Convert pgm values to three values of OccupancyGrid
+/// Convert pgm values to three values in OccupancyGrid
 int8_t GridMapServerNode::ConvertPgmToOccupancyGridTrinaryValue(const uint8_t pgm_value) {
-  // Convert to three values of WALL, FREE, UNKNOWN
-  // The smaller the pgm value, the higher the occupancy rate; the larger, the lower
+  // Convert to three values: WALL, FREE, UNKNOWN
+  // Smaller pgm values indicate higher occupancy, larger values indicate lower occupancy
   const uint8_t free_threshold = static_cast<uint8_t>((1.0 - free_thresh_) * kPGM_FREE);
   const uint8_t occupied_threshold = static_cast<uint8_t>((1.0 - occupied_thresh_) * kPGM_FREE);
   int8_t ros_value;
   if (pgm_value < occupied_threshold) {
-    // If occupancy rate is higher than occupied_threshold, it's WALL
+    // If occupancy is higher than occupied_threshold, set as WALL
     ros_value = kROS_WALL;
   } else if (pgm_value > free_threshold || convert_unknown_to_free_) {
-    // If occupancy rate is lower than free_threshold, it's FREE
-    // If convert_unknown_to_free_ is true, everything except WALL is FREE
+    // If occupancy is lower than free_threshold, set as FREE
+    // If convert_unknown_to_free_ is true, set all non-WALL values to FREE
     ros_value = kROS_FREE;
   } else {
     // If convert_unknown_to_free_ is false,
-    // If occupancy rate is higher than free_threshold and lower than occupied_threshold, it's UNKNOWN
+    // Set as UNKNOWN if occupancy is higher than free_threshold and lower than occupied_threshold
     ros_value = kROS_UNKNOWN;
   }
   return ros_value;
@@ -336,7 +336,7 @@ void GridMapServerNode::CreateMap(const std::string& map_file, nav_msgs::msg::Oc
   SetMapMetaData(map);
 }
 
-/// Node main processing
+/// Node main process
 void GridMapServerNode::Run() {
   // Generate and distribute potential map
   CreateMapsAndPublish();
@@ -354,10 +354,10 @@ void GridMapServerNode::CreateMapsAndPublish(void) {
   PublishMaps(distance_map, obstacle_map);
 }
 
-/// Publish distance map and obstacle map. Publish both TMC format and ROS format
+/// Publish distance map and obstacle map. Publish both in TMC and ROS formats
 void GridMapServerNode::PublishMaps(const nav_msgs::msg::OccupancyGrid& distance_map,
                                     const nav_msgs::msg::OccupancyGrid& obstacle_map) {
-  // Publish ROS format map
+  // Publish map in ROS format
   // Distance map
   pub_distance_ros_map_->publish(distance_map);
   // Obstacle map
@@ -367,13 +367,13 @@ void GridMapServerNode::PublishMaps(const nav_msgs::msg::OccupancyGrid& distance
   // TODO(kazuhito_tanaka) 自律移動システムがTMC形式を使用しなくなったタイミングで削除
   // Distance map
   tmc_navigation_msgs::msg::OccupancyGridUint distance_tmc_map;
-  // Since the ROS format map is already ternarized, specify 1.0 for occupied_threshold to avoid unnecessary conversion
+  // Since the map in ROS format is already ternarized, set occupied_threshold to 1.0 to avoid unnecessary conversion
   if (CreateTmcPotentialMap(distance_map, potential_width_, 1.0, distance_tmc_map)) {
     pub_distance_map_->publish(distance_tmc_map);
   }
   // Obstacle map
   tmc_navigation_msgs::msg::OccupancyGridUint obstacle_tmc_map;
-  // Since the ROS format map is already ternarized, specify 1.0 for occupied_threshold to avoid unnecessary conversion
+  // Since the map in ROS format is already ternarized, set occupied_threshold to 1.0 to avoid unnecessary conversion
   if (CreateTmcPotentialMap(obstacle_map, potential_width_, 1.0, obstacle_tmc_map)) {
     pub_obstacle_map_->publish(obstacle_tmc_map);
   }

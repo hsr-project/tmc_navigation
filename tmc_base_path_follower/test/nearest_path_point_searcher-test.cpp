@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -39,7 +39,7 @@ DAMAGE.
 namespace tmc_base_path_follower {
 
 /// Parameter test
-/// Parameters can be generated
+/// It can generate parameters
 TEST(NearestPathPointSearcherParameterTest, ConstructParameter) {
   // setup
   double partial_search_range = 0.1;
@@ -55,7 +55,7 @@ TEST(NearestPathPointSearcherParameterTest, ConstructParameter) {
 
 
 /// Parameter test
-/// If an invalid value is specified, it is generated with the default value
+/// If invalid values are specified, it generates with default values
 TEST(NearestPathPointSearcherParameterTest, ConstructWithInvalidParameterMakeDefault) {
   // setup
   double partial_search_range = -0.1;
@@ -74,7 +74,7 @@ class NearestPathPointSearcherTest : public ::testing::Test {
  public:
   NearestPathPointSearcherTest() : param_(1.0, 0.5) {
     nearest_path_point_searcher_ = std::make_shared<NearestPathPointSearcher>(param_);
-    // Connect paths of the same length vertically and horizontally to create a path in the shape of a 4, intersecting at their midpoints
+    // Connect paths of the same length vertically and horizontally, intersecting at their midpoints to form a "4"-shaped path
     const PoseSeq vertical_path = CreateLinearPath(Pose2d(-5.0, 0.0, 0.0), Pose2d(5.0, 0.0, 0.0), 0.5);
     const PoseSeq horizontal_path = CreateLinearPath(Pose2d(0.0, -5.0, 0.0), Pose2d(0.0, 5.0, 0.0), 0.5);
     path_ = vertical_path;
@@ -116,7 +116,7 @@ TEST_F(NearestPathPointSearcherTest, PrevIndexNoneSearchAll) {
 /// If the closest path point within range from the previous path point is near the self-position, that point is found
 TEST_F(NearestPathPointSearcherTest, PartialSearch) {
   // setup
-  // Index on the vertical line where the vertical and horizontal lines intersect
+  // Index on the vertical line where it intersects with the horizontal line
   const uint32_t vertical_path_cross_index = static_cast<uint32_t>(path_.size() / 4);
 
   // The self-position is offset from the intersection towards the horizontal line, but the offset is within the allowable range
@@ -125,7 +125,7 @@ TEST_F(NearestPathPointSearcherTest, PartialSearch) {
       path_[vertical_path_cross_index].y() + param_.partial_search_permit_error - kEpsilon,
       path_[vertical_path_cross_index].theta());
 
-  // The previous path point is one before the intersection on the vertical line
+  // The previous path point is one step before the intersection on the vertical line
   const uint32_t prev_index = vertical_path_cross_index - 1;
 
   // exercise
@@ -136,10 +136,10 @@ TEST_F(NearestPathPointSearcherTest, PartialSearch) {
 }
 
 /// NearestPathPointSearcherTest test
-/// If the closest point within range from the previous path point is outside the self-position, a full search is conducted and the closest point is found
+/// If the closest point within range from the previous path point is outside the self-position, a full search is performed, and the closest point is found
 TEST_F(NearestPathPointSearcherTest, PartialSearchOutOfRangeSearchAll) {
   // setup
-  // Index on the vertical line where the vertical and horizontal lines intersect
+  // Index on the vertical line where it intersects with the horizontal line
   const uint32_t vertical_path_cross_index = static_cast<uint32_t>(path_.size() / 4);
 
   // The self-position is offset from the intersection towards the horizontal line, but the offset is outside the allowable range
@@ -147,10 +147,10 @@ TEST_F(NearestPathPointSearcherTest, PartialSearchOutOfRangeSearchAll) {
       path_[vertical_path_cross_index].x(),
       path_[vertical_path_cross_index].y() + param_.partial_search_permit_error + kEpsilon,
       path_[vertical_path_cross_index].theta());
-  // The previous path point is one before the intersection on the vertical line
+  // The previous path point is one step before the intersection on the vertical line
   const uint32_t prev_index = vertical_path_cross_index - 1;
 
-  // A full search is conducted, and the expectation is to find the point closest to the self-position
+  // A full search is performed, and the closest point to the self-position is expected to be found
   double min_distance = std::numeric_limits<double>::max();
   uint32_t expect_search_index = 0;
   for (uint32_t i = 0; i < path_.size(); ++i) {

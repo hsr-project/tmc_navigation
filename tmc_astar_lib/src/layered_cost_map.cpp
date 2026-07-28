@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,12 +36,12 @@ namespace {
 // Resolution of potential data
 constexpr double kDepth = 255.0;
 enum class SearchRange {
-  Range_45 = 1,   // Search in 3 directions: front + left and right 45° based on the direction of travel
-  Range_90 = 2,   // Search in 5 directions: front + left and right 90° based on the direction of travel
-  Range_135 = 3,  // Search in 7 directions: front + left and right 135° based on the direction of travel
+  Range_45 = 1,   // Search in three directions: front + 45° to the left and right based on the direction of travel
+  Range_90 = 2,   // Search in five directions: front + 90° to the left and right based on the direction of travel
+  Range_135 = 3,  // Search in seven directions: front + 135° to the left and right based on the direction of travel
   Range_All = 4   // Search in all directions
 };
-// Search range for the next grid in the direction of travel
+// Search range for the next grid relative to the direction of travel
 constexpr SearchRange kSearchRange = SearchRange::Range_45;
 }  // anonymous namespace
 
@@ -56,7 +56,7 @@ LayeredCostMap::LayeredCostMap(const Parameter& param, const CostMapPtr& static_
 void LayeredCostMap::Initialize(const CostMapPtr& static_map) {
   // Generate a cost conversion table considering potential
   CreatePotentialCostTable();
-  // Generate search direction table
+  // Generate a search direction table
   CreateSearchDirInfo();
 
   // Convert to a map with applied potential
@@ -68,7 +68,7 @@ void LayeredCostMap::Initialize(const CostMapPtr& static_map) {
       static_cost_map_[y * width_ + x] = ApplyPotentialSlope(value);
     }
   }
-  // Calculate the threshold for prohibited areas in the static map
+  // Calculate the threshold for restricted areas in the static map
   static_map_occupancy_threshold_ = static_cast<uint8_t>(
       (1.0 - param_.exclusive_size / param_.wall_threshold) * kWallValue);
 }
@@ -95,11 +95,11 @@ void LayeredCostMap::CreatePotentialCostTable() {
   }
 }
 
-// Generate search direction table
+// Generate a search direction table
 void LayeredCostMap::CreateSearchDirInfo() {
-  // Search in the direction of front and left/right 45° * kSearchRange based on the direction of travel
-  const int32_t offset_left = static_cast<int32_t>(kSearchRange);    // Left 45° * kSearchRange
-  const int32_t offset_right = -static_cast<int32_t>(kSearchRange);  // Right 45° * kSearchRange
+  // Search in the forward direction and 45° * kSearchRange to the left and right
+  const int32_t offset_left = static_cast<int32_t>(kSearchRange);    // 45° * kSearchRange to the left
+  const int32_t offset_right = -static_cast<int32_t>(kSearchRange);  // 45° * kSearchRange to the right
   const int32_t direction_num = static_cast<int32_t>(NodeDirection::DIR_Max) - 1;
 
   for (int32_t i = static_cast<int32_t>(NodeDirection::DIR_0); i <= direction_num; ++i) {
@@ -119,7 +119,7 @@ void LayeredCostMap::CreateSearchDirInfo() {
       search_dir_info_[i].push_back(info);
     }
   }
-  // Since the start point has no specific direction of travel and can proceed in any direction, search in all directions
+  // Since the starting point has no specific direction of travel and can proceed in any direction, search in all directions
   for (int32_t dir_index = static_cast<int32_t>(NodeDirection::DIR_0); dir_index <= direction_num; ++dir_index) {
     SearchDirectionInfo info;
     GetOffsetFromDirection(static_cast<NodeDirection>(dir_index), info.offset_x, info.offset_y);
@@ -136,15 +136,15 @@ void LayeredCostMap::CreateSearchDirInfo() {
 /// Dynamic map settings
 void LayeredCostMap::SetDynamicMap(const CostMapPtr& dynamic_map, const Pose2d& dynamic_map_origin) {
   dynamic_map_ = dynamic_map;
-  // Inverse transformation of dynamic map origin
-  // To prevent performance degradation by converting in cost acquisition processing every time, keep the inverse transformed data
+  // Inverse transformation of the dynamic map origin
+  // To avoid performance degradation from conversion during each cost retrieval process, keep the inverse-transformed data
   dynamic_map_origin_inverse_ = dynamic_map_origin.Inverse();
-  // Calculate the range on the static map that can be within the dynamic map range
-  // To reduce the cost acquisition load in areas clearly outside the dynamic map range
+  // Pre-calculate the range on the static map that could fall within the dynamic map's range
+  // To reduce the cost retrieval load in areas clearly outside the dynamic map's range
   CalcDynamicMapRange(dynamic_map_origin, dynamic_map->width(), dynamic_map->height());
 }
 
-// Calculate the coverage range of the dynamic map at the grid coordinates of the static map
+// Calculate the coverage range of the dynamic map on the grid coordinates of the static map
 void LayeredCostMap::CalcDynamicMapRange(const Pose2d& origin, const int32_t width, const int32_t height) {
   const double width_cos = width * dynamic_map_->resolution() * cos(origin.theta());
   const double width_sin = width * dynamic_map_->resolution() *  sin(origin.theta());
@@ -167,14 +167,14 @@ void LayeredCostMap::CalcDynamicMapRange(const Pose2d& origin, const int32_t wid
       std::floor(std::max({v_a.y(), v_b.y(), v_c.y(), v_d.y()}) / resolution_)) - 1;
 }
 
-/// Get index from coordinates
+/// Retrieve index from coordinates
 void LayeredCostMap::PoseToIndex(const Pose2d& pose, MapIndex& index) const {
-  // Assume the map origin and grid corner are aligned, round towards negative infinity
+  // Assume the map origin aligns with the grid corner and round towards negative infinity
   index.x = static_cast<int32_t>(std::floor(pose.x() / resolution_));
   index.y = static_cast<int32_t>(std::floor(pose.y() / resolution_));
 }
 
-/// Get index within range from coordinates and range
+/// Retrieve indices within range from coordinates and range
 void LayeredCostMap::PoseToIndexes(const Pose2d& pose, const double range, std::vector<MapIndex>& indexes) const {
   if (range < std::numeric_limits<double>::epsilon()) {
     // If no range is specified, output only the grid to which the specified pose belongs
@@ -183,7 +183,7 @@ void LayeredCostMap::PoseToIndexes(const Pose2d& pose, const double range, std::
     indexes.push_back(index);
     return;
   }
-  // Output overlapping grids with a square centered on the specified coordinates
+  // Output grids overlapping with a square centered on the specified coordinates
   const int32_t x_min = static_cast<int32_t>(std::floor((pose.x() - range) / resolution_));
   const int32_t y_min = static_cast<int32_t>(std::floor((pose.y() - range) / resolution_));
   const int32_t x_max = static_cast<int32_t>(std::floor((pose.x() + range) / resolution_));
@@ -198,9 +198,9 @@ void LayeredCostMap::PoseToIndexes(const Pose2d& pose, const double range, std::
   }
 }
 
-/// Get coordinates from index
+/// Retrieve coordinates from index
 void LayeredCostMap::IndexToPose(const MapIndex& index, Pose2d& pose) const {
-  // Convert after adding +0.5 to point to the center of the grid
+  // Add +0.5 before conversion to point to the center of the grid
   pose.set_x((static_cast<double>(index.x) + 0.5) * resolution_);
   pose.set_y((static_cast<double>(index.y) + 0.5) * resolution_);
 }
@@ -212,7 +212,7 @@ bool LayeredCostMap::IsPassable(const MapIndex& index) const {
 
 /// Maximum cost estimation
 int32_t LayeredCostMap::EstimateMaxCost(const Pose2d& start, const Pose2d& goal) const {
-  /// The maximum cost is the sum of the grid X coordinate difference + grid Y coordinate difference between start and goal, multiplied by a coefficient
+  /// The maximum cost is the sum of the grid X-coordinate difference and grid Y-coordinate difference between the start and goal, multiplied by a coefficient
   MapIndex start_index;
   MapIndex goal_index;
   PoseToIndex(start, start_index);
@@ -221,11 +221,11 @@ int32_t LayeredCostMap::EstimateMaxCost(const Pose2d& start, const Pose2d& goal)
   return static_cast<int32_t>(std::round(param_.cost_factor * diff));
 }
 
-/// Get adjacent nodes that can be moved to from the specified node
+/// Retrieve adjacent nodes that can be moved to from the specified node
 void LayeredCostMap::GetNextNodes(IAstarQueue::Ptr& queue, IAstarNodeManager::Ptr& node_manager,
                                   AstarNode* const current_node, const int32_t max_cost) const {
-  // Search adjacent grids according to the direction of travel of the current node
-  // The direction of travel of the node is set in the attached information
+  // Search adjacent grids based on the current node's direction of travel
+  // The direction of travel for the node is set in the attached information
   const std::vector<SearchDirectionInfo>& search_directions =
       search_dir_info_[current_node->additional_info()];
   for (const SearchDirectionInfo& info : search_directions) {
@@ -239,11 +239,11 @@ void LayeredCostMap::GetNextNodes(IAstarQueue::Ptr& queue, IAstarNodeManager::Pt
       if (current_node->total_cost() >= next_node->total_cost()) {
         continue;
       }
-      // Basic cost according to the direction of travel
+      // Basic cost based on the direction of travel
       int32_t step_cost = info.cost;
-      // In areas where static and dynamic obstacles overlap, take the larger one
+      // For locations where static and dynamic obstacles overlap, take the larger value
       step_cost += std::max(static_cost, dynamic_cost);
-      // Execute correction processing
+      // Execute correction process
       const ICostCorrector::GetAdditionalCostParams corrector_param(
           current_node, index, static_cast<int32_t>(info.direction),
           static_cost, dynamic_cost, static_map_occupancy_threshold_);
@@ -251,14 +251,14 @@ void LayeredCostMap::GetNextNodes(IAstarQueue::Ptr& queue, IAstarNodeManager::Pt
         step_cost += cost_corrector->GetAdditionalCost(corrector_param);
       }
 
-      // If there are points with negative cost, there is a possibility of infinite looping, so limit the lower bound to 0
+      // To prevent infinite loops at points with negative costs, limit the lower bound to 0
       step_cost = std::max(step_cost, 0);
 
       const int32_t total_cost = current_node->total_cost() + step_cost;
       if (total_cost <= max_cost) {
-        // If the current cost is advantageous, update and enqueue
+        // If the current cost is advantageous, update and enqueue it
         if (total_cost < next_node->total_cost()) {
-          // Set the direction of travel of the node in the attached information
+          // Set the direction of travel for the node in the attached information
           next_node->Update(current_node, total_cost, current_node->total_step() + 1, true,
                             static_cast<int32_t>(info.direction));
           queue->Push(next_node);
@@ -268,12 +268,12 @@ void LayeredCostMap::GetNextNodes(IAstarQueue::Ptr& queue, IAstarNodeManager::Pt
   }
 }
 
-/// Check if the specified index is within the map range
+/// Check if the specified index is within the map's range
 bool LayeredCostMap::IsOnMap(const MapIndex& index) const {
   return index.x >= 0 && index.x < width_ && index.y >= 0 && index.y < height_;
 }
 
-/// Get static cost of the specified grid coordinates
+/// Retrieve the static cost of the specified grid coordinates
 int32_t LayeredCostMap::GetStaticMapCost(const MapIndex& index) const {
   if (!IsOnMap(index)) {
     return kWallValue;
@@ -282,16 +282,16 @@ int32_t LayeredCostMap::GetStaticMapCost(const MapIndex& index) const {
   }
 }
 
-/// Get dynamic cost of the specified grid coordinates
+/// Retrieve the dynamic cost of the specified grid coordinates
 int32_t LayeredCostMap::GetDynamicMapCost(const MapIndex& index) const {
   if (index.x < dynamic_map_range_xmin_ || index.x > dynamic_map_range_xmax_ ||
       index.y < dynamic_map_range_ymin_ || index.y > dynamic_map_range_ymax_) {
-    // Return free if outside the dynamic map range
+    // Return free if outside the range of the dynamic map
     return 0;
   }
   const Pose2d coordinate_on_static(index.x * resolution_, index.y * resolution_, 0.0);
   const Pose2d coordinate_on_dynamic = dynamic_map_origin_inverse_ * coordinate_on_static;
-  // Determine grid coordinates on the dynamic map
+  // Determine the grid coordinates on the dynamic map
   const int32_t x_on_dynamic = static_cast<int32_t>(
       std::floor(coordinate_on_dynamic.x() / dynamic_map_->resolution()));
   const int32_t y_on_dynamic = static_cast<int32_t>(
@@ -304,7 +304,7 @@ int32_t LayeredCostMap::GetDynamicMapCost(const MapIndex& index) const {
   return static_cast<int32_t>(value);
 }
 
-/// Convert to cost value considering potential
+/// Convert to a cost value considering potential
 int32_t LayeredCostMap::ApplyPotentialSlope(const int32_t cost_value) const {
   return potential_table_[cost_value];
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -29,7 +29,7 @@ DAMAGE.
 
 #include <tmc_base_path_planner/base_path_planner_node.hpp>
 
-/// Main processing
+/// Main process
 int32_t main(int32_t argc, char** argv) {
   // Initialization
   rclcpp::init(argc, argv);

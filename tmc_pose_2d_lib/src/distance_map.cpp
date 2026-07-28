@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -70,7 +70,7 @@ DistanceMap::DistanceMap(
               << "size=" << data_.size() << std::endl;
     throw std::runtime_error("Map info is invalid!");
   }
-  // Pre-calculate to reduce computation time
+  // Precompute to reduce calculation time
   origin_map_image_inverse_ = origin_map_image_.Inverse();
 }
 
@@ -109,8 +109,8 @@ bool DistanceMap::GetMapPoint(const size_t index_u, const size_t index_v, Point2
 
 bool DistanceMap::CheckIndices(const Point2d& p_map, size_t& index_u, size_t& index_v) const {
   const Point2d p_image = origin_map_image_inverse_ * p_map;
-  // int(1.3) = 1 results in truncation (rounding towards the smaller value)
-  // In the case of negative numbers, int(-1.3) = -1 results in a larger value, so be cautious with casting negative numbers
+  // int(1.3) = 1 results in truncation (rounding down), but
+  // For negative numbers, int(-1.3) = -1 results in rounding up, so be cautious with casting negative numbers
   if (p_image.x() < 0.0 || p_image.y() < 0.0) {
     return false;
   }
@@ -140,7 +140,7 @@ void DistanceMap::CheckTypeAndDistance(const Point2d& p_map, DistanceMap::CellTy
       type = kUnExplored;
       return;
     }
-    // Normalize (255-val) and multiply by potential_width_ to get the distance
+    // Normalize (255-val), multiply by potential_width_ to get the distance
     // UCHAR_MAX = 255
     distance = static_cast<double>((UCHAR_MAX - val)) / static_cast<double>(UCHAR_MAX) * potential_width_;
     type = kHasDistance;
@@ -151,21 +151,21 @@ void DistanceMap::CheckTypeAndDistance(const Point2d& p_map, DistanceMap::CellTy
   }
 }
 
-/// Expand the obstacle area so that the occupancy rate decreases as it moves away from the wall up to the specified distance
+/// Expand obstacle regions so that occupancy decreases as the distance from the wall increases
 void DistanceMap::InflateMap(const double potential_width) {
   const double potential_grid_width = potential_width / resolution_;
   if (potential_grid_width < std::numeric_limits<double>::epsilon()) {
     return;
   }
 
-  // Calculate the grid distance from each grid to the nearest wall
+  // Calculate grid distance from each grid to the nearest wall
   std::vector<double> grid_distance_to_walls = CalculateGridDistanceToWalls();
 
   for (int32_t y = 0; y < static_cast<int32_t>(height_); y++) {
     for (int32_t x = 0; x < static_cast<int32_t>(width_); x++) {
       const int32_t current = x + (y * width_);
       if (grid_distance_to_walls.at(current) <= potential_grid_width) {
-        // Calculate and store the potential value
+        // Calculate and store potential values
         const unsigned char potential_value = UCHAR_MAX -
             static_cast<unsigned char>(grid_distance_to_walls.at(current) / potential_grid_width *
                                        (kWallValue - kFreeValue));
@@ -178,13 +178,13 @@ void DistanceMap::InflateMap(const double potential_width) {
   potential_width_ = potential_width;
 }
 
-/// Calculate the grid distance from each grid to the nearest wall
+/// Calculate grid distance from each grid to the nearest wall
 std::vector<double> DistanceMap::CalculateGridDistanceToWalls() {
   // Nearest wall information for each grid
   std::vector<int32_t> nearest_wall_indexes;
   nearest_wall_indexes.clear();
   nearest_wall_indexes.resize(height_ * width_);
-  // Store its own grid index where there is a wall
+  // Store the grid index for locations with walls
   for (int32_t y = 0; y < static_cast<int32_t>(height_); y++) {
     for (int32_t x = 0; x < static_cast<int32_t>(width_); x++) {
       const int32_t current = x + (y * width_);
@@ -211,7 +211,7 @@ std::vector<double> DistanceMap::CalculateGridDistanceToWalls() {
                                      kRightUp, kUp, kLeftUp, kLeft };
   std::vector<double> grid_distance_to_walls;
   grid_distance_to_walls.resize(height_ * width_);
-  // Scan from bottom left to top right
+  // Scan from bottom-left to top-right
   for (int32_t y = static_cast<int32_t>(height_ - 1); y >= 0; y--) {
     for (int32_t x = 0; x <= static_cast<int32_t>(width_ - 1); x++) {
       const int32_t current = x + (y * width_);
@@ -227,7 +227,7 @@ std::vector<double> DistanceMap::CalculateGridDistanceToWalls() {
     }
   }
 
-  // Scan from top right to bottom left
+  // Scan from top-right to bottom-left
   for (int32_t y = 0; y <= static_cast<int32_t>(height_ - 1); y++) {
     for (int32_t x = static_cast<int32_t>(width_ - 1); x >= 0; x--) {
       const int32_t current = x + (y * width_);
@@ -245,7 +245,7 @@ std::vector<double> DistanceMap::CalculateGridDistanceToWalls() {
   return grid_distance_to_walls;
 }
 
-/// Update the distance to the nearest wall and nearest wall position information
+/// Update distance to the nearest wall and nearest wall position information
 void DistanceMap::UpdateDistanceAndNearestWall(const int32_t x, const int32_t y, const int32_t neighbor_index,
                                                std::vector<int32_t>& nearest_wall_indexes, double& distance) {
   const int32_t current_index = x + (y * width_);

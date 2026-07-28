@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -46,37 +46,37 @@ class IAstarQueue {
 };
 
 /*
-Priority queue to store nodes.
+Priority queue for storing nodes.
 
-Stored nodes are popped in order of smallest cost.
-The priority within the queue is determined by the cost value at the time of storage, and the pop order does not change even if it changes later.
+Nodes stored are popped in ascending order of cost.
+The priority within the queue is determined by the cost value at the time of storage, and the pop order does not change even if the cost changes later.
 If a node already registered in the queue is pushed again, the old information is automatically removed from the queue.
 
 Queue data structure:
-・Prepare a list array for the maximum cost that can be taken in one route planning (cost = array index).
-・Since std::list has a large overhead when acquired and released in large quantities, a custom implementation is adopted for the list.
-・When pushing, add the node to the head of the list corresponding to the index of the node's cost.
-・When popping, retrieve the head node from the list with the smallest index that is not empty.
-・In other words, when multiple nodes with the same cost are registered, they are retrieved in FILO order.
-  This is not an intentionally designed specification, but due to implementation convenience.
-  This specification slightly affects the priority of paths with the same cost, but is treated as undefined in the algorithm.
+- Prepare a list array for the maximum cost that can be taken during a single path planning (cost = array index).
+- Since std::list has significant overhead when frequently allocated and deallocated, a custom implementation of the list is adopted.
+- When pushing, add the node to the head of the list corresponding to the index of its cost.
+- When popping, retrieve the head node from the list with the smallest non-empty index.
+- In other words, when multiple nodes with the same cost are registered, they are retrieved in FILO order.
+  This is not an intentionally designed specification but rather due to implementation constraints.
+  This specification slightly affects the priority of paths with the same cost but is treated as undefined in the algorithm.
 */
 class AstarQueue : public IAstarQueue {
  public:
   /// Initialization
-  /// @param [I] max_cost Maximum cost Nodes with a cost value larger than this cannot be inserted
+  /// @param [I] max_cost Maximum cost. Nodes with a cost value greater than this cannot be inserted.
   /// @return None
   void Initialize(const int32_t max_cost);
-  /// Insert node into queue
+  /// Insert a node into the queue
   void Push(AstarNode* const node);
-  /// Retrieve the node with the smallest cost Returns nullptr if the queue is empty
+  /// Retrieve the node with the smallest cost. Returns nullptr if the queue is empty.
   AstarNode* Pop();
 
  private:
-  // Queue data structure (array of lists)
+  // Data structure of the queue (array of lists)
   std::vector<AstarNode*> priority_list_;
   // The smallest index of priority_list that may not be empty
-  // This is to optimize the search process during popping, and the destination of this index is not necessarily non-empty
+  // This is for optimizing the search process during popping, and the index it points to is not necessarily non-empty.
   int32_t min_cost_in_queue_;
 };
 

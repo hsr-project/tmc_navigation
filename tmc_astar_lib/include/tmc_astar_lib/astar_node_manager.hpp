@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -48,24 +48,24 @@ class IAstarNodeManager {
 Node management class.
 Retrieve the node corresponding to the X, Y coordinates of the grid.
 
-Nodes have a considerable size, and nodes corresponding to all grids of the static map
-are inefficient to always allocate and initialize, so they are handled as follows.
-1. Nodes are allocated with a vector, and the elements are incremented by +1 each time new grid coordinates are referenced.
-   To prevent relocation during size expansion, only the memory area is allocated for the worst-case (all grids).
-2. Prepare a table to obtain the above index from grid coordinates for all grids.
-3. During initialization, clear the node vector and fill the entire index table with unused values.
-4. When GetNode is called, if the index of the corresponding coordinates is an unused value, increment the node vector by +1 and store that index.
-   If it is a subsequent reference, return the corresponding element of the existing node vector.
+Nodes have a certain size and correspond to all grids of the static map.
+Since it is inefficient to always allocate and initialize them, they are handled as follows.
+1. Nodes are allocated in a vector, and the elements are incremented by +1 each time a new grid coordinate is referenced.
+   To prevent reallocation during size expansion, memory space for the worst-case value (all grids) is pre-allocated.
+2. A table to obtain the above index from grid coordinates is prepared for all grids.
+3. During initialization, the node vector is cleared, and the entire index table is filled with unused values.
+4. When calling GetNode, if the index for the corresponding coordinates is an unused value, the node vector is incremented by +1, and that index is stored.
+   If it is a subsequent reference, the corresponding element of the existing node vector is returned.
 */
 class AstarNodeManager : public IAstarNodeManager {
  public:
   /// Constructor
   AstarNodeManager(const int32_t width, const int32_t height);
-  /// Initialization Set all nodes to an unreferenced state
+  /// Initialization: Set all nodes to an unreferenced state.
   void Initialize();
-  /// Obtain a pointer to the node corresponding to the specified grid coordinates
+  /// Retrieve a pointer to the node corresponding to the specified grid coordinates.
   /// @param [I] index Grid index
-  /// @return Pointer to the node corresponding to this grid
+  /// @return Pointer to the node corresponding to this grid.
   AstarNode* GetNode(const MapIndex& index);
 
  private:
@@ -73,7 +73,7 @@ class AstarNodeManager : public IAstarNodeManager {
   int32_t width_;
   // Height of the management range
   int32_t height_;
-  // Holds the entity of the node
+  // Holds the actual nodes
   std::vector<AstarNode> node_array_;
   // Obtain the index of node_array_ from grid X, Y coordinates
   std::vector<uint32_t> grid_coord_to_index_map_;

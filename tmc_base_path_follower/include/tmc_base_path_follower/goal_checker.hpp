@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -32,7 +32,7 @@ DAMAGE.
 #include <angles/angles.h>
 
 namespace tmc_base_path_follower {
-/// Goal judgment interface
+/// Interface for goal judgment
 class IGoalChecker {
  public:
   using Ptr = std::shared_ptr<IGoalChecker>;
@@ -42,9 +42,9 @@ class IGoalChecker {
                          bool& is_arrived_goal_area, bool& is_arrived_goal) = 0;
 
  protected:
-  // Check if the distance between the goal and self-position is below the threshold
+  // Check if the distance between the goal and the robot's position is below the threshold
   // @param [I] goal_pose Goal
-  // @param [I] global_pose Self-position
+  // @param [I] global_pose Robot's position
   // @param [I] distance_threshold Threshold
   // @return true: below threshold false: above threshold
   bool CheckDistanceToGoal(const Pose2d& goal_pose, const Pose2d& global_pose, const double distance_threshold) {
@@ -52,9 +52,9 @@ class IGoalChecker {
     return (error_length < distance_threshold);
   }
 
-  // Check if the angle difference between the goal and self-position is below the threshold
+  // Check if the angle difference between the goal and the robot's position is below the threshold
   // @param [I] goal_pose Goal
-  // @param [I] global_pose Self-position
+  // @param [I] global_pose Robot's position
   // @param [I] angle_threshold Threshold
   // @return true: below threshold false: above threshold
   bool CheckAngleToGoal(const Pose2d& goal_pose, const Pose2d& global_pose, const double angle_threshold) {
@@ -64,9 +64,9 @@ class IGoalChecker {
 
   // Goal area arrival judgment
   // Divide the circular area centered on the goal with a goal line considering the path direction
-  // If it enters the area beyond the goal line, it is considered to have reached the goal area
+  // If the area beyond the goal line is entered, it is considered as reaching the goal area
   // @param [I] path Follow path
-  // @param [I] global_pose Self-position
+  // @param [I] global_pose Robot's position
   // @param [I] goal_area_length Size of the goal area
   // @param [I] goal_line_length Distance from the goal to the goal line
   bool CheckArrivedGoalArea(const PoseSeq& path, const Pose2d& global_pose,
@@ -78,12 +78,12 @@ class IGoalChecker {
     if (!CheckDistanceToGoal(goal_pose, global_pose, goal_area_length)) {
       return false;
     }
-    // If there are not 2 points in the path, judge only from the distance between the goal and the robot as within the goal area
+    // If there are less than two path points, the judgment is made based only on the distance between the goal and the robot
     if (path.size() < 2) {
       return true;
     }
-    // Set a goal line considering the direction of the path and judge if it has crossed the goal line
-    // The point before the final point
+    // Set the goal line considering the path direction and judge whether it has been crossed
+    // The point just before the final point
     const Pose2d prev_goal_pose = path[path.size() -2];
     // Calculate the direction from the point before the final point to the final point
     const double direction_to_goal_pose =
@@ -92,12 +92,12 @@ class IGoalChecker {
     const Point2d judgement_point(goal_pose.x() - goal_line_length * cos(direction_to_goal_pose),
                                   goal_pose.y() - goal_line_length * sin(direction_to_goal_pose));
 
-    // Calculate the vector from the line to the goal
+    // Calculate the vector from the straight line to the goal
     Eigen::Vector2d vector_to_goal(cos(direction_to_goal_pose), sin(direction_to_goal_pose));
-    // Calculate the vector from the line to the robot
+    // Calculate the vector from the straight line to the robot
     Eigen::Vector2d vector_to_robot(global_pose.x() - judgement_point.x(), global_pose.y() - judgement_point.y());
 
-    // If the dot product of the two vectors is positive, judge as within the goal area
+    // If the dot product of the two vectors is positive, it is judged to be within the goal area
     return (vector_to_goal.dot(vector_to_robot) > 0.0);
   }
 };

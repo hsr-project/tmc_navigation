@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -33,77 +33,77 @@ namespace tmc_base_path_planner {
 /// Parameter Definition
 // BasePathPlannerNode Space
 constexpr const char* const kBasePathPlannerNodeSpace = "node";
-// Drive Cycle [Hz]
+// Drive cycle [Hz]
 constexpr const char* const kRateName = "rate";
 constexpr double kRateDefault = 10.0;
-// Dynamic Map Timeout [s]
+// Dynamic map timeout duration [s]
 constexpr const char* const kDynamicMapTimeoutName = "dynamic_map_timeout";
 constexpr double kDynamicMapTimeoutDefault = 1.0;
-// Self-Position Timeout [s]
+// Self-position timeout duration [s]
 constexpr const char* const kGlobalPoseTimeoutName = "global_pose_timeout";
 constexpr double kGlobalPoseTimeoutDefault = 2.0;
-// Distance to Expand Obstacle Area from Wall in Static Map [m]
+// Distance to expand the obstacle area of the static map from the wall [m]
 constexpr const char* const kStaticMapPotentialWidthName = "static_map_potential_width";
 constexpr double kStaticMapPotentialWidthDefault = 3.0;
 
 // BasePathPlanner Space
 constexpr const char* const kBasePathPlannerSpace = "base_path_planner";
-// Planner Type [str]
+// Planner type [str]
 constexpr const char* const kTypeName = "type";
 constexpr const char* const kTypeDefault = "astar_path_planner";
 
 // MapFilter Space
 constexpr const char* const kMapFilterSpace = "map_filter";
-// Range to Remove Prohibited Area Around Start [m]
+// Range to remove restricted areas around the start [m]
 constexpr const char* const kMapFilterRangeAroundStartName = "map_filter_range_around_start";
 constexpr double kMapFilterRangeAroundStartDefault = 0.0;
-// Distance to Goal for Filtering Prohibited Area Around Goal [m]
-// Remove Prohibited Area Around Goal When Distance Between Goal and Robot Exceeds This Value
+// Distance to the goal for applying the restricted area filter around the goal [m]
+// Remove restricted areas around the goal when the distance between the goal and the robot exceeds this value
 constexpr const char* const kMapFilterDistanceGoalLimitName = "map_filter_distance_goal_limit";
 constexpr double kMapFilterDistanceGoalLimitDefault = 1.0;
-// Range to Remove Prohibited Area Around Goal [m]
+// Range to remove restricted areas around the goal [m]
 constexpr const char* const kMapFilterRangeAroundGoalName = "map_filter_range_around_goal";
 constexpr double kMapFilterRangeAroundGoalDefault = 0.5;
 
 // PathUpdater Space
 constexpr const char* const kPathUpdaterSpace = "path_updater";
-// Distance to Previous Path to Consider Being on Previous Path [m]
+// Distance to the previous path to consider being on the previous path [m]
 constexpr const char* const kDistanceOnPrevPathName = "distance_on_prev_path";
 constexpr double kDistanceOnPrevPathDefault = 0.15;
-// Allowable Deviation Between Route Points [m]
+// Allowable deviation between path points [m]
 constexpr const char* const kGridErrorName = "grid_error";
 constexpr double kGridErrorDefault = 0.1;
-// Threshold for Merging Previous Path if Points Match Up to This Number [num]
+// Threshold for merging the previous path if the points match up to this number [num]
 constexpr const char* const kSamePointNumMergePathName = "same_point_num_merge_path";
 constexpr int32_t kSamePointNumMergePathDefault = 3;
 
 // AstarPathPlanner Space
 constexpr const char* const kAstarPathPlannerSpace = "astar_path_planner";
-// Prohibited Area [m]
+// Restricted area [m]
 constexpr const char* const kExclusiveSizeName = "exclusive_size";
 constexpr double kExclusiveSizeDefault = 0.2;
-// Potential Area [m]
+// Potential area [m]
 constexpr const char* const kPotentialSizeName = "potential_size";
 constexpr double kPotentialSizeDefault = 0.07;
-// Maximum Cost Estimate Ratio for Distance Between Start and Goal
+// Maximum cost estimate multiplier relative to the start-goal distance
 constexpr const char* const kCostFactorName = "cost_factor";
 constexpr double kCostFactorDefault = 150.0;
-// Cost Value Indicating Unknown Area
+// Cost value indicating unknown area
 constexpr const char* const kCostUnknownName = "cost_unknown";
 constexpr int32_t kCostUnknownDefault = 255;
 
-// Movement Cost Between Adjacent Grids
+// Movement cost between adjacent grids
 constexpr const char* const kSingleCostName = "single_cost";
 constexpr int32_t kSingleCostDefault = 50;
-// Movement Cost for Diagonal Grids
+// Movement cost for diagonal grids
 constexpr const char* const kDiagonalCostName = "diagonal_cost";
 constexpr int32_t kDiagonalCostDefault = 71;
 
-// Cost Correction Value for Grids on Recommended Path
+// Cost correction value for grids on the recommended path
 constexpr const char* const kCostOnPreferredPathName = "cost_on_preferred_path";
 constexpr int32_t kCostOnPreferredPathDefault = 0;
 
-// Cost Correction Value for Grids Around Recommended Path
+// Cost correction value for grids around the recommended path
 constexpr const char* const kCostAroundPreferredPathName = "cost_around_preferred_path";
 constexpr int32_t kCostAroundPreferredPathDefault = 0;
 }  // namespace tmc_base_path_planner

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -34,17 +34,17 @@ namespace tmc_base_path_follower {
 constexpr const char* const kMoveModelNameDefault = "omni";
 /// Default value for whether to perform route passage speed control
 constexpr bool kUsePathTransitVelocityDefault = false;
-// Distance from the goal for the goal area judgment line
+// Distance from the goal to the line for goal area judgment
 constexpr double kGoalAreaLengthDefault = 0.5;
-// Distance from the goal for the goal judgment line
+// Distance from the goal to the line for goal judgment
 constexpr double kGoalLineLengthDefault = 0.05;
 // Position deviation threshold for goal judgment
 constexpr double kGoalStopErrorLengthDefault = 0.03;
 // Angle deviation threshold for goal judgment
 constexpr double kGoalStopErrorAngleDefault = 0.03;
-// Route nearest point partial search Search range from the previous nearest point [m] If 0.0 is specified, always perform full search
+// Partial search for the nearest route point: search range from the previous nearest point [m]. If 0.0 is specified, always perform a full search
 constexpr double kPartialSearchRangeDefault = 0.0;
-// Route nearest point partial search Allowable error value [m] between the searched route point and self-position If the allowable value is exceeded, perform full search
+// Partial search for the nearest route point: allowable error value [m] between the searched route point and the self-position. If the allowable value is exceeded, perform a full search
 constexpr double kPartialSearchPermitErrorDefault = 0.5;
 // Number of interpolation points between two points in route interpolation
 constexpr int32_t kInterpolationNumberDefault = 10;
@@ -66,7 +66,7 @@ constexpr double kMaxAngularDecelerationDefault = 1.0;
 constexpr double kGoalDecelerationDefault = 0.3;
 // Translational speed margin during goal deceleration
 constexpr double kVelocityMarginDefault = 0.05;
-// Path length threshold (m) to change the direction of the upper body towards the goal
+// Path length threshold (m) to change the upper body orientation
 constexpr double kPathLengthThresholdDefault = 2.0;
 // Translational speed P control gain parameter
 constexpr double kLinearPGainDefault = 0.5;
@@ -78,17 +78,17 @@ constexpr double kGoalAngleGainDefault = 0.5;
 constexpr double kLinearAlphaGainDefault = 3.0;
 // Translational speed β gain parameter
 constexpr double kLinearBetaGainDefault = 1.5;
-// Ratio of rotational speed to angle error
+// Ratio of rotational speed to angular error
 constexpr double kAngleErrorAngularVelocityRateDefault = 1.0;
-// Angle error to start in-place rotation
+// Angular error to start in-place rotation
 constexpr double kSpinStartErrorAngleDefault = 0.8;
-// Angle error to end in-place rotation
+// Angular error to end in-place rotation
 constexpr double kSpinEndErrorAngleDefault = 0.03;
 // Maximum rotational speed for in-place rotation
 constexpr double kSpinMaxAngularVelocityDefault = 2.0;
 // Minimum rotational speed for in-place rotation
 constexpr double kSpinMinAngularVelocityDefault = 0.05;
-// Multiplier applied to rotational speed when calculating passage speed according to curvature
+// Multiplier applied to rotational speed when calculating passage speed based on curvature
 constexpr double kTransitVelocityAngularVelocityRatioDefault = 0.6;
 }  // namespace tmc_base_path_follower
 #endif  // TMC_BASE_PATH_FOLLOWER_PARAMETER_DEFAULT_VALUE_HPP_

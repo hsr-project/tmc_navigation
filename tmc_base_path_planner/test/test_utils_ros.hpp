@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -76,7 +76,7 @@ void DrawObstacleCircle(nav_msgs::msg::OccupancyGrid& map, const geometry_msgs::
     const double y = ih * map.info.resolution;
     for (uint32_t iw = 0; iw < map.info.width; ++iw) {
       const double x = iw * map.info.resolution;
-      // Calculate the distance from the grid to the center, subtract 1 grid to include the grid on the circumference as an obstacle range
+      // Calculate the distance from the grid to the center, subtracting 1 grid to include the grid on the circumference as part of the obstacle range
       const double distance = sqrt(pow(center.x - x, 2.0) + pow(center.y - y, 2.0)) - map.info.resolution;
       if (distance < radius) {
         // Store the maximum occupancy probability within the range
@@ -102,7 +102,7 @@ geometry_msgs::msg::Pose CreatePose(const double x, const double y, const double
   return pose;
 }
 
-/// Generate a map with the origin at (0,0), not rotated, and all areas free
+/// Generate a map with the origin at (0,0), no rotation, and all areas free
 nav_msgs::msg::OccupancyGrid CreateFreeMap(const uint32_t width, const uint32_t height, const double resolution) {
   nav_msgs::msg::OccupancyGrid map;
   map.info.width = width;

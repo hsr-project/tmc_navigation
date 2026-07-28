@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -47,19 +47,19 @@ constexpr double kResolution = 0.05;
 const tmc_astar_lib::LayeredCostMap::Parameter kMapParam(0.2, 0.5, 1.0, 150.0, 0, 50, 71);
 // Origin of the dynamic map
 const Pose2d kDynamicMapOrigin = Pose2d(1.25, 1.25, 0.0);
-// Grid coordinates of the start point. Use this as a reference unless there is a specific reason.
+// Grid coordinates of the starting point. Use this as the reference unless there is a specific reason.
 const tmc_astar_lib::MapIndex kStartIndex = tmc_astar_lib::MapIndex(50, 50);
-// Maximum cost for normal test cases. Set to a value that does not exceed this.
+// Maximum cost for normal test cases. Set a value that does not exceed this.
 constexpr int32_t kMaxCost = 10000;
 // Y-coordinate of the wall for the wall bypass test
 constexpr int32_t kWallY = 50;
 // Width of the wall for the wall bypass test
 constexpr int32_t kWallWidth = 40;
-// Median for the cost gradient test
+// Median value for the cost gradient test
 constexpr int32_t kSlopeCenterCost = 130;
 // Distance to the goal set in the test
 constexpr int32_t kGoalDistance = 20;
-// Shift amount for the bypass direction test. Tilt to either left or right by this value and check if the tilted side is prioritized.
+// Shift amount for the bypass direction test. Tilt to either side by this value and check if the tilted side is prioritized.
 constexpr int32_t kTestBias = 10;
 // Distance between the wall surrounding the goal and the goal point for the unreachable test
 constexpr int32_t kFenceDistance = 10;
@@ -122,7 +122,7 @@ class AstarExecuterTest : public ::testing::Test {
     const CostMapPtr static_map = std::make_shared<CostMap>(
       CostMap(static_map_origin, kResolution, kStaticMapSize, kStaticMapSize, static_map_data));
     LayeredCostMap::Ptr map = std::make_shared<LayeredCostMap>(LayeredCostMap(kMapParam, static_map));
-    // Set a dynamic map wall horizontally in the center of the static map
+    // Set a horizontal dynamic map wall in the center of the static map
     std::vector<uint8_t> dynamic_map_data(kDynamicMapSize * kDynamicMapSize, 0);
     for (int32_t x = (kDynamicMapSize / 2) - (kWallWidth / 2); x < (kDynamicMapSize / 2) + (kWallWidth / 2); ++x) {
       dynamic_map_data[kDynamicMapSize * (kWallY - ((kStaticMapSize - kDynamicMapSize) / 2)) + x] = kWallValue;
@@ -133,7 +133,7 @@ class AstarExecuterTest : public ::testing::Test {
     return map;
   }
 
-  // Generate a map with a gradient from Free to Wall along the X-axis in the static map
+  // Generate a map with a gradient from Free to Wall along the X-axis of the static map
   LayeredCostMap::Ptr CreateStaticGradationObstacleMap() {
     // Place a gradient from Free to Wall along the X-axis in the center of the static map
     Pose2d static_map_origin(0.0, 0.0, 0.0);
@@ -156,7 +156,7 @@ class AstarExecuterTest : public ::testing::Test {
     return map;
   }
 
-  // Generate a map with a gradient from Free to Wall along the X-axis in the dynamic map
+  // Generate a map with a gradient from Free to Wall along the X-axis of the dynamic map
   LayeredCostMap::Ptr CreateDynamicGradationObstacleMap() {
     // Generate a static map without obstacles
     Pose2d static_map_origin(0.0, 0.0, 0.0);
@@ -181,7 +181,7 @@ class AstarExecuterTest : public ::testing::Test {
 
   // Generate a map with walls surrounding the specified point
   LayeredCostMap::Ptr CreateFenceObstacleMap(const MapIndex& center) {
-    // Place walls in a rectangle to surround the center point
+    // Place rectangular walls surrounding the center point
     Pose2d static_map_origin(0.0, 0.0, 0.0);
     std::vector<uint8_t> static_map_data(kStaticMapSize * kStaticMapSize, 1);
     for (int32_t x = center.x - kFenceDistance; x <= center.x + kFenceDistance; ++x) {
@@ -225,7 +225,7 @@ class AstarExecuterTest : public ::testing::Test {
 };
 
 /// CostCorrector for evaluation
-/// Output correction values with - on the left and + on the right, centered on the map
+/// Output correction values centered on the map center, with negative values on the left and positive values on the right
 class TestCostCorrector : public ICostCorrector {
  public:
   ~TestCostCorrector() {}
@@ -252,9 +252,9 @@ TEST_F(AstarExecuterTest, Straight0) {
 
   // verify
   ASSERT_TRUE(result);
-  // The number of points in the path is as expected (distance +1 because it includes the start point)
+  // The number of points in the path is as expected (distance + 1 because it includes the starting point)
   ASSERT_EQ(kGoalDistance + 1, path.size());
-  // A straight path is drawn from start to goal
+  // A straight path is drawn from the start to the goal
   for (int32_t i = 0; i < kGoalDistance + 1; ++i) {
     MapIndex index;
     map->PoseToIndex(path[i], index);
@@ -280,9 +280,9 @@ TEST_F(AstarExecuterTest, Straight45) {
 
   // verify
   ASSERT_TRUE(result);
-  // The number of points in the path is as expected (distance +1 because it includes the start point)
+  // The number of points in the path is as expected (distance + 1 because it includes the starting point)
   ASSERT_EQ(kGoalDistance + 1, path.size());
-  // A straight path is drawn from start to goal
+  // A straight path is drawn from the start to the goal
   for (int32_t i = 0; i < kGoalDistance + 1; ++i) {
     MapIndex index;
     map->PoseToIndex(path[i], index);
@@ -307,9 +307,9 @@ TEST_F(AstarExecuterTest, Straight90) {
 
   // verify
   ASSERT_TRUE(result);
-  // The number of points in the path is as expected (distance +1 because it includes the start point)
+  // The number of points in the path is as expected (distance + 1 because it includes the starting point)
   ASSERT_EQ(kGoalDistance + 1, path.size());
-  // A straight path is drawn from start to goal
+  // A straight path is drawn from the start to the goal
   for (int32_t i = 0; i < kGoalDistance + 1; ++i) {
     MapIndex index;
     map->PoseToIndex(path[i], index);
@@ -335,9 +335,9 @@ TEST_F(AstarExecuterTest, Straight135) {
 
   // verify
   ASSERT_TRUE(result);
-  // The number of points in the path is as expected (distance +1 because it includes the start point)
+  // The number of points in the path is as expected (distance + 1 because it includes the starting point)
   ASSERT_EQ(kGoalDistance + 1, path.size());
-  // A straight path is drawn from start to goal
+  // A straight path is drawn from the start to the goal
   for (int32_t i = 0; i < kGoalDistance + 1; ++i) {
     MapIndex index;
     map->PoseToIndex(path[i], index);
@@ -362,9 +362,9 @@ TEST_F(AstarExecuterTest, Straight180) {
 
   // verify
   ASSERT_TRUE(result);
-  // The number of points in the path is as expected (distance +1 because it includes the start point)
+  // The number of points in the path is as expected (distance + 1 because it includes the starting point)
   ASSERT_EQ(kGoalDistance + 1, path.size());
-  // A straight path is drawn from start to goal
+  // A straight path is drawn from the start to the goal
   for (int32_t i = 0; i < kGoalDistance + 1; ++i) {
     MapIndex index;
     map->PoseToIndex(path[i], index);
@@ -390,9 +390,9 @@ TEST_F(AstarExecuterTest, Straight225) {
 
   // verify
   ASSERT_TRUE(result);
-  // The number of points in the path is as expected (distance +1 because it includes the start point)
+  // The number of points in the path is as expected (distance + 1 because it includes the starting point)
   ASSERT_EQ(kGoalDistance + 1, path.size());
-  // A straight path is drawn from start to goal
+  // A straight path is drawn from the start to the goal
   for (int32_t i = 0; i < kGoalDistance + 1; ++i) {
     MapIndex index;
     map->PoseToIndex(path[i], index);
@@ -417,9 +417,9 @@ TEST_F(AstarExecuterTest, Straight270) {
 
   // verify
   ASSERT_TRUE(result);
-  // The number of points in the path is as expected (distance +1 because it includes the start point)
+  // The number of points in the path is as expected (distance + 1 because it includes the starting point)
   ASSERT_EQ(kGoalDistance + 1, path.size());
-  // A straight path is drawn from start to goal
+  // A straight path is drawn from the start to the goal
   for (int32_t i = 0; i < kGoalDistance + 1; ++i) {
     MapIndex index;
     map->PoseToIndex(path[i], index);
@@ -445,9 +445,9 @@ TEST_F(AstarExecuterTest, Straight315) {
 
   // verify
   ASSERT_TRUE(result);
-  // The number of points in the path is as expected (distance +1 because it includes the start point)
+  // The number of points in the path is as expected (distance + 1 because it includes the starting point)
   ASSERT_EQ(kGoalDistance + 1, path.size());
-  // A straight path is drawn from start to goal
+  // A straight path is drawn from the start to the goal
   for (int32_t i = 0; i < kGoalDistance + 1; ++i) {
     MapIndex index;
     map->PoseToIndex(path[i], index);
@@ -457,7 +457,7 @@ TEST_F(AstarExecuterTest, Straight315) {
 }
 
 /// AstarExecuter test
-/// When there is a static obstacle, the detour should go through the shorter side (right side)
+/// When there are static obstacles, the bypass route goes through the shorter side (right side)
 TEST_F(AstarExecuterTest, StaticObstacleBypassRight) {
   // setup
   // Set a horizontal wall in the center of the static map
@@ -488,7 +488,7 @@ TEST_F(AstarExecuterTest, StaticObstacleBypassRight) {
 }
 
 /// AstarExecuter test
-/// When there is a static obstacle, the detour should go through the shorter side (left side)
+/// When there are static obstacles, the bypass route goes through the shorter side (left side)
 TEST_F(AstarExecuterTest, StaticObstacleBypassLeft) {
   // setup
   // Set a horizontal wall in the center of the static map
@@ -519,10 +519,10 @@ TEST_F(AstarExecuterTest, StaticObstacleBypassLeft) {
 }
 
 /// AstarExecuter test
-/// When there is a dynamic obstacle, the detour should go through the shorter side (right side)
+/// When there are dynamic obstacles, the bypass route goes through the shorter side (right side)
 TEST_F(AstarExecuterTest, DynamicObstacleBypassRight) {
   // setup
-  // Set a dynamic map wall horizontally in the center of the static map
+  // Set a horizontal dynamic map wall in the center of the static map
   const LayeredCostMap::Ptr map = CreateDynamicLineObstacleMap();
   // Set the start and goal slightly to the right of the wall
   const MapIndex start_index((kStaticMapSize / 2) + kTestBias, kWallY - kGoalDistance);
@@ -549,10 +549,10 @@ TEST_F(AstarExecuterTest, DynamicObstacleBypassRight) {
 }
 
 /// AstarExecuter test
-/// When there is a dynamic obstacle, the detour should go through the shorter side (left side)
+/// When there are dynamic obstacles, the bypass route goes through the shorter side (left side)
 TEST_F(AstarExecuterTest, DynamicObstacleBypassLeft) {
   // setup
-  // Set a dynamic map wall horizontally in the center of the static map
+  // Set a horizontal dynamic map wall in the center of the static map
   const LayeredCostMap::Ptr map = CreateDynamicLineObstacleMap();
   // Set the start and goal slightly to the left of the wall
   const MapIndex start_index((kStaticMapSize / 2) - kTestBias, kWallY - kGoalDistance);
@@ -579,13 +579,13 @@ TEST_F(AstarExecuterTest, DynamicObstacleBypassLeft) {
 }
 
 /// AstarExecuter test
-/// When passing through an area with a cost gradient of static obstacles, the path should go through the lower cost side
+/// When passing through an area with a cost gradient of static obstacles, the path goes through the lower-cost side
 TEST_F(AstarExecuterTest, StaticObstacleSlope) {
   // Generate a map with a gradient from Free to Wall along the X-axis in the center of the static map
   const LayeredCostMap::Ptr map = CreateStaticGradationObstacleMap();
 
-  // Set the start and goal to cross the map from edge to edge
-  // If the travel distance is short, cutting through is cheaper, so take a longer path
+  // Set the start and goal to cross the map center from edge to edge
+  // Since cutting through is cheaper for shorter distances, take a longer route
   const MapIndex start_index(kStaticMapSize / 2, 0);
   const MapIndex goal_index(start_index.x, kStaticMapSize - 1);
 
@@ -611,12 +611,12 @@ TEST_F(AstarExecuterTest, StaticObstacleSlope) {
 }
 
 /// AstarExecuter test
-/// When passing through an area with a cost gradient of dynamic obstacles, the path should go through the lower cost side
+/// When passing through an area with a cost gradient of dynamic obstacles, the path goes through the lower-cost side
 TEST_F(AstarExecuterTest, DynamicObstacleSlope) {
   const LayeredCostMap::Ptr map = CreateDynamicGradationObstacleMap();
 
-  // Set the start and goal to cross the map from edge to edge
-  // Set slightly inside from the edge of the dynamic map to avoid bypassing the dynamic map itself
+  // Set the start and goal to cross the map center from edge to edge
+  // Set slightly inside the edge of the dynamic map to avoid bypassing the dynamic map itself
   const MapIndex start_index(kStaticMapSize / 2, (kStaticMapSize - kDynamicMapSize) / 2 + kMapMargin);
   const MapIndex goal_index(start_index.x, (kStaticMapSize - kDynamicMapSize) / 2 + kDynamicMapSize - kMapMargin);
 
@@ -642,19 +642,19 @@ TEST_F(AstarExecuterTest, DynamicObstacleSlope) {
 }
 
 /// AstarExecuter test
-/// CostCorrector is called and the correction value is reflected in the result
-/// In this test, use a dummy CostCorrector to confirm that the correction process is effective
+/// CostCorrector is called, and the correction values are reflected in the results
+/// Use a dummy CostCorrector in this test to confirm that the correction process is effective
 /// The correctness of the actual CostCorrector used is ensured by the automatic tests of each class
 TEST_F(AstarExecuterTest, CostCorrector) {
   // setup
   // Generate a static map without obstacles
   LayeredCostMap::Ptr map = CreateBlankMap();
-  // Register a test-specific CostCorrector that applies a negative correction to the left side of the area
+  // Register a test-specific CostCorrector that applies negative corrections to the left side of the area
   cost_correcotrs_.push_back(std::make_shared<TestCostCorrector>(TestCostCorrector()));
   map->SetCostCollectors(cost_correcotrs_);
 
-  // Set the start and goal to cross the map from edge to edge
-  // If the travel distance is short, cutting through is cheaper, so take a longer path
+  // Set the start and goal to cross the map center from edge to edge
+  // Since cutting through is cheaper for shorter distances, take a longer route
   const MapIndex start_index(kStaticMapSize / 2, 0);
   const MapIndex goal_index(start_index.x, kStaticMapSize - 1);
 
@@ -680,7 +680,7 @@ TEST_F(AstarExecuterTest, CostCorrector) {
 }
 
 /// AstarExecuter test
-/// If the goal is not reached within the specified maximum cost, the path planning fails
+/// If the goal cannot be reached within the specified maximum cost, the path planning fails
 TEST_F(AstarExecuterTest, FailCaseTooLargeCost) {
   // setup
   // Generate a static map without obstacles
@@ -689,7 +689,7 @@ TEST_F(AstarExecuterTest, FailCaseTooLargeCost) {
   goal_index.x += kGoalDistance;
 
   // exercise
-  // Set a value smaller than the theoretical cost to reach
+  // Set a value smaller than the theoretical cost to reach the goal
   PoseSeq path;
   const bool result = astar_executer_->ExecuteAstar(map, kStartIndex, goal_index,
       kMapParam.single_cost * kGoalDistance - 1, path);
@@ -699,11 +699,11 @@ TEST_F(AstarExecuterTest, FailCaseTooLargeCost) {
 }
 
 /// AstarExecuter test
-/// If the goal is set in a position unreachable due to obstacles, the path planning fails
+/// If the goal is set in a location unreachable due to obstacles, the path planning fails
 TEST_F(AstarExecuterTest, FailCaseUnreachable) {
   // setup
   const MapIndex goal_index(kStartIndex.x, kStartIndex.y + kGoalDistance);
-  // Place walls in a rectangle to surround the goal point
+  // Place rectangular walls surrounding the goal point
   LayeredCostMap::Ptr map = CreateFenceObstacleMap(goal_index);
 
   // exercise
@@ -717,10 +717,10 @@ TEST_F(AstarExecuterTest, FailCaseUnreachable) {
 
 /// AstarExecuter test
 /// Performance evaluation
-/// The results vary each time depending on the performance of the execution environment, especially with large variations in Jenkins
-/// The test is usually disabled because it cannot correctly determine pass/fail
-/// When making changes to this package, compare the print log results before and after the change
-/// Verify that there is no performance degradation
+/// Results vary depending on the performance of the execution environment, especially with significant variability in Jenkins environments
+/// Therefore, the test is usually disabled as it cannot reliably determine pass/fail
+/// When making changes to this package, compare the print log results before and after the changes
+/// Verify that no performance degradation has occurred
 #if 0
 TEST_F(AstarExecuterTest, PerformanceTest) {
   // setup
@@ -751,7 +751,7 @@ TEST_F(AstarExecuterTest, PerformanceTest) {
   const double elapsed_time = sum_elapse_time / static_cast<double>(test_num);
   printf("AstarExecuterTest::PerformanceTest elapsed_time : %f [msec] \n", elapsed_time);
   // verify
-  // At the time of test creation, it was around 65ms on the development PC used
+  // At the time of test creation, the development PC used showed around 65ms
   EXPECT_LT(elapsed_time, 75.0);
 }
 #endif

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -47,10 +47,10 @@ constexpr int32_t kStraightPathPointNum = 100;
 namespace tmc_base_path_follower {
 
 /// Parameter test
-/// Ability to generate parameters
+/// Parameters can be generated
 TEST(PathTransitVelocityCalculatorParameterTest, ConstructParameter) {
   // exercise
-  // Input parameters with the condition max_linear_velocity > min_linear_velocity
+  // Set the parameter input condition to max_linear_velocity > min_linear_velocity
   PathTransitVelocityCalculator::Parameter param(0.1, 0.02, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8);
 
   // verify
@@ -70,7 +70,7 @@ TEST(PathTransitVelocityCalculatorParameterTest, ConstructParameter) {
 /// If invalid values are specified, default values are generated
 TEST(PathTransitVelocityCalculatorParameterTest, ConstructWithInvalidParameterMakeDefault) {
   // exercise
-  // Set all parameters with invalid values
+  // Set all parameters to invalid values
   PathTransitVelocityCalculator::Parameter param(-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0);
 
   // verify
@@ -86,14 +86,14 @@ TEST(PathTransitVelocityCalculatorParameterTest, ConstructWithInvalidParameterMa
 }
 
 /// Parameter test
-/// If the maximum translational velocity is less than the minimum translational velocity, default values are used
+/// If max linear velocity is less than min linear velocity, default values are used
 TEST(DiffDriveVelocityCalculatorParameterTest, MaxVelocityLowerThanMinVelocity) {
   // exercise
-  /// Input parameters with the condition max_linear_velocity < min_linear_velocity
+  /// Set the parameter input condition to max_linear_velocity < min_linear_velocity
   PathTransitVelocityCalculator::Parameter param(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8);
 
   // verify
-  // max_linear_velocity and min_linear_velocity become default values
+  // max_linear_velocity and min_linear_velocity will be set to default values
   EXPECT_DOUBLE_EQ(kMaxLinearVelocityDefault, param.max_linear_velocity);
   EXPECT_DOUBLE_EQ(kMinLinearVelocityDefault, param.min_linear_velocity);
 }
@@ -118,7 +118,7 @@ class PathTransitVelocityCalculatorTest : public ::testing::Test {
 
 
 /// CalculatePathTransitVelocity test
-/// In the case of a straight path, there is no restriction on transit velocity
+/// For a straight path, there are no transit velocity restrictions
 TEST_F(PathTransitVelocityCalculatorTest, StraightPath) {
   // setup
   PathInfo path_info;
@@ -138,9 +138,9 @@ TEST_F(PathTransitVelocityCalculatorTest, StraightPath) {
 }
 
 /// CalculatePathTransitVelocity test
-/// If the curve is gentle, there is no restriction on transit velocity
+/// For gentle curves, there are no transit velocity restrictions
 TEST_F(PathTransitVelocityCalculatorTest, GentleCurvePath) {
-  // Make the curvature of the curve slightly smaller than the threshold where transit velocity restriction applies
+  // Set the curve curvature slightly below the threshold for transit velocity restriction
   const double curvature = kMaxAngularVelocityDefault * kTransitVelocityAngularVelocityRatioDefault /
       kMaxLinearVelocityDefault - kEpsilon;
   const double radius = 1.0 / curvature;
@@ -160,10 +160,10 @@ TEST_F(PathTransitVelocityCalculatorTest, GentleCurvePath) {
 
 
 /// CalculatePathTransitVelocity test
-/// In the case of a curved path, transit velocity is restricted
-/// The greater the curvature of the curve, the more the transit velocity decelerates
+/// For curved paths, transit velocity is restricted
+/// The greater the curve curvature, the more the transit velocity decreases
 TEST_F(PathTransitVelocityCalculatorTest, CurvePath) {
-  // Make the curvature of the curve slightly larger than the threshold where transit velocity restriction applies
+  // Set the curve curvature slightly above the threshold for transit velocity restriction
   double curvature = (kMaxAngularVelocityDefault * kTransitVelocityAngularVelocityRatioDefault) /
       kMaxLinearVelocityDefault + kEpsilon;
   double radius = 1.0 / curvature;
@@ -175,7 +175,7 @@ TEST_F(PathTransitVelocityCalculatorTest, CurvePath) {
   // exercise
   path_transit_velocity_calculator_->CalculatePathTransitVelocity(path_info);
   // verify
-  // Transit velocity is smaller than the maximum translational velocity
+  // Transit velocity is less than the maximum translational velocity
   double small_curvature_transit_velocity;
   for (int32_t i = 0; i < path_info.splined_path.size(); ++i) {
     small_curvature_transit_velocity = path_transit_velocity_calculator_->GetPathTransitVelocity(i);
@@ -183,7 +183,7 @@ TEST_F(PathTransitVelocityCalculatorTest, CurvePath) {
   }
 
   // setup
-  // Make the curvature of the curve slightly smaller than the threshold where transit velocity becomes the minimum velocity
+  // Set the curve curvature slightly below the threshold where transit velocity becomes the minimum speed
   curvature = kMaxAngularVelocityDefault * kTransitVelocityAngularVelocityRatioDefault /
       kMinLinearVelocityDefault - kEpsilon;
   radius = 1.0 / curvature;
@@ -196,8 +196,8 @@ TEST_F(PathTransitVelocityCalculatorTest, CurvePath) {
   // exercise
   path_transit_velocity_calculator_->CalculatePathTransitVelocity(path_info);
   // verify
-  // Transit velocity is smaller than when the curvature was smaller
-  // Greater than the minimum velocity
+  // Transit velocity is lower than when the curvature was smaller
+  // It is greater than the minimum speed
   for (int32_t i = 0; i < path_info.splined_path.size(); ++i) {
     const double large_curvature_transit_velocity = path_transit_velocity_calculator_->GetPathTransitVelocity(i);
     EXPECT_GT(small_curvature_transit_velocity, large_curvature_transit_velocity);
@@ -206,9 +206,9 @@ TEST_F(PathTransitVelocityCalculatorTest, CurvePath) {
 }
 
 /// CalculatePathTransitVelocity test
-/// If the transit velocity for curvature falls below the minimum velocity, it is rounded to the minimum velocity
+/// If the transit velocity for curvature falls below the minimum speed, it is rounded up to the minimum speed
 TEST_F(PathTransitVelocityCalculatorTest, SharpCurvePath) {
-  // Make the curvature of the curve slightly larger than the threshold where transit velocity becomes the minimum velocity
+  // Set the curve curvature slightly above the threshold where transit velocity becomes the minimum speed
   double curvature = (kMaxAngularVelocityDefault * kTransitVelocityAngularVelocityRatioDefault) /
       kMinLinearVelocityDefault + kEpsilon;
   double radius = 1.0 / curvature;
@@ -220,7 +220,7 @@ TEST_F(PathTransitVelocityCalculatorTest, SharpCurvePath) {
   // exercise
   path_transit_velocity_calculator_->CalculatePathTransitVelocity(path_info);
   // verify
-  // Transit velocity is at the minimum velocity
+  // Transit velocity is at the minimum speed
   double transit_velocity;
   for (int32_t i = 0; i < path_info.splined_path.size(); ++i) {
     transit_velocity = path_transit_velocity_calculator_->GetPathTransitVelocity(i);
@@ -229,11 +229,11 @@ TEST_F(PathTransitVelocityCalculatorTest, SharpCurvePath) {
 }
 
 /// CalculatePathTransitVelocity test
-/// In the case of a path entering a curve that decelerates from a straight line to the minimum velocity, the maximum deceleration is applied to prevent sudden deceleration
-/// Deceleration starts from the straight section, and when entering the curve, it is decelerated to the minimum velocity
+/// For a path entering a curve that decelerates from a straight line to the minimum speed, the maximum deceleration is applied to prevent sudden deceleration
+/// Deceleration starts in the straight section, and the speed is reduced to the minimum by the time the curve begins
 TEST_F(PathTransitVelocityCalculatorTest, SuddenDecelerationPath) {
   // setup
-  // Set the maximum deceleration value small for testing
+  // Set the maximum deceleration value to a small value for testing
   const double max_linear_deceleration = 0.2;
   path_transit_velocity_calculator_.reset(new PathTransitVelocityCalculator(
         PathTransitVelocityCalculator::Parameter(
@@ -242,7 +242,7 @@ TEST_F(PathTransitVelocityCalculatorTest, SuddenDecelerationPath) {
         kMaxAngularAccelerationDefault, kMaxAngularDecelerationDefault,
         kTransitVelocityAngularVelocityRatioDefault)));
 
-  // Calculate the curvature and radius of the curve, make the curvature slightly larger than the threshold where transit velocity becomes the minimum velocity
+  // Calculate the curve curvature and radius, setting the curvature slightly above the threshold where transit velocity becomes the minimum speed
   const double curvature = (kMaxAngularVelocityDefault * kTransitVelocityAngularVelocityRatioDefault) /
       kMinLinearVelocityDefault + kEpsilon;
   const double radius = 1.0 / curvature;
@@ -254,7 +254,7 @@ TEST_F(PathTransitVelocityCalculatorTest, SuddenDecelerationPath) {
     straight_path_curvatures.push_back(0.0);
   }
 
-  // Generate a curve that decelerates to the minimum velocity from the final point of the straight path
+  // Generate a curve that decelerates to the minimum speed from the endpoint of the straight path
   PoseSeq curve_path;
   CreateArcPath(radius, straight_path.back(), kPathInterval, M_PI, curve_path);
   std::vector<double> curve_path_curvatures(curve_path.size(), curvature);
@@ -271,7 +271,7 @@ TEST_F(PathTransitVelocityCalculatorTest, SuddenDecelerationPath) {
   path_transit_velocity_calculator_->CalculatePathTransitVelocity(path_info);
   // verify
   double prev_velocity = path_transit_velocity_calculator_->GetPathTransitVelocity(0);
-  // Deceleration starts in the straight section and gradually decelerates until the start point of the curve
+  // Deceleration starts in the straight section and gradually decreases until the start of the curve
   for (int32_t i = 1; i < straight_path.size() + 1; ++i) {
     const double transit_velocity = path_transit_velocity_calculator_->GetPathTransitVelocity(i);
     const double velocity_diff = transit_velocity - prev_velocity;
@@ -281,22 +281,22 @@ TEST_F(PathTransitVelocityCalculatorTest, SuddenDecelerationPath) {
     const double linear_deceleration = velocity_diff / time_diff;
     // Deceleration is less than or equal to 0
     EXPECT_LE(linear_deceleration, 0.0);
-    // Not decelerating more than the set value (may exceed within the error range, so judged by kEpsilon)
+    // Ensure that deceleration does not exceed the set value (allowing for slight errors judged by kEpsilon)
     EXPECT_LT(fabs(linear_deceleration) - max_linear_deceleration, kEpsilon);
     prev_velocity = transit_velocity;
   }
   for (int32_t i = straight_path.size(); i < path_info.splined_path.size(); ++i) {
-    // After entering the curve, it is at the minimum velocity
+    // Speed is at the minimum after entering the curve
     const double curve_transit_velocity = path_transit_velocity_calculator_->GetPathTransitVelocity(i);
     EXPECT_DOUBLE_EQ(kMinLinearVelocityDefault, curve_transit_velocity);
   }
 }
 
 /// CalculatePathTransitVelocity test
-/// In the case of a path that suddenly becomes straight from a curve, the maximum acceleration is applied to prevent sudden acceleration
+/// For a path that suddenly transitions from a curve to a straight line, the maximum acceleration is applied to prevent sudden acceleration
 TEST_F(PathTransitVelocityCalculatorTest, SuddenAccelerationPath) {
   // setup
-  // Set the maximum acceleration value small for testing
+  // Set the maximum acceleration value to a small value for testing
   const double max_linear_acceleration = 0.2;
   path_transit_velocity_calculator_.reset(new PathTransitVelocityCalculator(
         PathTransitVelocityCalculator::Parameter(
@@ -305,16 +305,16 @@ TEST_F(PathTransitVelocityCalculatorTest, SuddenAccelerationPath) {
         kMaxAngularAccelerationDefault, kMaxAngularDecelerationDefault,
         kTransitVelocityAngularVelocityRatioDefault)));
 
-  // Calculate the curvature and radius of the curve, make the curvature slightly larger than the threshold where transit velocity becomes the minimum velocity
+  // Calculate the curve curvature and radius, setting the curvature slightly above the threshold where transit velocity becomes the minimum speed
   const double curvature = (kMaxAngularVelocityDefault * kTransitVelocityAngularVelocityRatioDefault) /
       kMinLinearVelocityDefault + kEpsilon;
   const double radius = 1.0 / curvature;
-  // Generate a curve that decelerates to the minimum velocity
+  // Generate a curve that decelerates to the minimum speed
   PoseSeq curve_path;
   CreateArcPath(radius, Pose2d(0.0, 0.0, 0.0), kPathInterval, M_PI, curve_path);
   std::vector<double> curve_path_curvatures(curve_path.size(), curvature);
 
-  // Generate a straight path so that the straight path connects to the end position of the curve
+  // Generate a straight path so that it connects to the end of the curve
   PoseSeq straight_path;
   std::vector<double> straight_path_curvatures;
   for (int32_t i = 1; i <= kStraightPathPointNum; ++i) {
@@ -335,12 +335,12 @@ TEST_F(PathTransitVelocityCalculatorTest, SuddenAccelerationPath) {
   path_transit_velocity_calculator_->CalculatePathTransitVelocity(path_info);
   // verify
   for (int32_t i = 0; i < curve_path.size(); ++i) {
-    // During the curve, it is at the minimum velocity
+    // Speed is at the minimum during the curve
     const double curve_transit_velocity = path_transit_velocity_calculator_->GetPathTransitVelocity(i);
     EXPECT_DOUBLE_EQ(kMinLinearVelocityDefault, curve_transit_velocity);
   }
   double prev_velocity = kMinLinearVelocityDefault;
-  // Acceleration starts in the straight section and gradually accelerates to the maximum velocity
+  // Acceleration starts in the straight section and gradually increases to the maximum speed
   for (int32_t i = curve_path.size(); i < path_info.splined_path.size(); ++i) {
     const double transit_velocity = path_transit_velocity_calculator_->GetPathTransitVelocity(i);
     const double velocity_diff = transit_velocity - prev_velocity;
@@ -350,9 +350,9 @@ TEST_F(PathTransitVelocityCalculatorTest, SuddenAccelerationPath) {
     const double linear_acceleration = velocity_diff / time_diff;
     // Acceleration is greater than or equal to 0
     EXPECT_GE(linear_acceleration, 0.0);
-    // Not accelerating more than the set value (may exceed within the error range, so judged by kEpsilon)
+    // Ensure that acceleration does not exceed the set value (allowing for slight errors judged by kEpsilon)
     EXPECT_LT(fabs(linear_acceleration) - max_linear_acceleration, kEpsilon);
-    // Does not exceed the maximum velocity
+    // Maximum speed is not exceeded
     EXPECT_LE(transit_velocity, kMaxLinearVelocityDefault);
     prev_velocity = transit_velocity;
   }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -44,7 +44,7 @@ class IPathTransitVelocityCalculator {
   virtual double GetPathTransitVelocity(const uint32_t path_index) = 0;
 };
 
-/// Path Passing Speed Control Class
+/// Path Traversal Speed Control Class
 class PathTransitVelocityCalculator : public IPathTransitVelocityCalculator {
  public:
   /// Parameters
@@ -105,39 +105,39 @@ class PathTransitVelocityCalculator : public IPathTransitVelocityCalculator {
         transit_velocity_angular_velocity_ratio = kTransitVelocityAngularVelocityRatioDefault;
       }
     }
-    // Maximum Translational Speed
+    // Maximum translational speed
     double max_linear_velocity;
-    // Minimum Translational Speed
+    // Minimum translational speed
     double min_linear_velocity;
-    // Maximum Rotational Speed
+    // Maximum rotational speed
     double max_angular_velocity;
-    // Maximum Translational Acceleration
+    // Maximum translational acceleration
     double max_linear_acceleration;
-    // Maximum Translational Deceleration
+    // Maximum translational deceleration
     double max_linear_deceleration;
-    // Maximum Rotational Acceleration
+    // Maximum rotational acceleration
     double max_angular_acceleration;
-    // Maximum Translational Deceleration
+    // Maximum translational deceleration
     double max_angular_deceleration;
-    // Multiplier for Rotational Speed in Curvature-based Passing Speed Calculation
+    // Multiplier applied to rotational speed when calculating traversal speed based on curvature
     double transit_velocity_angular_velocity_ratio;
   };
 
   /// Constructor
   /// @param [I] param Parameters
   explicit PathTransitVelocityCalculator(const Parameter& param) : param_(param) {}
-  /// Path Passing Speed Calculation
+  /// Path Traversal Speed Calculation
   /// @param [I] path_info Path Information
   void CalculatePathTransitVelocity(const PathInfo& path_info);
-  /// Path Passing Speed Control
-  /// @param [I] path_index Index of Path Point
-  /// @return Output Speed
+  /// Path Traversal Speed Control
+  /// @param [I] path_index Index of the path point
+  /// @return Output speed
   double GetPathTransitVelocity(const uint32_t path_index);
 
  private:
   // Parameters
   Parameter param_;
-  // Passing Speed for Each Path Point
+  // Traversal speed for each path point
   std::vector<double> transit_velocity_;
 };
 

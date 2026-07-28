@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -56,7 +56,7 @@ class GridMapServerNode : public rclcpp::Node {
   void SetMapMetaData(nav_msgs::msg::OccupancyGrid& map);
   /// Load map.yaml
   bool LoadConfig(const std::string& config_name);
-  /// Convert Pgm values to three values of OccupancyGrid
+  /// Convert Pgm values to three-state OccupancyGrid
   int8_t ConvertPgmToOccupancyGridTrinaryValue(const uint8_t pgm_value);
   /// Map generation
   void CreateMap(const std::string& map_file, nav_msgs::msg::OccupancyGrid& map);
@@ -68,7 +68,7 @@ class GridMapServerNode : public rclcpp::Node {
       tmc_navigation_msgs::srv::ReloadMap::Response::SharedPtr res);
   // Generate and distribute potential map
   void CreateMapsAndPublish(void);
-  // Publish distance map and obstacle map. Publish both TMC format and ROS format
+  // Publish distance map and obstacle map in both TMC and ROS formats
   void PublishMaps(const nav_msgs::msg::OccupancyGrid& distance_map,
                    const nav_msgs::msg::OccupancyGrid& obstacle_map);
 
@@ -98,7 +98,7 @@ class GridMapServerNode : public rclcpp::Node {
   double potential_width_;
   /// Convert Unknown to Free
   bool convert_unknown_to_free_;
-  /// Declare publisher, subscriber, serviceserver variables
+  /// Variable declarations for publisher, subscriber, and service server
   rclcpp::Publisher<tmc_navigation_msgs::msg::OccupancyGridUint>::SharedPtr pub_distance_map_;
   rclcpp::Publisher<tmc_navigation_msgs::msg::OccupancyGridUint>::SharedPtr pub_obstacle_map_;
   rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_distance_ros_map_;

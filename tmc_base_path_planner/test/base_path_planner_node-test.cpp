@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -45,7 +45,7 @@ DAMAGE.
 #include "test_utils_ros.hpp"
 
 namespace {
-constexpr double kRate = 10.0;
+constexpr double kRate = 20.0;
 constexpr double kTimeout = 5.0;
 }  // anonymous namespace
 
@@ -55,7 +55,7 @@ using PathPlanGoalHandle = rclcpp_action::ClientGoalHandle<PathPlanAction>;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-/// Test node
+/// Test Node
 class TestNode : public rclcpp::Node {
  public:
   explicit TestNode(const rclcpp::NodeOptions& options = rclcpp::NodeOptions()) :
@@ -66,7 +66,7 @@ class TestNode : public rclcpp::Node {
     planner_action_client_ = rclcpp_action::create_client<PathPlanAction>(this, "base_path_plan");
     pub_static_map_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
         "static_obstacle_ros_map", rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
-    // Wait until linked with subscriber
+    // Wait until linked with a subscriber
     const rclcpp::Time start = this->get_clock()->now();
     while (pub_static_map_->get_subscription_count() == 0) {
       if (this->get_clock()->now() - start > rclcpp::Duration::from_seconds(10.0)) {
@@ -75,6 +75,27 @@ class TestNode : public rclcpp::Node {
       }
       rate_->sleep();
     }
+
+    // Set parameter service
+    rclcpp::AsyncParametersClient::SharedPtr param_client =
+        std::make_shared<rclcpp::AsyncParametersClient>(this, "/base_path_planner");
+    if (!param_client->wait_for_service(std::chrono::milliseconds(static_cast<int32_t>(kTimeout * 1000)))) {
+      RCLCPP_FATAL(this->get_logger(), "Parameter service error.");
+      exit(EXIT_FAILURE);
+    }
+
+    // Retrieve parameter
+    std::vector<std::string> parameters_list = {"base_path_planner.map_filter.map_filter_range_around_goal",
+                                                "base_path_planner.map_filter.map_filter_distance_goal_limit"};
+    auto get_param_future = param_client->get_parameters(parameters_list);
+    if (rclcpp::spin_until_future_complete(shared_from_this(), get_param_future,
+        std::chrono::milliseconds(static_cast<int32_t>(kTimeout * 1000))) != rclcpp::FutureReturnCode::SUCCESS) {
+      RCLCPP_FATAL(get_logger(), "Failed to get parameter.");
+      exit(EXIT_FAILURE);
+    }
+    std::vector<rclcpp::Parameter> responese_param = get_param_future.get();
+    map_filter_range_around_goal_ = responese_param[0].as_double();
+    map_filter_distance_goal_limit_ = responese_param[1].as_double();
   }
 
   // Send static map
@@ -83,7 +104,7 @@ class TestNode : public rclcpp::Node {
     pub_static_map_->publish(static_map);
   }
 
-  // Send path planning action
+  // Send route planning action
   void SendPathPlanAction(const geometry_msgs::msg::PoseStamped& goal_pose) {
     auto send_goal_options = rclcpp_action::Client<PathPlanAction>::SendGoalOptions();
     send_goal_options.goal_response_callback =
@@ -111,7 +132,7 @@ class TestNode : public rclcpp::Node {
     return planner_action_client_->wait_for_action_server(std::chrono::seconds(5));
   }
 
-  // Determine if the result of the path planning action matches the argument
+  // Determine if the result of the route planning action matches the argument
   bool IsMatchActionResult(const rclcpp_action::ResultCode& in_result_code,
                            const uint32_t in_reason) {
     if (!planner_result_) {
@@ -123,7 +144,7 @@ class TestNode : public rclcpp::Node {
     return false;
   }
 
-  // Determine if the feedback of the path planning matches the argument
+  // Determine if the feedback of the route planning matches the argument
   bool IsMatchActionFeedback(const PathPlanAction::Feedback& in_feedback) {
     if (current_feedback_.status == in_feedback.status &&
         current_feedback_.reason == in_feedback.reason) {
@@ -134,7 +155,7 @@ class TestNode : public rclcpp::Node {
 
   // Wait until some condition is met
   bool WaitUntil(std::function<bool()> condition_function, double timeout_sec) {
-    // Error check of argument
+    // Argument error check
     if (!condition_function) {
       throw std::invalid_argument("Function for waiting is empty.");
     }
@@ -156,8 +177,18 @@ class TestNode : public rclcpp::Node {
     rate_->sleep();
   }
 
+  // Get filter range around the goal
+  double map_filter_range_around_goal(void) const {
+    return map_filter_range_around_goal_;
+  }
+
+  // Get filter distance around the goal
+  double map_filter_distance_goal_limit(void) const {
+    return map_filter_distance_goal_limit_;
+  }
+
  private:
-  // // Path planning action client callback
+  // // Route planning action client callback
   void goal_response_callback(const PathPlanGoalHandle::SharedPtr& future) {}
   void feedback_callback(PathPlanGoalHandle::SharedPtr,
       const std::shared_ptr<const PathPlanAction::Feedback> feedback) {
@@ -168,12 +199,15 @@ class TestNode : public rclcpp::Node {
   }
 
   std::shared_ptr<rclcpp::Rate> rate_;
-  /// Path planning action client
+  /// Route planning action client
   rclcpp_action::Client<PathPlanAction>::SharedPtr planner_action_client_;
   std::optional<PathPlanGoalHandle::WrappedResult> planner_result_;
 
   PathPlanAction::Feedback current_feedback_;
   rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_static_map_;
+
+  double map_filter_range_around_goal_;
+  double map_filter_distance_goal_limit_;
 };
 
 
@@ -203,28 +237,6 @@ class BasePathPlannerNodeTest : public testing::Test {
 
     rate_ = std::make_shared<rclcpp::Rate>(kRate);
 
-    // Generate target node
-    // TODO(syuuhei_shiro): 下記、原因調査
-    // Wanted to launch the target node only once in main, but
-    // Even if Feedback is published, it is not notified to the callback of the test node
-    // It was notified if regenerated for each setup, so use this method for now
-    // In actual operation, the phenomenon of stopping Feedback notification has not occurred
-    rclcpp::NodeOptions option;
-    option.allow_undeclared_parameters();
-    option.automatically_declare_parameters_from_overrides(true);
-    base_path_planner_node_ = std::make_shared<BasePathPlannerNode>(option);
-    const std::string yaml_directory =
-        ament_index_cpp::get_package_share_directory("tmc_base_path_planner") + "/test/parameter/";
-    LoadParameterFromYaml(base_path_planner_node_, yaml_directory, "base_path_planner_node-test.yaml");
-    base_path_planner_node_->Init();
-    base_path_planner_node_thread_ = std::make_shared<std::thread>([&]() {
-        base_path_planner_node_thread_killed_ = false;
-        while (rclcpp::ok() && !base_path_planner_node_thread_killed_) {
-          rate_->sleep();
-          rclcpp::spin_some(base_path_planner_node_);
-        }
-        });
-
     test_node_ = std::make_shared<TestNode>();
     cyclic_sender_ = std::make_shared<CyclicSender>();
     follower_dummy_ = std::make_shared<PathFollowerDummy>();
@@ -233,17 +245,20 @@ class BasePathPlannerNodeTest : public testing::Test {
     cyclic_sender_->Init(kRate);
     follower_dummy_->Init(kRate);
 
-    // Issue static map
+    // Publish static map
     test_node_->PublishStaticMap(static_map_);
+
+    // Thread cyclic_sender
+    cyclic_sender_thread_ = std::make_shared<std::thread>([&]() { cyclic_sender_->Run(); });
 
     // Start periodic transmission of dynamic map and self-position
     cyclic_sender_->StartSendDynamicMap(dynamic_map_);
     cyclic_sender_->StartSendGlobalPose(global_pose_);
 
-    // Thread follower_dummy, cyclic_sender
+    // Thread follower_dummy
     follower_dummy_thread_ = std::make_shared<std::thread>([&]() { follower_dummy_->Run(); });
-    cyclic_sender_thread_ = std::make_shared<std::thread>([&]() { cyclic_sender_->Run(); });
-    // Wait for the action server to launch
+
+    // Wait for the action server to start
     if (!test_node_->WaitForActionServer()) {
       RCLCPP_FATAL(test_node_->get_logger(), "Path plan action was not established.");
       exit(EXIT_FAILURE);
@@ -251,22 +266,16 @@ class BasePathPlannerNodeTest : public testing::Test {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   virtual void TearDown() {
-    base_path_planner_node_thread_killed_ = true;
     follower_dummy_->Kill();
     cyclic_sender_->Kill();
-    base_path_planner_node_thread_->join();
     follower_dummy_thread_->join();
     cyclic_sender_thread_->join();
   }
 
-
-  std::shared_ptr<BasePathPlannerNode> base_path_planner_node_;
   std::shared_ptr<TestNode> test_node_;
   std::shared_ptr<CyclicSender> cyclic_sender_;
   std::shared_ptr<PathFollowerDummy> follower_dummy_;
 
-  bool base_path_planner_node_thread_killed_;
-  std::shared_ptr<std::thread> base_path_planner_node_thread_;
   std::shared_ptr<std::thread> follower_dummy_thread_;
   std::shared_ptr<std::thread> cyclic_sender_thread_;
 
@@ -279,33 +288,33 @@ class BasePathPlannerNodeTest : public testing::Test {
   std::shared_ptr<rclcpp::Rate> rate_;
 };
 
-/// Plan a path for the given goal
-/// When Follower becomes SUCCEEDED, it becomes SUCCEEDED(REACHED)
+/// Plan a route for the given goal
+/// Becomes SUCCEEDED(REACHED) when the Follower becomes SUCCEEDED
 TEST_F(BasePathPlannerNodeTest, PlanPath) {
-  // Follower dummy is set to succeed after 1 second
+  // Set follower dummy to succeed after 1 second
   follower_dummy_->SetActionCompleteCondition(1.0, rclcpp_action::ResultCode::SUCCEEDED);
 
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
 
-  // Become SUCCEEDED(REACHED)
+  // Becomes SUCCEEDED(REACHED)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::SUCCEEDED,
       PathPlanAction::Result::REACHED);
       }, kTimeout));
-  /// The final point of the path matches the input goal
-  /// Node test does not consider whether the generated path points are valid
+  /// The final point of the route matches the input goal
+  /// Node tests do not consider whether the generated route points are valid
   EXPECT_TRUE(IsMatchPoseStamped(goal_pose_, follower_dummy_->CurrentRequestedPath().poses.back()));
 }
 
-/// If a dynamic obstacle is placed on the published path, a path that avoids it will be issued
+/// If a dynamic obstacle is placed on the published route, a detour route is published
 TEST_F(BasePathPlannerNodeTest, ReplanPath) {
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
   rclcpp::Time time = test_node_->get_clock()->now();
   geometry_msgs::msg::Point obstacle_point;
 
-  // When the first request comes to the follower, place a dynamic obstacle in the middle of the path
+  // Place a dynamic obstacle on the route when the first request comes to the follower
   ASSERT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsRequested(); }, kTimeout));
   const uint32_t index = static_cast<uint32_t>(follower_dummy_->CurrentRequestedPath().poses.size() / 2);
   obstacle_point = follower_dummy_->CurrentRequestedPath().poses[index].pose.position;
@@ -317,23 +326,23 @@ TEST_F(BasePathPlannerNodeTest, ReplanPath) {
     if (test_node_->WaitUntil([&]() { return follower_dummy_->IsRequested(); }, kTimeout)) {
       distance_to_obstacle = DistancePointToPath(obstacle_point, follower_dummy_->CurrentRequestedPath());
       if (distance_to_obstacle > std::numeric_limits<double>::epsilon()) {
-        // Exit when the path is updated
+        // Exit when the route is updated
         break;
       }
     }
   }
   test_node_->CancelPathPlanAction();
-  // A path that avoids is issued
+  // A detour route is published
   EXPECT_GT(distance_to_obstacle, 0.5);
-  // The final point of the path matches the input goal
+  // The final point of the route matches the input goal
   EXPECT_TRUE(IsMatchPoseStamped(goal_pose_, follower_dummy_->CurrentRequestedPath().poses.back()));
 }
 
 
-/// When a cancel is requested, it becomes CANCELED(CANCELED)
+/// Becomes CANCELED(CANCELED) when a cancel is requested
 /// Cancel the Follower
 TEST_F(BasePathPlannerNodeTest, Cancel) {
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
   // Cancel when a request comes to the follower
   ASSERT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsRequested(); }, kTimeout));
@@ -344,16 +353,16 @@ TEST_F(BasePathPlannerNodeTest, Cancel) {
 }
 
 
-/// Path planning is done according to the specified FrameID
+/// Route planning is done according to the specified FrameID
 TEST_F(BasePathPlannerNodeTest, TransformGoal) {
   geometry_msgs::msg::Pose map_child = CreatePose(1.0, 1.0, 0.0);
   cyclic_sender_->StartSendTransform("map", "map_child", map_child);
-  // Execute path planning action
+  // Execute route planning action
   goal_pose_.header.frame_id = "map_child";
   test_node_->SendPathPlanAction(goal_pose_);
   ASSERT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsRequested(); }, kTimeout));
   test_node_->CancelPathPlanAction();
-  // The goal of the planned path is the coordinates transformed from map_child to map of the input goal
+  // The goal of the planned route is the coordinate transformed from map_child to map for the input goal
   geometry_msgs::msg::PoseStamped expect_pose = goal_pose_;
   expect_pose.pose.position.x = expect_pose.pose.position.x + map_child.position.x;
   expect_pose.pose.position.y = expect_pose.pose.position.y + map_child.position.y;
@@ -362,40 +371,37 @@ TEST_F(BasePathPlannerNodeTest, TransformGoal) {
 }
 
 
-/// If the specified FrameID does not exist, it becomes ABORTED(TRANSFORM_GOAL_ERROR)
+/// Becomes ABORTED(TRANSFORM_GOAL_ERROR) if the specified FrameID does not exist
 TEST_F(BasePathPlannerNodeTest, TransformGoalError) {
   // Specify a non-existent FrameID
   goal_pose_.header.frame_id = "unknown";
   test_node_->SendPathPlanAction(goal_pose_);
-  // Become Aborted(TRANSFORM_GOAL_ERROR)
+  // Becomes Aborted(TRANSFORM_GOAL_ERROR)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED,
       PathPlanAction::Result::TRANSFORM_GOAL_ERROR);
       }, kTimeout));
 }
 
-// Disable test due to possible test failure in CodeBuild
-// TODO(kazuki_shibamiya) : CodeBuildで安定的にテストが通るようにする
-#if 0
-/// When an action is thrown by overwrite, the preceding action ends with ABORTED(PREEMPTED)
+/// If an action is overridden, the preceding action ends with ABORTED(PREEMPTED)
 /// The subsequent action becomes SUCCEEDED(REACHED)
-/// Do not request cancel to Follower
+/// Do not request cancel for the Follower
 TEST_F(BasePathPlannerNodeTest, NewGoalAvailable) {
-  // Set completion time to avoid timeout until test ends
+  // Set completion time to avoid timeout until the test ends
   follower_dummy_->SetActionCompleteCondition(kTimeout * 2.0, rclcpp_action::ResultCode::SUCCEEDED);
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
 
-  // Execute path planning action again after a request occurs to the follower
+  // Execute route planning action again after a request is made to the follower
   ASSERT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsRequested(); }, kTimeout));
   test_node_->SendPathPlanAction(goal_pose_);
 
-  // The preceding action ends with ABORTED(PREEMPTED)
+  // The preceding action ends with ABORTED(PREEMTED)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED,
       PathPlanAction::Result::PREEMPTED);
       }, kTimeout));
-  // No cancel request has come to the Follower
+  // No cancel request has been made to the Follower
   EXPECT_FALSE(test_node_->WaitUntil([&]() { return follower_dummy_->IsCanceled(); }, kTimeout));
 
   // The subsequent action becomes SUCCEEDED(REACHED)
@@ -404,55 +410,42 @@ TEST_F(BasePathPlannerNodeTest, NewGoalAvailable) {
       PathPlanAction::Result::REACHED);
       }, kTimeout));
 }
-#endif
 
-/// If the goal of the subsequent action is not plannable, even though the action was thrown by overwrite,
-/// Request cancel to Follower
+/// If an action is overridden but the goal of the subsequent action is not plannable,
+/// Request cancel for the Follower
 TEST_F(BasePathPlannerNodeTest, NewGoalAvailableFail) {
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
 
-  // Execute path planning action again after a request occurs to the follower
+  // Execute route planning action again after a request is made to the follower
   ASSERT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsRequested(); }, kTimeout));
   // Place the goal outside the range of the static map
   goal_pose_.pose = CreatePose(-1.0, -1.0, 0.0);
   test_node_->SendPathPlanAction(goal_pose_);
 
-  // End with ABORTED(PREEMPTED)
+  // Ends with ABORTED(PREEMTED)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED,
       PathPlanAction::Result::PREEMPTED);
       }, kTimeout));
-  // Request cancel to Follower
+  // Request cancel for the Follower
   EXPECT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsCanceled(); }, kTimeout));
 }
 
 
-/// If the goal is filled with obstacles on the dynamic map, path planning can be done when far from the goal, but fails when approaching the goal
-/// Stop the Follower and notify Feedback with PLANNING(GOAL_IS_ON_DYNAMIC_OBSTACLE)
+/// If the goal is filled with obstacles in the dynamic map, route planning succeeds when far from the goal but fails when close to the goal
+/// Stop the Follower and notify PLANNING(GOAL_IS_ON_DYNAMIC_OBSTACLE) in feedback
 TEST_F(BasePathPlannerNodeTest, GoalIsOnDynamicObstacle) {
-  // Get filter range around the goal
-  double map_filter_range_around_goal;
-  rclcpp::Parameter map_filter_range_around_goal_param;
-  base_path_planner_node_->get_parameter("base_path_planner.map_filter.map_filter_range_around_goal",
-      map_filter_range_around_goal_param);
-  map_filter_range_around_goal = map_filter_range_around_goal_param.as_double();
-  // Get filter distance around the goal
-  double map_filter_distance_goal_limit;
-  rclcpp::Parameter map_filter_distance_goal_limit_param;
-  base_path_planner_node_->get_parameter("base_path_planner.map_filter.map_filter_distance_goal_limit",
-      map_filter_distance_goal_limit_param);
-  map_filter_distance_goal_limit = map_filter_distance_goal_limit_param.as_double();
   // Place an obstacle at the goal position with half the size of the filter range
-  DrawObstacleCircle(dynamic_map_, goal_pose_.pose.position, map_filter_range_around_goal / 2.0);
+  DrawObstacleCircle(dynamic_map_, goal_pose_.pose.position, test_node_->map_filter_range_around_goal() / 2.0);
   cyclic_sender_->StartSendDynamicMap(dynamic_map_);
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
-  // Successfully plan the path when far from the goal and request to Follower
+  // Route planning succeeds when far from the goal and requests the Follower
   ASSERT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsRequested(); }, kTimeout));
 
   // Move self-position closer to the goal
-  global_pose_.pose.position.x = goal_pose_.pose.position.x + map_filter_distance_goal_limit - 0.1;
+  global_pose_.pose.position.x = goal_pose_.pose.position.x + test_node_->map_filter_distance_goal_limit() - 0.1;
   global_pose_.pose.position.y = goal_pose_.pose.position.y;
   cyclic_sender_->StartSendGlobalPose(global_pose_);
 
@@ -464,28 +457,21 @@ TEST_F(BasePathPlannerNodeTest, GoalIsOnDynamicObstacle) {
       return test_node_->IsMatchActionFeedback(expect_feedback);
     }, kTimeout));
 
-  // Request cancel to Follower
+  // Request cancel for the Follower
   EXPECT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsCanceled(); }, kTimeout));
   test_node_->CancelPathPlanAction();
 }
 
 
-/// If the path to the goal is completely blocked by obstacles on the dynamic map,
-/// Stop the Follower and notify Feedback with PLANNING(PATH_PLANNING_FAIL)
+/// If the path to the goal is completely blocked by obstacles in the dynamic map,
+/// Stop the Follower and notify PLANNING(PATH_PLANNING_FAIL) in feedback
 TEST_F(BasePathPlannerNodeTest, PathPlanningFail) {
-  // Get filter range around the goal
-  double map_filter_range_around_goal;
-  rclcpp::Parameter map_filter_range_around_goal_param;
-  base_path_planner_node_->get_parameter("base_path_planner.map_filter.map_filter_range_around_goal",
-      map_filter_range_around_goal_param);
-  map_filter_range_around_goal = map_filter_range_around_goal_param.as_double();
-
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
   ASSERT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsRequested(); }, kTimeout));
 
-  // Place an obstacle at the goal position slightly larger than the filter range around the goal to fill the surroundings with obstacles
-  DrawObstacleCircle(dynamic_map_, goal_pose_.pose.position, map_filter_range_around_goal + 0.1);
+  // Place obstacles slightly larger than the filter range around the goal to fill the area around the goal
+  DrawObstacleCircle(dynamic_map_, goal_pose_.pose.position, test_node_->map_filter_range_around_goal() + 0.1);
   cyclic_sender_->StartSendDynamicMap(dynamic_map_);
 
   // PLANNING(PATH_PLANNING_FAIL) is fed back
@@ -495,19 +481,19 @@ TEST_F(BasePathPlannerNodeTest, PathPlanningFail) {
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionFeedback(expect_feedback);
     }, kTimeout));
-  // Request cancel to Follower
+  // Request cancel for the Follower
   EXPECT_TRUE(test_node_->WaitUntil([&]() { return follower_dummy_->IsCanceled(); }, kTimeout));
   test_node_->CancelPathPlanAction();
 }
 
 
-/// If the goal is on the wall of the static map, it becomes ABORTED(GOAL_IS_ON_STATIC_OBSTACLE)
+/// If the goal is on a wall of the static map, it becomes ABORTED(GOAL_IS_ON_STATIC_OBSTACLE)
 TEST_F(BasePathPlannerNodeTest, GoalIsOnStaticObstacle) {
-  // Place the goal position on the wall of the static map
+  // Place the goal position on a wall of the static map
   goal_pose_.pose.position = static_map_wall_point_;
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
-  // End with ABORTED(GOAL_IS_ON_STATIC_OBSTACLE)
+  // Ends with ABORTED(GOAL_IS_ON_STATIC_OBSTACLE)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED,
       PathPlanAction::Result::GOAL_IS_ON_STATIC_OBSTACLE);
@@ -515,13 +501,13 @@ TEST_F(BasePathPlannerNodeTest, GoalIsOnStaticObstacle) {
 }
 
 
-/// If the goal is outside the range of the static map, it becomes ABORTED(GOAL_IS_ON_STATIC_OBSTACLE)
+/// If the goal is outside the static map range, it becomes ABORTED(GOAL_IS_ON_STATIC_OBSTACLE)
 TEST_F(BasePathPlannerNodeTest, GoalIsOutOfMap) {
   // Place the goal position outside the range of the static map
   goal_pose_.pose = CreatePose(-1.0, -1.0, 0.0);
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
-  // End with ABORTED(GOAL_IS_ON_STATIC_OBSTACLE)
+  // Ends with ABORTED(GOAL_IS_ON_STATIC_OBSTACLE)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED,
       PathPlanAction::Result::GOAL_IS_ON_STATIC_OBSTACLE);
@@ -529,40 +515,40 @@ TEST_F(BasePathPlannerNodeTest, GoalIsOutOfMap) {
 }
 
 
-/// If the robot position is outside the range of the static map, it becomes ABORTED(ROBOT_IS_OUT_OF_MAP)
+/// If the robot position is outside the static map range, it becomes ABORTED(ROBOT_IS_OUT_OF_MAP)
 TEST_F(BasePathPlannerNodeTest, RobotIsOutOfMap) {
   // Place the robot position outside the range of the static map
   global_pose_.pose = CreatePose(-1.0, -1.0, 0.0);
   cyclic_sender_->StartSendGlobalPose(global_pose_);
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
-  // End with ABORTED(ROBOT_IS_OUT_OF_MAP)
+  // Ends with ABORTED(ROBOT_IS_OUT_OF_MAP)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED,
       PathPlanAction::Result::ROBOT_IS_OUT_OF_MAP);
     }, kTimeout));
 }
 
-/// When Follower becomes ABORTED, it becomes ABORTED(FOLLOWER_ABORTED)
+/// If the Follower becomes ABORTED, it becomes ABORTED(FOLLOWER_ABORTED)
 TEST_F(BasePathPlannerNodeTest, FollowerAborted) {
-  // Follower dummy is set to become ABORTED after 1 second
+  // Set follower dummy to become ABORTED after 1 second
   follower_dummy_->SetActionCompleteCondition(1.0, rclcpp_action::ResultCode::ABORTED);
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
-  // Become ABORTED(FOLLOWER_ABORTED)
+  // Becomes ABORTED(FOLLOWER_ABORTED)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED,
       PathPlanAction::Result::FOLLOWER_ABORTED);
       }, kTimeout));
 }
 
-/// When the dynamic map times out, it becomes ABORTED(DYNAMIC_MAP_IS_NOT_UPDATED)
+/// If the dynamic map times out, it becomes ABORTED(DYNAMIC_MAP_IS_NOT_UPDATED)
 TEST_F(BasePathPlannerNodeTest, DynamicMapIsNotUpdated) {
-  // Stop issuing the dynamic map
+  // Stop publishing the dynamic map
   cyclic_sender_->StopSendDynamicMap();
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
-  // Become ABORTED(DYNAMIC_MAP_IS_NOT_UPDATED)
+  // Becomes ABORTED(DYNAMIC_MAP_IS_NOT_UPDATED)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED,
       PathPlanAction::Result::DYNAMIC_MAP_IS_NOT_UPDATED);
@@ -570,13 +556,13 @@ TEST_F(BasePathPlannerNodeTest, DynamicMapIsNotUpdated) {
 }
 
 
-/// When self-position times out, it becomes ABORTED(ROBOT_POSE_IS_NOT_UPDATED)
+/// If the self-position times out, it becomes ABORTED(ROBOT_POSE_IS_NOT_UPDATED)
 TEST_F(BasePathPlannerNodeTest, RobotPoseIsNotUpdated) {
-  // Stop issuing self-position
+  // Stop publishing self-position
   cyclic_sender_->StopSendGlobalPose();
-  // Execute path planning action
+  // Execute route planning action
   test_node_->SendPathPlanAction(goal_pose_);
-  // Become ABORTED(ROBOT_POSE_IS_NOT_UPDATED)
+  // Becomes ABORTED(ROBOT_POSE_IS_NOT_UPDATED)
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED,
       PathPlanAction::Result::ROBOT_POSE_IS_NOT_UPDATED);
@@ -586,6 +572,26 @@ TEST_F(BasePathPlannerNodeTest, RobotPoseIsNotUpdated) {
 
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
+  rclcpp::NodeOptions option;
+  option.allow_undeclared_parameters();
+  option.automatically_declare_parameters_from_overrides(true);
+  // Generate base_path_planner node
+  auto base_path_planner_node = std::make_shared<tmc_base_path_planner::BasePathPlannerNode>(option);
+  // Read parameters from yaml
+  const std::string yaml_directory =
+      ament_index_cpp::get_package_share_directory("tmc_base_path_planner") + "/test/parameter/";
+  LoadParameterFromYaml(base_path_planner_node, yaml_directory, "base_path_planner_node-test.yaml");
+  base_path_planner_node->Init();
+  // Create a thread to spin
+  auto base_path_planner_node_thread = std::make_shared<std::thread>([&]() {
+        rclcpp::spin(base_path_planner_node);
+      });
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  const int result = RUN_ALL_TESTS();
+
+  rclcpp::shutdown();
+  base_path_planner_node_thread->join();
+  base_path_planner_node.reset();
+
+  return result;
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file move_base.hpp
-/// @brief Autonomous Movement Action Node
+/// @brief Autonomous Navigation Action Node
 #ifndef TMC_MOVE_BASE_MOVE_BASE_HPP_
 #define TMC_MOVE_BASE_MOVE_BASE_HPP_
 #include <memory>
@@ -53,7 +53,7 @@ using PathPlanAction = tmc_navigation_msgs::action::BasePathPlan;
 using PathPlanGoalHandle = rclcpp_action::ClientGoalHandle<PathPlanAction>;
 using nav2_util::SimpleActionServer;
 
-/// Autonomous Movement Action Class
+/// Autonomous Navigation Action Class
 class MoveBase : public rclcpp::Node {
  public:
   explicit MoveBase(const rclcpp::NodeOptions& options);
@@ -62,12 +62,12 @@ class MoveBase : public rclcpp::Node {
   void Init();
 
  private:
-  // Autonomous Movement Action Callback
+  // Autonomous Navigation Action Callback
   void MoveBaseActionCallback();
 
   // Self-Position Callback
   void GlobalPoseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
-  // Autonomous Movement Goal Topic Callback
+  // Autonomous Navigation Goal Topic Callback
   void GoalTopicCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
 
   // // Path Planning Action Client Callback
@@ -97,7 +97,7 @@ class MoveBase : public rclcpp::Node {
   // Result of Path Planning Action
   std::optional<PathPlanGoalHandle::WrappedResult> planner_result_;
 
-  // Autonomous Movement Goal Subscriber
+  // Autonomous Navigation Goal Subscriber
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_subscriber_;
   // Self-Position Subscriber
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr global_pose_subscriber_;

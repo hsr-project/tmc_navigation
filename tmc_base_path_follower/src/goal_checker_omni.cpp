@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -29,7 +29,7 @@ DAMAGE.
 
 namespace tmc_base_path_follower {
 
-// Goal check implementation
+// Goal check execution
 void OmniGoalChecker::CheckGoal(const PoseSeq& path, const Pose2d& global_pose,
     bool& is_arrived_goal_area, bool& is_arrived_goal) {
   is_arrived_goal = CheckArrivedGoal(path, global_pose);

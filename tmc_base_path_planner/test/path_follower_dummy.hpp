@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -52,31 +52,31 @@ class PathFollowerDummy : public rclcpp::Node {
     dummy_server_->activate();
   }
 
-  // Set completion conditions for path following action
+  // Set completion conditions for path-following action
   void SetActionCompleteCondition(const double action_comlete_time,
                                   const rclcpp_action::ResultCode& action_result) {
     set_action_comlete_time_ = action_comlete_time;
     set_action_result_ = action_result;
   }
 
-  // Whether the path following action was requested
+  // Check if path-following action was requested
   bool IsRequested() {
     const bool ret = is_requested_;
-    // Return to false after checking
+    // Reset to false after checking
     is_requested_ = false;
     return ret;
   }
 
 
-  // Whether the path following action was canceled
+  // Check if path-following action was canceled
   bool IsCanceled() {
     const bool ret = is_canceled_;
-    // Return to false after checking
+    // Reset to false after checking
     is_canceled_ = false;
     return ret;
   }
 
-  // Get the currently requested path
+  // Retrieve the currently requested path
   nav_msgs::msg::Path CurrentRequestedPath() const {
     return current_requested_path_;
   }
@@ -93,7 +93,7 @@ class PathFollowerDummy : public rclcpp::Node {
   }
 
  private:
-  // Stub for path following action
+  // Stub for path-following action
   void PathFollowerActionCB() {
     auto goal = dummy_server_->get_current_goal();
     current_requested_path_ = goal->path;
@@ -129,9 +129,9 @@ class PathFollowerDummy : public rclcpp::Node {
   rclcpp_action::ResultCode set_action_result_;
   // Currently requested path
   nav_msgs::msg::Path current_requested_path_;
-  // Whether a request occurred
+  // Check if a request occurred
   bool is_requested_;
-  // Whether a cancellation occurred
+  // Check if a cancellation occurred
   bool is_canceled_;
   // Flag to stop the running Run
   bool killed_;

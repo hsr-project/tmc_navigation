@@ -1,0 +1,28 @@
+point_cloud_accumulator:
+  ros__parameters:
+    # 基準フレーム名
+    map_frame_name: 'map'
+    # オドメトリフレーム名
+    odom_frame_name: 'odom'
+    # ロボット台車フレーム名
+    base_frame_name: 'base_link'
+    # 蓄積させるポイントクラウドの高さの下限値[m]
+    bottom_of_valid_space: 0.15
+    # 蓄積させるポイントクラウドの高さの上限値[m]
+    top_of_valid_space: 1.5
+    # ダウンサンプリング時の点群間隔[m]
+    voxel_leaf_size: 0.025
+    # ポイントクラウドを保存する際のロボットからの距離最小半径閾値[m]
+    min_saved_area_radius: 0.2
+    # ポイントクラウドを保存する際のロボットからの距離最大半径閾値[m]
+    max_saved_area_radius: 3.0
+    # ロボット正面基準として過去ポイントクラウドデータをカットする視野角[deg]
+    cut_point_cloud_angle: 60.0
+    # 過去のポイントクラウドを蓄積する期間[sec]
+    point_cloud_keep_period: 6.0
+    # 取得したポイントクラウドをトリミング判定するロボット中心からの距離半径[m]
+    trimming_data_radius: 0.3
+    # ポイントクラウドノイズフィルターのパラメータ 探索範囲[m]
+    noise_filter_radius_search: 0.1
+    # ポイントクラウドノイズフィルターのパラメータ 探索範囲内に含まれる点の数[個]
+    noise_filter_neighbors: 1

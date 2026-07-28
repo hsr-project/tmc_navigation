@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,9 +36,9 @@ constexpr int32_t kFilterOrder = 20;
 
 namespace tmc_base_path_planner {
 
-/// Outputs a smoothed input path with direction assigned
+/// Outputs a smoothed input path with assigned direction
 bool PathSmoother::SmoothingPath(const PoseSeq& input_path, PoseSeq& output_path) {
-  // Only smoothing, no interpolation (same number of path points for input and output)
+  // No interpolation, only smoothing (number of input and output path points remains the same)
   output_path.resize(input_path.size());
   // Goal is not updated
   output_path[output_path.size() - 1] = input_path.back();
@@ -63,15 +63,15 @@ bool PathSmoother::SmoothingPath(const PoseSeq& input_path, PoseSeq& output_path
   return true;
 }
 
-/// Calculate the coordinates of a single point at any location from the smoothed & interpolated input path
+/// Calculate the coordinates of a single point at an arbitrary location on the smoothed & interpolated input path
 void PathSmoother::FilterPathPoint_(const PoseSeq& input_path, const double index_to_filter, Pose2d& filtered_pose) {
-  // Integer part of interpolation target position
+  // Integer part of the interpolation target position
   const int32_t index_int = static_cast<int32_t>(std::floor(index_to_filter));
-  // Fractional part of interpolation target position
+  // Fractional part of the interpolation target position
   const double index_frac = index_to_filter - index_int;
 
   if (input_path.size() == 1) {
-    // Cannot interpolate if input data has only one point
+    // Cannot interpolate if there is only one input data point
     filtered_pose = input_path.front();
   } else if (index_to_filter < std::numeric_limits<double>::epsilon()) {
     // Do not filter the first element
@@ -92,7 +92,7 @@ void PathSmoother::FilterPathPoint_(const PoseSeq& input_path, const double inde
 
     // If the filter range exceeds the data portion, set the exceeded part to 0 and shift the weight inward
     if (index_int < (filter_order_2 - 1)) {
-      // If exceeding forward
+      // When exceeding forward
       const int32_t under = filter_order_2 - 1 - index_int;
       for (int32_t i = 0; i < under; ++i) {
         const double dtt = index_to_filter / static_cast<double>(i + 1 + index_int);
@@ -100,7 +100,7 @@ void PathSmoother::FilterPathPoint_(const PoseSeq& input_path, const double inde
         taps[filter_order_2 + i] = (dtt * dtt * dtt * (dtt * (dtt * 6.0 - 15.0) + 10.0));
       }
     } else if (index_int >= static_cast<int32_t>(input_path.size() - filter_order_2)) {
-      // If exceeding backward
+      // When exceeding backward
       const int32_t over = (index_int + filter_order_2) - (input_path.size() - 1);
       for (int32_t i = 0; i < over; i++) {
         const double dtt = (index_frac + static_cast<double>(i)) / static_cast<double>(filter_order_2 - over + i);
@@ -109,7 +109,7 @@ void PathSmoother::FilterPathPoint_(const PoseSeq& input_path, const double inde
       }
     }
 
-    // Convolve input data with filter coefficients and take weighted average
+    // Convolve input data with filter coefficients and take the weighted average
     double accum_x = 0.0;
     double accum_y = 0.0;
     double sum = 0.0;

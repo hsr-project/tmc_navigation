@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file     marker_based_localizer.hpp
-/// @brief    Self-position estimation by marker recognition
+/// @brief    Self-position estimation using marker recognition
 /// @author   Yoshiaki Asahara
 /// @version  1.0.0
 
@@ -67,7 +67,7 @@ class MarkerBasedLocalizerNode : public rclcpp::Node {
  private:
   /// Estimate self-position from marker recognition results
   void MarkerSubscriptionCallback_(const tmc_vision_msgs::msg::RecognizedObject::SharedPtr marker_msg);
-  /// Obtain odometry and update the time stopped
+  /// Obtain odometry and update the time spent stationary
   void OdometrySubscriptionCallback_(const nav_msgs::msg::Odometry::SharedPtr odom_msg);
   void JointStateSubscriptionCallback_(const sensor_msgs::msg::JointState::SharedPtr joint_state);
   void StartServiceCallback_(std_srvs::srv::Empty::Request::SharedPtr req,
@@ -88,21 +88,21 @@ class MarkerBasedLocalizerNode : public rclcpp::Node {
   std::vector<std::string> joints_list_;
   /// Total movement amount since the last marker self-position correction. Unit: m
   double travel_distance_;
-  /// External parameter. Enable marker self-position correction when the movement amount reaches this value
+  /// External parameter. Enables marker self-position correction when the movement amount reaches this value
   double travel_distance_threshold_;
-  /// Correct self-position if the distance to the marker is less than this distance [m]
+  /// Perform self-position correction if the distance to the marker is less than or equal to this distance [m]
   double marker_to_base_distance_threshold_;
-  /// Flag indicating whether correction has been done even once
+  /// Flag indicating whether correction has been performed even once
   bool is_first_localization_;
-  /// Previous x-coordinate value. Used for calculating odometry movement amount.
+  /// Previous x-coordinate value. Used for odometry movement calculation.
   double pre_odom_x_;
-  /// Previous y-coordinate value. Used for calculating odometry movement amount.
+  /// Previous y-coordinate value. Used for odometry movement calculation.
   double pre_odom_y_;
-  /// Flag to enable marker self-position correction. Switched by service.
+  /// Flag to enable marker self-position correction. Switched via service.
   bool enable_localization_;
-  /// Joint speed considered as stopped
+  /// Joint velocity considered as stationary
   double joint_stopping_vel_;
-  /// tf transformation timeout time [s]
+  /// tf transformation timeout duration [s]
   double tf_time_out_;
   /// Vector managing object IDs and Poses of multiple Marker information
   std::vector<std::pair<uint32_t, geometry_msgs::msg::Pose> > marker_objects_;

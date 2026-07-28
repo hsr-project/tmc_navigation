@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file     pose_integrator.hpp
-/// @brief    Integrate multiple self-positioning results (Library Header)
+/// @brief    Integrates multiple self-localization results (library header)
 /// @version  0.2.0
 /// @author   Takao Yasuda
 /// @author   Applied for Partner-Robot Coding Rule(Ver:x.xx)
@@ -42,10 +42,10 @@ DAMAGE.
 /// Namespace (tmc_pose_integrator)
 namespace tmc_pose_integrator {
 
-/// Definition of invariant parameters
+/// Definition of immutable parameters
 uint32_t const kCovarianceMatrixSize36 = 36;  // Number of elements in the covariance matrix
 
-/// Structure for robot self-positioning
+/// Structure for robot self-localization
 struct Pose2d {
   /// Constructor
   Pose2d() {
@@ -71,7 +71,7 @@ struct Pose2d {
   double time;
 };
 
-/// Structure for self-positioning estimation information using 2D laser data
+/// Structure for self-localization estimation information using 2D laser data
 struct Pose2dWithCovariance {
   /// Constructor
   Pose2dWithCovariance() {
@@ -105,84 +105,84 @@ struct Pose2dWithCovariance {
   double covariance[kCovarianceMatrixSize36];
 };
 
-/// Self-position integration class
+/// Self-localization integration class
 /// @todo Add methods using 3D data obtained from lasers and cameras in the future
 class PoseIntegrator {
  public:
   typedef boost::shared_ptr<PoseIntegrator> Ptr;
   /// Constructor
   PoseIntegrator();
-  /// Set odometry. Not inline due to many variables to initialize.
+  /// Odometry set. Not inline due to the large number of variables to initialize.
   void set_odometry(const Pose2d& value);
-  /// Set odometry synchronized with self-position
+  /// Set odometry synchronized with self-localization
   void set_synchronized_odometry(const Pose2d& value);
-  /// Set 2D LRF self-position estimation.
-  /// Not inline due to also operating update flags.
+  /// Set 2D LRF self-localization estimation.
+  /// Not inline because it also manipulates update flags.
   void set_localized_2d_pose(const Pose2dWithCovariance& value);
-  /// Set convergence time for self-position calculation by linear convergence
+  /// Set convergence time for self-localization calculation using linear convergence
   void set_convergence_time(double value);
   /// Set client operation cycle used for convergence calculation
   void set_cycle_time(double value);
   void set_stop_translational_vel(double value) { stop_translational_vel_ = value; }
   void set_stop_rotational_vel(double value) { stop_rotational_vel_ = value; }
-  /// Indicates whether odometry has been obtained after startup
-  /// @return true: obtained, false: not obtained
+  /// Indicates whether odometry has been acquired after startup
+  /// @return true: acquired, false: not acquired
   bool is_first_odometry_received() { return is_first_odometry_received_; }
-  /// Integration of self-position estimation by linear convergence
+  /// Integration of self-localization estimation using linear convergence
   Pose2d CorrectOdometryWithConvergence();
-  /// Self-position estimation by time-synchronized odometry
+  /// Self-localization estimation using time-synchronized odometry
   Pose2d CorrectOdometryWithSynchronizedOdometry();
   Pose2d CorrectOdometryWithConvergenceAndSynchronization();
-  /// Determine whether the cart is moving from odometry
+  /// Determine whether the vehicle is moving based on odometry
   bool IsBaseMoving();
 
  private:
-  /// Odometry variable initialization complete flag.
+  /// Odometry variable initialization completion flag.
   /// @par Used to check whether initialization of odometry-related members is complete.
   bool is_first_odometry_received_;
-  /// Flag for confirming self-position estimation update
+  /// Update confirmation flag for self-localization estimation
   bool is_localization_updated_;
-  /// Unit: s. Convergence time parameter used when self-position converges
+  /// Unit: s. Convergence time parameter used during self-localization convergence
   double convergence_time_;
   /// Unit: s. Client operation cycle.
-  /// @todo Used for self-position convergence calculation. Assumes periodic operation,
-  /// @par Measuring time internally in the object is more flexible. Issue.
+  /// @todo Used for convergence calculation of self-localization. Assumes periodic operation,
+  /// @par Measuring time internally within the object would provide greater flexibility. Issue.
   double cycle_time_;
-  /// Time (s) since receiving external self-position estimation results
+  /// Time (s) elapsed since receiving external self-localization estimation results
   double time_from_pose_reset_;
   /// Input: Latest odometry data
   Pose2d odometry_;
-  /// Reference odometry at the moment self-position correction is subscribed
+  /// Reference odometry at the moment self-localization correction was subscribed
   Pose2d odometry_at_localization_update_;
   /// Current corrected odometry
   Pose2d corrected_odometry_;
-  /// Self-position when laser self-position is received
+  /// Self-localization at the time laser self-localization was received
   Pose2d corrected_odometry_at_localization_;
-  /// Odometry movement amount from the time laser self-position was received
+  /// Odometry movement amount since the time laser self-localization was received
   Pose2d diff_odometry_;
-  /// Previously obtained odometry
+  /// Previously acquired odometry
   Pose2d old_odometry_;
   /// Time-synchronized odometry
   Pose2d synchronized_odometry_;
   /// Current correction amount
   Pose2d current_adjusted_pose_;
-  /// Correction amount when laser_2d_pose is received
+  /// Correction amount when laser_2d_pose was received
   Pose2d adjusted_pose_at_localization_;
   /// Target correction amount
   Pose2d target_adjusted_pose_;
-  /// Input: Self-position estimation data. Odometry is corrected towards this value.
+  /// Input: Self-localization estimation data. Odometry is corrected towards this value.
   Pose2dWithCovariance localized_2d_pose_;
-  /// Self-position estimation value moved by the time delay
+  /// Self-localization estimation value moved by the time delay
   Pose2dWithCovariance localized_2d_pose_at_localization_update_;
-  /// Previous odometry when laser_2d_pose is received
+  /// Previous odometry when laser_2d_pose was received
   Pose2d previous_odometry_;
-  /// Previous time when laser_2d_pose is received
+  /// Previous time when laser_2d_pose was received
   double previous_time_;
-  /// Translational speed considered as the cart is stopped
+  /// Translational velocity considered as the vehicle being stationary
   double stop_translational_vel_;
-  /// In-place turning speed considered as the cart is stopped
+  /// Rotational velocity considered as the vehicle being stationary
   double stop_rotational_vel_;
-  /// Flag indicating whether correction has been done even once
+  /// Flag indicating whether a correction has been made even once
   bool is_first_localization_;
 };
 }  // namespace tmc_pose_integrator

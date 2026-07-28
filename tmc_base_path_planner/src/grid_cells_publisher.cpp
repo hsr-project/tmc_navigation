@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -45,8 +45,8 @@ GridCellsPublisher::GridCellsPublisher(rclcpp::Node::SharedPtr node) {
 
 
 /// Publish GridCells
-/// Publish GridCell considering areas where map occupancy is greater than the threshold as walls
-/// Exclude areas that were originally walls in map occupancy
+/// Publish GridCells where the occupancy rate of the map exceeds the threshold, treating them as walls
+/// Exclude parts of the map that were originally walls
 void GridCellsPublisher::PublishGridCells(const CostMapPtr& map, const unsigned char visualization_threshold) {
   const uint32_t width = map->width();
   const uint32_t height = map->height();

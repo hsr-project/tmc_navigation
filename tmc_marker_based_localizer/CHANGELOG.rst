@@ -2,6 +2,15 @@
 Changelog for package tmc_marker_based_localizer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.0 (2026-06-29)
+-------------------
+* Migration to ROS2 jazzy
+* Contributors: Kazuki Shibamiya, Hozumi Inoue, Katsushi Fukuoka, Yoshimi Iyoda
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package tmc_marker_based_localizer
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 2.1.0 (2025-12-04)
 -------------------
 * Migration to ROS2 humble

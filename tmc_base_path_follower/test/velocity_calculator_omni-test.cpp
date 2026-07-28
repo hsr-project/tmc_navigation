@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -41,14 +41,14 @@ DAMAGE.
 namespace {
 // Test path length [m]
 constexpr double kTestPathLength = 5.0;
-// Test path interval between path points [m]
+// Test path waypoint interval [m]
 constexpr double kTestPathInterval = 0.1;
 // Direction of the goal in the test path [rad]
-// Make it opposite to the path. Since it's unclear which direction to rotate if it's exactly 180° opposite, make it closer to counterclockwise
+// Reverse the direction of the path. If it is exactly 180° opposite, it is unclear which way to rotate, so make it closer to counterclockwise
 constexpr double kGoalAngle = (135.0 / 180. * M_PI);
-// Direction of the goal from the self-position for goal area proximity test [rad]
+// Direction of the goal from the self-position for goal area approach test [rad]
 constexpr double kGoalDirection = (135.0 / 180.0 * M_PI);
-// Distance from the self-position to the goal for goal area proximity test [m]
+// Distance from the self-position to the goal for goal area approach test [m]
 constexpr double kGoalDistance = 0.5;
 // Radius of circular path for turning speed test
 constexpr double kTestR = 5.0;
@@ -69,7 +69,7 @@ TEST(OmniVelocityCalculatorParameterTest, SetInputParameter) {
   OmniVelocityCalculator::Parameter param(0.1, 0.2, 0.3, 0.4, 0.5, 0.06, 0.7, 0.8, 0.9, 1.0);
 
   // verify
-  // Check if it is set according to the input values
+  // Check if the values are set as input
   EXPECT_DOUBLE_EQ(0.1, param.max_linear_velocity);
   EXPECT_DOUBLE_EQ(0.2, param.max_angular_velocity);
   EXPECT_DOUBLE_EQ(0.3, param.max_linear_acceleration);
@@ -83,14 +83,14 @@ TEST(OmniVelocityCalculatorParameterTest, SetInputParameter) {
 }
 
 /// Parameter test
-/// If invalid values are specified, it is generated with default values
+/// If invalid values are specified, default values are generated
 TEST(OmniVelocityCalculatorParameterTest, SetDefaultParameter) {
   // exercise
   // Set all parameters to invalid values
   OmniVelocityCalculator::Parameter param(-1.0, -1.0, -1.0, -1.0, -1.0, -0.1, -1.0, -1.0, -1.0, -1.0);
 
   // verify
-  // Check if it is set with default values
+  // Check if default values are set
   EXPECT_DOUBLE_EQ(kMaxLinearVelocityDefault, param.max_linear_velocity);
   EXPECT_DOUBLE_EQ(kMaxAngularVelocityDefault, param.max_angular_velocity);
   EXPECT_DOUBLE_EQ(kMaxLinearAccelerationDefault, param.max_linear_acceleration);
@@ -104,7 +104,7 @@ TEST(OmniVelocityCalculatorParameterTest, SetDefaultParameter) {
 }
 
 /// Parameter test
-/// If the maximum translational speed is less than the speed margin, the default value of the margin is used
+/// If the maximum translational velocity is less than the velocity margin, the default margin value is used
 TEST(OmniVelocityCalculatorParameterTest, LowerMaxVelocityThanMergin) {
   // exercise
   // Input parameters (set so that max_linear_velocity < velocity_margin)
@@ -112,13 +112,13 @@ TEST(OmniVelocityCalculatorParameterTest, LowerMaxVelocityThanMergin) {
                                           kVelocityMarginDefault + kEpsilon * 2.0, 0.7, 0.8, 0.9, 1.0);
 
   // verify
-  // The speed margin is set to the default value
+  // Velocity margin is set to the default value
   EXPECT_DOUBLE_EQ(kVelocityMarginDefault, param.velocity_margin);
 }
 
 /// Parameter test
-/// If the maximum translational speed is less than both the speed margin and the default value of the margin
-/// The maximum translational speed and margin are set to default values
+/// If the maximum translational velocity is less than both the velocity margin and the default margin value
+/// The maximum translational velocity and margin are set to default values
 TEST(OmniVelocityCalculatorParameterTest, LowerMaxVelocityThanMerginDefault) {
   // exercise
   // Input parameters (set so that max_linear_velocity < velocity_margin, kVelocityMarginDefault)
@@ -126,7 +126,7 @@ TEST(OmniVelocityCalculatorParameterTest, LowerMaxVelocityThanMerginDefault) {
                                           kVelocityMarginDefault - kEpsilon, 0.7, 0.8, 0.9, 1.0);
 
   // verify
-  // The speed margin is set to the default value
+  // Velocity margin is set to the default value
   EXPECT_DOUBLE_EQ(kMaxLinearVelocityDefault, param.max_linear_velocity);
   EXPECT_DOUBLE_EQ(kVelocityMarginDefault, param.velocity_margin);
 }
@@ -143,7 +143,7 @@ class OmniVelocityCalculatorTest : public ::testing::Test {
                                           kPathLengthThresholdDefault, kLinearPGainDefault,
                                           kAngularPGainDefault, kGoalAngleGainDefault));
     // Generate test path
-    // Generate a straight path with only the goal facing the opposite direction
+    // Generate a straight path with the goal facing the opposite direction
     const int32_t path_points = static_cast<int32_t>(kTestPathLength / kTestPathInterval);
     for (int32_t i = 0; i < path_points; ++i) {
       const double x = kTestPathLength * static_cast<double>(i) / static_cast<double>(path_points - 1);
@@ -159,21 +159,21 @@ class OmniVelocityCalculatorTest : public ::testing::Test {
 };
 
 /// CalculateVelocity test
-/// The turning speed is output according to the translational speed and curvature
+/// Outputs turning speed according to translational speed and curvature
 TEST_F(OmniVelocityCalculatorTest, AngularVelocity) {
   // setup
-  // Since the path shape is not considered, only set the curvature value
+  // Since the path shape is not considered, only the curvature value is set
   for (double& curvature : path_info_.splined_path_curvatures) {
     curvature = 1.0 / kTestR;
   }
-  // Theoretical angular velocity value when traveling at maximum speed [rad/s]
+  // Theoretical angular velocity [rad/s] when traveling at maximum speed
   const double expected_angular_velocity = (1.0 / kTestR) * kMaxLinearVelocityDefault;
 
   // Current position
   const Pose2d current_pose(path_info_.splined_path.front().x(),
                             path_info_.splined_path.front().y(),
                             0.0);
-  // Set the theoretical value of the previous speed
+  // Previous velocity Set theoretical value
   Vector3d output_velocity = Vector3d(kMaxLinearVelocityDefault, 0.0, expected_angular_velocity);
 
   // exercise
@@ -182,19 +182,19 @@ TEST_F(OmniVelocityCalculatorTest, AngularVelocity) {
   ASSERT_TRUE(result);
 
   // verify
-  // The output speed and input speed are the same (= the internally calculated target speed and theoretical value are equal)
+  // Verify that the output velocity matches the input velocity (= the internally calculated target velocity matches the theoretical value)
   EXPECT_DOUBLE_EQ(expected_angular_velocity, output_velocity(kPoseTheta));
 }
 
 /// CalculateVelocity test
-/// In the goal area, the speed is set in the direction approaching the goal point regardless of the path
+/// Within the goal area, velocity is set in the direction of approaching the goal point regardless of the path
 TEST_F(OmniVelocityCalculatorTest, MoveToGoalPoint) {
   // setup
-  // Current position set 45° ahead of the goal
+  // Current position Set 45° ahead of the goal
   const Pose2d current_pose(path_info_.splined_path.back().x() + cos(kGoalDirection + M_PI) * kGoalDistance,
                             path_info_.splined_path.back().y() + sin(kGoalDirection + M_PI) * kGoalDistance,
                             0.0);
-  // Previous speed, only looking at direction, so input as 0
+  // Previous velocity Input as 0 since only direction is considered
   Vector3d last_velocity = Vector3d::Zero();
 
   // exercise
@@ -206,7 +206,7 @@ TEST_F(OmniVelocityCalculatorTest, MoveToGoalPoint) {
 
   // verify
   ASSERT_TRUE(result);
-  // Confirm that the output velocity is facing the direction of the goal
+  // Verify that the output velocity is directed toward the goal
   const double velocity_direction = atan2(output_velocity(kPoseY), output_velocity(kPoseX));
   EXPECT_DOUBLE_EQ(kGoalDirection, velocity_direction);
 }
@@ -215,11 +215,11 @@ TEST_F(OmniVelocityCalculatorTest, MoveToGoalPoint) {
 /// If the goal is significantly exceeded (outside the goal judgment distance and the nearest point is the goal), it returns failure and stops
 TEST_F(OmniVelocityCalculatorTest, StopFarFromGoal) {
   // setup
-  // Current position set 45° ahead of the goal
+  // Current position Set 45° ahead of the goal
   const Pose2d current_pose(path_info_.splined_path.back().x() + cos(kGoalDirection + M_PI) * kGoalDistance,
                             path_info_.splined_path.back().y() + sin(kGoalDirection + M_PI) * kGoalDistance,
                             0.0);
-  // Previous speed
+  // Previous velocity
   Vector3d last_velocity = Vector3d::Zero();
 
   // exercise
@@ -230,30 +230,30 @@ TEST_F(OmniVelocityCalculatorTest, StopFarFromGoal) {
                                                               std::nullopt, output_velocity);
 
   // verify
-  // Confirm that failure is returned
+  // Verify that failure is returned
   ASSERT_FALSE(result);
-  // Confirm that the output velocity is 0
+  // Verify that the output velocity is 0
   EXPECT_DOUBLE_EQ(0.0, output_velocity(kPoseX));
   EXPECT_DOUBLE_EQ(0.0, output_velocity(kPoseY));
   EXPECT_DOUBLE_EQ(0.0, output_velocity(kPoseTheta));
 }
 
 /// CalculateVelocity test
-/// In the goal area, if the maximum translational speed > speed including deceleration to the goal, it is limited to the smaller one
+/// Within the goal area, if the maximum translational velocity > deceleration speed to the goal, it is limited to the smaller value
 TEST_F(OmniVelocityCalculatorTest, ChooseCalculatedVeloctyInGoalArea) {
   // setup
-  // Threshold where the target speed matches the maximum speed
+  // Threshold where target velocity matches maximum velocity
   const double threshold_distance = kMaxLinearVelocityDefault / kLinearPGainDefault;
   const double threshold_angle = kMaxAngularVelocityDefault / kAngularPGainDefault;
-  // Current position set slightly inside the threshold
-  // Since setting both translation and angle simultaneously makes it difficult to verify due to rotation in velocity, check each
+  // Current position Set slightly inside the threshold
+  // Since setting both translation and angle simultaneously makes it difficult to verify due to rotation in velocity, verify them separately
   const Pose2d current_pose_xy(path_info_.splined_path.back().x() - threshold_distance + kEpsilon,
                                path_info_.splined_path.back().y(),
                                0.0);
   const Pose2d current_pose_t(path_info_.splined_path.back().x(),
                               path_info_.splined_path.back().y(),
                               kGoalAngle - threshold_angle + kEpsilon);
-  // Previous speed, assuming moving straight at maximum speed towards the goal
+  // Previous velocity Assume moving straight toward the goal at maximum speed
   Vector3d last_velocity = Vector3d(kMaxLinearVelocityDefault, 0.0, kMaxAngularVelocityDefault);
 
   // exercise
@@ -271,27 +271,27 @@ TEST_F(OmniVelocityCalculatorTest, ChooseCalculatedVeloctyInGoalArea) {
   // verify
   ASSERT_TRUE(result_xy);
   ASSERT_TRUE(result_t);
-  // Confirm that translational speed and turning speed are suppressed
+  // Verify that translational and turning speeds are limited
   EXPECT_LT(output_velocity_xy.head(2).norm(), kMaxLinearVelocityDefault);
   EXPECT_LT(output_velocity_t(kPoseTheta), kMaxAngularVelocityDefault);
 }
 
 /// CalculateVelocity test
-/// In the goal area, if the maximum translational speed < speed including deceleration to the goal, it is limited to the smaller one
+/// Within the goal area, if the maximum translational velocity < deceleration speed to the goal, it is limited to the smaller value
 TEST_F(OmniVelocityCalculatorTest, ChooseMaxVeloctyInGoalArea) {
   // setup
-  // Threshold where the target speed matches the maximum speed
+  // Threshold where target velocity matches maximum velocity
   const double threshold_distance = kMaxLinearVelocityDefault / kLinearPGainDefault;
   const double threshold_angle = kMaxAngularVelocityDefault / kAngularPGainDefault;
-  // Current position set slightly outside the threshold
-  // Since setting both translation and angle simultaneously makes it difficult to verify due to rotation in velocity, check each
+  // Current position Set slightly outside the threshold
+  // Since setting both translation and angle simultaneously makes it difficult to verify due to rotation in velocity, verify them separately
   const Pose2d current_pose_xy(path_info_.splined_path.back().x() - threshold_distance - kEpsilon,
                                path_info_.splined_path.back().y(),
                                0.0);
   const Pose2d current_pose_t(path_info_.splined_path.back().x(),
                               path_info_.splined_path.back().y(),
                               kGoalAngle - threshold_angle - kEpsilon);
-  // Previous speed, assuming moving straight at maximum speed towards the goal
+  // Previous velocity Assume moving straight toward the goal at maximum speed
   Vector3d last_velocity = Vector3d(kMaxLinearVelocityDefault, 0.0, kMaxAngularVelocityDefault);
 
   // exercise
@@ -309,31 +309,31 @@ TEST_F(OmniVelocityCalculatorTest, ChooseMaxVeloctyInGoalArea) {
   // verify
   ASSERT_TRUE(result_xy);
   ASSERT_TRUE(result_t);
-  // Confirm that both translational speed and turning speed are at maximum speed
+  // Verify that both translational and turning speeds are at maximum velocity
   EXPECT_DOUBLE_EQ(kMaxLinearVelocityDefault, output_velocity_xy.head(2).norm());
   EXPECT_DOUBLE_EQ(kMaxAngularVelocityDefault, output_velocity_t(kPoseTheta));
 }
 
 /// CalculateVelocity test
-/// In the goal area, the closer to the goal, the smaller the speed
+/// Within the goal area, the closer to the goal, the smaller the velocity
 TEST_F(OmniVelocityCalculatorTest, NearerGoalSlowerVelocityInGoalArea) {
   // setup
-  // Threshold where the target speed matches the maximum speed
+  // Threshold where target velocity matches maximum velocity
   const double threshold_distance = kMaxLinearVelocityDefault / kLinearPGainDefault;
   const double threshold_angle = kMaxAngularVelocityDefault / kAngularPGainDefault;
-  // Prepare two cases: close to the goal and far from the goal
+  // Prepare two cases: one close to the goal and one far from the goal
   const Pose2d current_pose_near(path_info_.splined_path.back().x() - threshold_distance / 4.0,
                                  path_info_.splined_path.back().y(),
                                  kGoalAngle - threshold_angle / 4.0);
   const Pose2d current_pose_far(path_info_.splined_path.back().x() - threshold_distance / 2.0,
                                 path_info_.splined_path.back().y(),
                                 kGoalAngle - threshold_angle / 2.0);
-  // Previous speed, assuming moving straight at maximum speed towards the goal
+  // Previous velocity Assume moving straight toward the goal at maximum speed
   Vector3d output_velocity_near = Vector3d(kMaxLinearVelocityDefault, 0.0, 0.0);
   Vector3d output_velocity_far = Vector3d(kMaxLinearVelocityDefault, 0.0, 0.0);
 
   // exercise
-  // Since the target speed does not appear immediately due to acceleration limits, call repeatedly
+  // Since the target velocity does not appear immediately due to acceleration limits, call repeatedly
   const uint32_t iterations =
       static_cast<uint32_t>(kMaxLinearVelocityDefault / kMaxLinearAccelerationDefault * kFrequency);
   for (uint32_t i = 0; i < iterations; ++i) {
@@ -350,21 +350,21 @@ TEST_F(OmniVelocityCalculatorTest, NearerGoalSlowerVelocityInGoalArea) {
   }
 
   // verify
-  // The closer to the goal, the smaller the speed
+  // Verify that the closer to the goal, the smaller the velocity
   EXPECT_LT(output_velocity_near.head(2).norm(), output_velocity_far.head(2).norm());
   EXPECT_LT(std::abs(output_velocity_near(kPoseTheta)), std::abs(output_velocity_far(kPoseTheta)));
 }
 
 /// CalculateVelocity test
-/// Outside the goal area, if the maximum translational speed > speed including deceleration to the goal, it is limited to the smaller one
+/// Outside the goal area, if the maximum translational velocity > deceleration speed to the goal, it is limited to the smaller value
 TEST_F(OmniVelocityCalculatorTest, ChooseCalculatedVeloctyOutGoalArea) {
   // setup
-  // Threshold where the target speed matches the maximum speed
+  // Threshold where target velocity matches maximum velocity
   const double threshold_distance = (kMaxLinearVelocityDefault - kVelocityMarginDefault) / kGoalDecelerationDefault;
-  // Current position set slightly inside the threshold
+  // Current position Set slightly inside the threshold
   const Pose2d current_pose(path_info_.splined_path.back().x() - threshold_distance + kEpsilon,
                             path_info_.splined_path.back().y(), 0.0);
-  // Previous speed, assuming moving straight at maximum speed towards the goal
+  // Previous velocity Assume moving straight toward the goal at maximum speed
   Vector3d last_velocity = Vector3d(kMaxLinearVelocityDefault, 0.0, 0.0);
 
   // exercise
@@ -376,20 +376,20 @@ TEST_F(OmniVelocityCalculatorTest, ChooseCalculatedVeloctyOutGoalArea) {
 
   // verify
   ASSERT_TRUE(result);
-  // Confirm that translational speed is suppressed
+  // Verify that translational speed is limited
   EXPECT_LT(output_velocity(kPoseX), kMaxLinearVelocityDefault);
 }
 
 /// CalculateVelocity test
-/// Outside the goal area, if the maximum translational speed < speed including deceleration to the goal, it is limited to the smaller one
+/// Outside the goal area, if the maximum translational velocity < deceleration speed to the goal, it is limited to the smaller value
 TEST_F(OmniVelocityCalculatorTest, ChooseMaxVeloctyOutGoalArea) {
   // setup
-  // Threshold where the target speed matches the maximum speed
+  // Threshold where target velocity matches maximum velocity
   const double threshold_distance = (kMaxLinearVelocityDefault - kVelocityMarginDefault) / kGoalDecelerationDefault;
-  // Current position set slightly outside the threshold
+  // Current position Set slightly outside the threshold
   const Pose2d current_pose(path_info_.splined_path.back().x() - threshold_distance - kEpsilon,
                             path_info_.splined_path.back().y(), 0.0);
-  // Previous speed, assuming moving straight at maximum speed towards the goal
+  // Previous velocity Assume moving straight toward the goal at maximum speed
   Vector3d last_velocity = Vector3d(kMaxLinearVelocityDefault, 0.0, 0.0);
 
   // exercise
@@ -401,7 +401,7 @@ TEST_F(OmniVelocityCalculatorTest, ChooseMaxVeloctyOutGoalArea) {
 
   // verify
   ASSERT_TRUE(result);
-  // Confirm that the translational speed is at maximum speed
+  // Verify that translational speed is at maximum velocity
   EXPECT_DOUBLE_EQ(kMaxLinearVelocityDefault, output_velocity(kPoseX));
 }
 
@@ -409,14 +409,14 @@ TEST_F(OmniVelocityCalculatorTest, ChooseMaxVeloctyOutGoalArea) {
 /// Outside the goal area, if a passing speed is set, it is limited to the passing speed
 TEST_F(OmniVelocityCalculatorTest, LimitTransitVelocity) {
   // setup
-  // Threshold where the target speed matches the maximum speed
+  // Threshold where target velocity matches maximum velocity
   const double threshold_distance = (kMaxLinearVelocityDefault - kVelocityMarginDefault) / kGoalDecelerationDefault;
-  // Current position set slightly outside the threshold
+  // Current position Set slightly outside the threshold
   const Pose2d current_pose(path_info_.splined_path.back().x() - threshold_distance - kEpsilon,
                             path_info_.splined_path.back().y(), 0.0);
-  // Previous speed, assuming moving straight at maximum speed towards the goal
+  // Previous velocity Assume moving straight toward the goal at maximum speed
   Vector3d last_velocity = Vector3d(kMaxLinearVelocityDefault, 0.0, 0.0);
-  // Set the passing speed slightly less than the maximum translational speed
+  // Set passing speed slightly lower than the maximum translational speed
   const double transit_velocity = kMaxLinearVelocityDefault - kEpsilon;
   // exercise
   Vector3d output_velocity;
@@ -427,29 +427,29 @@ TEST_F(OmniVelocityCalculatorTest, LimitTransitVelocity) {
 
   // verify
   ASSERT_TRUE(result);
-  // Confirm that the translational speed is at the passing speed
+  // Verify that translational speed matches the passing speed
   EXPECT_DOUBLE_EQ(transit_velocity, output_velocity(kPoseX));
 }
 
 /// CalculateVelocity test
-/// Outside the goal area, the closer to the goal, the smaller the speed
+/// Outside the goal area, the closer to the goal, the smaller the velocity
 TEST_F(OmniVelocityCalculatorTest, NearerGoalSlowerVelocityOutGoalArea) {
   // setup
-  // Threshold where the target speed matches the maximum speed
+  // Threshold where target velocity matches maximum velocity
   const double threshold_distance = (kMaxLinearVelocityDefault - kVelocityMarginDefault) / kGoalDecelerationDefault;
-  // Prepare two cases: close to the goal and far from the goal
+  // Prepare two cases: one close to the goal and one far from the goal
   const Pose2d current_pose_near(path_info_.splined_path.back().x() - threshold_distance / 4.0,
                                  path_info_.splined_path.back().y(),
                                  0.0);
   const Pose2d current_pose_far(path_info_.splined_path.back().x() - threshold_distance / 2.0,
                                 path_info_.splined_path.back().y(),
                                 0.0);
-  // Previous speed, assuming moving straight at maximum speed towards the goal
+  // Previous velocity Assume moving straight toward the goal at maximum speed
   Vector3d output_velocity_near = Vector3d(kMaxLinearVelocityDefault, 0.0, 0.0);
   Vector3d output_velocity_far = Vector3d(kMaxLinearVelocityDefault, 0.0, 0.0);
 
   // exercise
-  // Since the target speed does not appear immediately due to acceleration limits, call repeatedly
+  // Since the target velocity does not appear immediately due to acceleration limits, call repeatedly
   const uint32_t iterations =
       static_cast<uint32_t>(kMaxLinearVelocityDefault / kMaxLinearAccelerationDefault * kFrequency);
   for (uint32_t i = 0; i < iterations; ++i) {
@@ -466,20 +466,20 @@ TEST_F(OmniVelocityCalculatorTest, NearerGoalSlowerVelocityOutGoalArea) {
   }
 
   // verify
-  // The closer to the goal, the smaller the speed
+  // Verify that the closer to the goal, the smaller the velocity
   EXPECT_LT(output_velocity_near.head(2).norm(), output_velocity_far.head(2).norm());
 }
 
 /// CalculateVelocity test
-/// If the distance to the goal is within a certain range, the cart's turning speed is set to face the direction of the goal
+/// If the distance to the goal is within a certain range, the turning speed of the vehicle is set to face the direction of the goal
 TEST_F(OmniVelocityCalculatorTest, TurnToGoalPoint) {
   // setup
-  // Current position placed slightly inside the threshold, facing the direction between the goal and the path
+  // Current position Place slightly inside the threshold and face the direction between the goal and the path
   const Pose2d current_pose(path_info_.splined_path.back().x() - kPathLengthThresholdDefault + kTestPathInterval,
                             path_info_.splined_path.back().y(), kGoalAngle / 2.0);
   const uint32_t path_index =
       static_cast<uint32_t>((kTestPathLength - kPathLengthThresholdDefault) / kTestPathInterval) + 1;
-  // Previous speed
+  // Previous velocity
   Vector3d last_velocity = Vector3d::Zero();
 
   // exercise
@@ -495,15 +495,15 @@ TEST_F(OmniVelocityCalculatorTest, TurnToGoalPoint) {
 }
 
 /// CalculateVelocity test
-/// If the distance to the goal is beyond a certain range, the cart's turning speed is set to face the direction of the nearest point
+/// If the distance to the goal is beyond a certain range, the turning speed of the vehicle is set to face the direction of the nearest point
 TEST_F(OmniVelocityCalculatorTest, TurnToNearestPoint) {
   // setup
-  // Current position placed slightly outside the threshold, facing the direction between the goal and the path
+  // Current position Place slightly outside the threshold and face the direction between the goal and the path
   const Pose2d current_pose(path_info_.splined_path.back().x() - kPathLengthThresholdDefault - kTestPathInterval,
                             path_info_.splined_path.back().y(), kGoalAngle / 2.0);
   const uint32_t path_index =
       static_cast<uint32_t>((kTestPathLength - kPathLengthThresholdDefault) / kTestPathInterval) - 1;
-  // Previous speed
+  // Previous velocity
   Vector3d last_velocity = Vector3d::Zero();
 
   // exercise
@@ -519,14 +519,14 @@ TEST_F(OmniVelocityCalculatorTest, TurnToNearestPoint) {
 }
 
 /// CalculateVelocity test
-/// The speed of X, Y, and turning angle is limited
+/// X, Y, and turning angle speeds are limited
 TEST_F(OmniVelocityCalculatorTest, LimitVelocities) {
   // setup
-  // Current position placed in a position and orientation off the path, so that control is applied to x, y, and t
+  // Current position Place at a position and orientation deviated from the path, so that x, y, and t are each controlled
   const Pose2d current_pose(path_info_.splined_path.front().x(),
                             path_info_.splined_path.front().y() - kTestPathInterval,
                             M_PI / 4.0);
-  // Previous speed set to a speed attempting to reach the target position exceeding the maximum speed
+  // Previous velocity Set a speed that attempts to exceed the maximum speed toward the target position
   Vector3d last_velocity = Vector3d(kMaxLinearVelocityDefault * 2.0,
                                     kMaxLinearVelocityDefault * 2.0,
                                     -kMaxAngularVelocityDefault * 2.0);
@@ -546,14 +546,14 @@ TEST_F(OmniVelocityCalculatorTest, LimitVelocities) {
 }
 
 /// CalculateVelocity test
-/// The acceleration of X, Y, and turning angle is limited
+/// X, Y, and turning angle accelerations are limited
 TEST_F(OmniVelocityCalculatorTest, LimitAccelerations) {
   // setup
-  // Current position placed in a position and orientation off the path, so that control is applied to x, y, and t
+  // Current position Place at a position and orientation deviated from the path, so that x, y, and t are each controlled
   const Pose2d current_pose(path_info_.splined_path.front().x(),
                             path_info_.splined_path.front().y() - kTestPathInterval,
                             M_PI / 4.0);
-  // Previous speed, check how much acceleration occurs from zero
+  // Previous velocity Check how much acceleration occurs from zero
   Vector3d last_velocity = Vector3d::Zero();
 
   // exercise

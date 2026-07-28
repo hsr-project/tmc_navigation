@@ -39,9 +39,6 @@ target_include_directories(${PROJECT_NAME}_lib
     $<INSTALL_INTERFACE:include>
 )
 
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 
@@ -102,6 +99,7 @@ install(DIRECTORY config
 
 if (BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_index_cpp REQUIRED)
 
   install(DIRECTORY test/parameter
     DESTINATION share/${PROJECT_NAME}/test
@@ -118,17 +116,22 @@ if (BUILD_TESTING)
 
   ament_add_gtest(point_cloud_filter-test test/point_cloud_filter-test.cpp)
   target_link_libraries(point_cloud_filter-test ${PROJECT_NAME}_lib)
+  ament_target_dependencies(point_cloud_filter-test ament_index_cpp)
 
   ament_add_gtest(map_input-test test/map_input-test.cpp)
   target_link_libraries(map_input-test ${PROJECT_NAME}_lib)
+  ament_target_dependencies(map_input-test ament_index_cpp)
 
   ament_add_gtest(param-test test/param-test.cpp)
   target_link_libraries(param-test ${PROJECT_NAME}_lib)
+  ament_target_dependencies(param-test ament_index_cpp)
 
   ament_add_gtest(map_converter-test test/map_converter-test.cpp)
   target_link_libraries(map_converter-test ${PROJECT_NAME}_lib)
+  ament_target_dependencies(map_converter-test ament_index_cpp)
 
   ament_add_gtest(map_merger_node-test test/map_merger_node-test.cpp)
   target_link_libraries(map_merger_node-test ${PROJECT_NAME}_lib)
+  ament_target_dependencies(map_merger_node-test ament_index_cpp)
 endif()
 ament_package()

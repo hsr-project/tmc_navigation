@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -37,38 +37,38 @@ BasePathPlannerErrorCode ConditionChecker::CheckCondition(
     const CostMapPtr& dynamic_map, const Pose2d& dynamic_map_origin,
     const Pose2d& start_pose, const Pose2d& goal_pose, const Pose2d& global_pose) {
 
-  /// Cannot plan a path from outside the static map range
-  /// If the robot's position is outside the static map range, it is considered an error
+  /// Path planning cannot be done outside the range of the static map
+  /// An error occurs if the robot's position is outside the range of the static map
   if (!CheckPoseInMap_(static_map, global_pose)) {
     return BasePathPlannerErrorCode::kRobotIsOutOfMap;
   }
 
-  /// Cannot plan a path outside the static map range
+  /// Path planning cannot be done outside the range of the static map
   /// Cannot reach prohibited areas on the static map
-  /// If the goal position is outside the static map range or on a prohibited area, it is considered an error
+  /// An error occurs if the goal position is outside the range of the static map or on a prohibited area
   if (!CheckPoseInMap_(static_map, goal_pose) ||
       CheckPoseIsOnMapWall_(static_map, static_map_occupancy_threshold, goal_pose)) {
     return BasePathPlannerErrorCode::kGoalIsOnStaticObstacle;
   }
 
   /// Cannot reach prohibited areas on the dynamic map
-  /// If the goal position is on a prohibited area of the dynamic map, it is considered an error
+  /// An error occurs if the goal position is on a prohibited area of the dynamic map
   const Pose2d goal_pose_on_dynamic_map = dynamic_map_origin.Inverse() * goal_pose;
   if (CheckPoseIsOnMapWall_(dynamic_map, kWallValue, goal_pose_on_dynamic_map)) {
     return BasePathPlannerErrorCode::kGoalIsOnDynamicObstacle;
   }
 
-  /// Cannot plan a path from on top of an obstacle
-  /// If start position adjustment is OFF, it is considered an error if the robot's position is on top of an obstacle
-  /// If start position adjustment is ON, the path planning core will attempt to plan from an adjusted position, so it is not considered an error
+  /// Path planning cannot be done on obstacles
+  /// If start position adjustment is OFF, an error occurs if the robot's position is on an obstacle
+  /// If start position adjustment is ON, the path planning core will attempt to plan from an adjusted position, so no error occurs
   if (!kEnableAdaptiveStartPositioning) {
     if (CheckPoseIsOnMapWall_(static_map, static_map_occupancy_threshold, global_pose)) {
-      // Error if self-position is on a prohibited area of the static map
+      // An error occurs if the self-position is on a prohibited area of the static map
       return BasePathPlannerErrorCode::kRobotIsOnStaticObstacle;
     }
     const Pose2d global_pose_on_dynamic_map = dynamic_map_origin.Inverse() * global_pose;
     if (CheckPoseIsOnMapWall_(dynamic_map, kWallValue, global_pose_on_dynamic_map)) {
-      // Error if self-position is on a prohibited area of the dynamic map
+      // An error occurs if the self-position is on a prohibited area of the dynamic map
       return BasePathPlannerErrorCode::kRobotIsOnDynamicObstacle;
     }
   }
@@ -85,7 +85,7 @@ bool ConditionChecker::CheckPoseInMap_(const CostMapPtr& map, const Pose2d& pose
   return true;
 }
 
-/// Check if the pose is on the map wall
+/// Check if the pose is on the wall of the map
 bool ConditionChecker::CheckPoseIsOnMapWall_(const CostMapPtr& map, const unsigned char wall_threshold,
                                              const Pose2d& pose) {
   const int32_t u = static_cast<int32_t>(pose.x() / map->resolution());

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -39,7 +39,7 @@ DAMAGE.
 
 namespace { // NOLINT
 
-// Check if greater than the specified value
+// Check if it is greater than the specified value
 template<typename T>
 struct Greater {
   explicit Greater(const T& t) : t_(t) {}
@@ -52,7 +52,7 @@ struct Greater {
   T t_;
 };
 
-// Check if not less than the specified value
+// Check if it is not less than the specified value
 template<typename T>
 struct NotLess {
   explicit NotLess(const T& t) : t_(t) {}
@@ -65,7 +65,7 @@ struct NotLess {
   T t_;
 };
 
-// Check if within the specified range
+// Check if it is within the specified range
 template<typename T>
 struct InRange {
   InRange(const T& min, const T& max) : min_(min), max_(max) {}
@@ -94,7 +94,7 @@ bool IsEqual<double>(const double& lhs, const double& rhs) {
   return std::abs(lhs - rhs) < std::numeric_limits<double>::epsilon();
 }
 
-// Check if equal to the registered value
+// Check if it is equal to the registered value
 template<typename T>
 struct Equal {
   explicit Equal(const T& t) : t_(t) {}
@@ -108,7 +108,7 @@ struct Equal {
   T t_;
 };
 
-// Check if included in the registered value
+// Check if it is included in the registered value
 template<typename T>
 struct OneOf {
   typedef typename std::vector<T>::const_iterator ArrayConstIterator;
@@ -155,8 +155,8 @@ void GetRequiredParam(const rclcpp::Node::SharedPtr& node, const std::string& pa
   value = param.get_value<T>();
 }
 
-// Retrieve required ROS parameters (with check)
-// In C++0x, default arguments for templates cannot be used, so separate them
+// Retrieve required ROS parameters (with validation)
+// In C++0x, template default arguments cannot be used, so separate them
 template<typename T, typename Checker>
 void GetRequiredParam(const rclcpp::Node::SharedPtr& node, const std::string& param_name, T& value, const Checker& c) {
   T tmp;
@@ -184,11 +184,11 @@ void GetOptionalParam(const rclcpp::Node::SharedPtr& node, const std::string& pa
   }
 }
 
-// Retrieve optional parameters (with check)
+// Retrieve optional parameters (with validation)
 template<typename T, typename Checker>
 void GetOptionalParam(const rclcpp::Node::SharedPtr& node, const std::string& param_name, T& value,
                       const T& default_value, const Checker& c) {
-  // Consider it an exception if the checker throws an error with the default value
+  // Treat as an exception if the checker throws an error with the default value
   if (!c.validate(default_value)) {
     const std::string message = std::string("Default value of '") + param_name + "' is invalid";
     throw std::logic_error(message.c_str());
@@ -265,7 +265,7 @@ void GetOptionalParam(const std::map<std::string, rclcpp::Parameter>& group, con
 template<typename T, typename Checker>
 void GetOptionalParam(const std::map<std::string, rclcpp::Parameter>& group, const std::string& param_name,
                       T& value, const T& default_value, const Checker& c) {
-  // Consider it an exception if the checker throws an error with the default value
+  // Treat as an exception if the checker throws an error with the default value
   if (!c.validate(default_value)) {
     const std::string message = std::string("Default value of '") + param_name + "' is invalid";
     throw std::logic_error(message.c_str());

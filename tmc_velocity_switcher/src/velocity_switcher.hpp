@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -40,7 +40,7 @@ DAMAGE.
 
 namespace tmc_velocity_switcher {
 
-/// A class that manages multiple velocity inputs (InputVelocity) and switches velocities
+/// A class that manages multiple velocity inputs (InputVelocity) and switches between velocities
 class VelocitySwitcher : public rclcpp::Node, private boost::noncopyable {
  public:
   // Constructor
@@ -64,16 +64,16 @@ class VelocitySwitcher : public rclcpp::Node, private boost::noncopyable {
   rclcpp::TimerBase::SharedPtr node_action_timer_;
   // Publisher for output velocity
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_velocity_;
-  // Vector that manages the priority and objects of multiple InputVelocities
+  // Vector to manage priorities and objects of multiple InputVelocity
   std::vector<std::pair<int32_t, InputVelocity::Ptr> > input_velocities_;
   // Weight of each velocity input command
   std::vector<std::vector<double> > ratio_;
-  // Timeout period until invalidation when input velocity command is interrupted
+  // Timeout duration until invalidation when input velocity command is interrupted
   double velocity_timeout_;  // [sec]
   /// Time required to switch to a new velocity command
   /// During that period, the output velocity command changes smoothly
   double switching_period_;  // [sec]
-  /// Presence of input velocity Yes:true / No:false
+  /// Presence of input velocity: Yes:true / No:false
   bool has_input_velocity_;
 };
 }  // namespace tmc_velocity_switcher

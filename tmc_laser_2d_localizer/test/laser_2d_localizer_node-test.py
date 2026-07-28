@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+# Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted (subject to the limitations in the disclaimer
@@ -41,9 +41,9 @@ from launch_ros.substitutions import FindPackageShare
 import launch_testing
 import launch_testing.actions
 import pytest
-from rcl_interfaces.srv import GetParameters
 import rclpy
-from rclpy.executors import MultiThreadedExecutor
+from rclpy.executors import SingleThreadedExecutor
+from rclpy.parameter_client import AsyncParameterClient
 from rclpy.wait_for_message import wait_for_message
 from rosgraph_msgs.msg import Clock
 from tf2_ros import (
@@ -61,10 +61,7 @@ RATE_HZ = 100.0
 THRESH_EQUAL = 0.0001
 WAIT_TF_TIMEOUT_SEC = 0.1
 MAX_ERROR_POSE = 0.05
-# Temporarily relax the threshold as tests may fail in CodeBuild
-# TODO(kazuki_shibamiya) : CodeBuildで安定的にテストが通るようにする
-# MAX_ERROR_ORIENTATION = 0.04
-MAX_ERROR_ORIENTATION = 0.1
+MAX_ERROR_ORIENTATION = 0.04
 
 
 def get_yaw(quat_msg):
@@ -101,15 +98,18 @@ def generate_test_description():
         ]
     )
 
-    # Playback settings for rosbag
+    # rosbag playback settings
     bag_path = PathJoinSubstitution([
         FindPackageShare("tmc_laser_2d_localizer"),
         "test",
         "rosbag",
         "405_house_test",
     ])
+
+    # To test without depending on the load conditions of the test environment, playback speed is reduced to 0.5x
+    # To prevent the test from failing when rosbag playback ends during testing, rosbag is set to loop playback
     rosbag_node = launch.actions.ExecuteProcess(
-        cmd=["ros2", "bag", "play", bag_path, "--clock", "-l"],
+        cmd=["ros2", "bag", "play", bag_path, "-r 0.5", "--clock", "-l"],
         output="log",
     )
 
@@ -149,9 +149,9 @@ class TestLaser2dLocalizerNode(unittest.TestCase):
         self._estimated_pose = None
         self._is_sub_result = False
 
-        # Wait until receiving the clock from rosbag,
-        # Ensure testing with the clock from rosbag
-        # Receive the clock from rosbag with BEST_EFFORT
+        # Wait until rosbag's clock is received,
+        # Ensure testing is done with rosbag's clock
+        # rosbag's clock is received with BEST_EFFORT
         qos_policy_best_effort = rclpy.qos.QoSProfile(
             reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
             history=rclpy.qos.HistoryPolicy.KEEP_LAST,
@@ -167,7 +167,7 @@ class TestLaser2dLocalizerNode(unittest.TestCase):
         self.assertTrue(
             result, msg="Failed to receive clock message from rosbag")
 
-        # Receive Pose with RELIABLE to match laser_2d_localizer
+        # Pose is received with RELIABLE to match laser_2d_localizer
         qos_policy_reliable = rclpy.qos.QoSProfile(
             reliability=rclpy.qos.ReliabilityPolicy.RELIABLE,
             history=rclpy.qos.HistoryPolicy.KEEP_LAST,
@@ -180,14 +180,12 @@ class TestLaser2dLocalizerNode(unittest.TestCase):
             qos_policy_reliable,
         )
 
-        # Create a service to obtain parameters from laser_2d_localizer
-        self._get_parameters_client = self._node.create_client(
-            GetParameters,
-            "/laser_2d_localizer/get_parameters"
-        )
+        # Retrieve parameters from laser_2d_localizer
+        self._parameter_client = AsyncParameterClient(self._node, "/laser_2d_localizer")
+        self._setup_test_parameter()
 
         # Spin the Node in a separate thread to receive messages
-        self._executor = MultiThreadedExecutor()
+        self._executor = SingleThreadedExecutor()
         self._thread = Thread(
             target=rclpy.spin,
             args=(self._node, self._executor),
@@ -221,28 +219,25 @@ class TestLaser2dLocalizerNode(unittest.TestCase):
             self._estimated_pose = msg
             self._is_sub_result = True
 
+    # Set test parameters
+    def _setup_test_parameter(self):
+        result = self._parameter_client.wait_for_services(timeout_sec=10.0)
+        self.assertTrue(result)
+        get_future = self._parameter_client.get_parameters(["init_x", "init_y", "init_theta_deg"])
+        rclpy.spin_until_future_complete(self._node, get_future)
+        parames = get_future.result().values
+        self._init_x_gt = parames[0].double_value
+        self._init_y_gt = parames[1].double_value
+        self._init_theta_gt = math.radians(parames[2].double_value)
+
     def test_localize(self) -> None:
         """Test the laser_2d_localizer node to ensure it correctly localizes the robot.
 
         TF between "floor/405_house_test" and "base_footprint" is used as groundtruth
         to verify the localization accuracy.
         """
-        # Obtain the initial PoseWithCovarianceStamped message and verify the initial position
+        # Obtain the initial PoseWithCovarianceStamped message and verify the correctness of the initial position
         rate = self._node.create_rate(RATE_HZ)
-
-        # Obtain parameters of laser_2d_localizer
-        request = GetParameters.Request(
-            names=["init_x", "init_y", "init_theta_deg"])
-        response = self._get_parameters_client.call(request)
-        if not response:
-            self._node.get_logger().error(
-                "Failed to get parameters from laser_2d_localizer node"
-            )
-            return
-
-        init_x_gt = response.values[0].double_value
-        init_y_gt = response.values[1].double_value
-        init_theta_gt = math.radians(response.values[2].double_value)
 
         # Wait until the initial position estimation result is obtained
         while (rclpy.ok() and not self._is_sub_result):
@@ -253,15 +248,15 @@ class TestLaser2dLocalizerNode(unittest.TestCase):
         estimated_yaw = get_yaw(
             self._estimated_pose_first.pose.pose.orientation)
         self.assertAlmostEqual(
-            estimated_x, init_x_gt, delta=THRESH_EQUAL,
+            estimated_x, self._init_x_gt, delta=THRESH_EQUAL,
             msg="Initial X position is incorrect",
         )
         self.assertAlmostEqual(
-            estimated_y, init_y_gt, delta=THRESH_EQUAL,
+            estimated_y, self._init_y_gt, delta=THRESH_EQUAL,
             msg="Initial Y position is incorrect",
         )
         self.assertAlmostEqual(
-            estimated_yaw, init_theta_gt, delta=THRESH_EQUAL,
+            estimated_yaw, self._init_theta_gt, delta=THRESH_EQUAL,
             msg="Initial orientation is incorrect",
         )
         self._node.get_logger().info(
@@ -269,27 +264,27 @@ class TestLaser2dLocalizerNode(unittest.TestCase):
             f"x={estimated_x}, y={estimated_y}, yaw={estimated_yaw}"
         )
 
-        # Obtain the estimated result after rosbag playback
-        # Evaluate the subscribed estimated result until timeout
+        # Retrieve the estimated result after rosbag playback
+        # Evaluate the subscribed estimation results until timeout
         start_time = self._node.get_clock().now().nanoseconds
         last_time = 0
         while (
             rclpy.ok()
             and self._node.get_clock().now().nanoseconds - start_time < TEST_TIMEOUT_SEC * 1e9
         ):
-            # Confirm that rosbag has not finished playback (loop)
+            # Confirm that rosbag has not finished playback (looping)
             now_time = self._node.get_clock().now().nanoseconds
             self.assertLessEqual(last_time, now_time)
             last_time = now_time
 
-            # Loop at rate(100) Hz and wait for the estimated result
+            # Loop at a rate of 100 Hz and wait for the estimation result
             self._is_sub_result = False
             while not self._is_sub_result:
                 rate.sleep()
 
-            # Obtain the transformation from tf from floor/405_house_test -> base_footprint and evaluate the error
-            # Obtain the transformation that matches the time of _estimated_pose through interpolation
-            # (Taking the latest transformation increases error and causes test failure)
+            # Obtain the transformation from tf for floor/405_house_test -> base_footprint and evaluate the error
+            # Obtain the transformation matching the timestamp of _estimated_pose through interpolation
+            # (Using the latest transformation increases error and causes test failure)
             # TODO(shigemichi_matsuzaki): 上記処理を行うためのベストプラクティスが他にあれば処理を変更
             transform = None
             while transform is None or \
@@ -308,7 +303,7 @@ class TestLaser2dLocalizerNode(unittest.TestCase):
                 ) as e:
                     self._node.get_logger().warn(f"{e}")
 
-            # Calculate the error between the tf transformation and the estimated position
+            # Calculate the error between tf transformation and the estimated position
             error_x = abs(
                 transform.transform.translation.x
                 - self._estimated_pose.pose.pose.position.x
@@ -332,7 +327,7 @@ class TestLaser2dLocalizerNode(unittest.TestCase):
                 f"error_yaw={error_yaw}"
             )
 
-            # Confirm that the error is within the allowable range
+            # Confirm that the error is within the acceptable range
             self.assertLess(error_x, MAX_ERROR_POSE, f"error_x={error_x}")
             self.assertLess(error_y, MAX_ERROR_POSE, f"error_y={error_y}")
             self.assertLess(error_yaw, MAX_ERROR_ORIENTATION,

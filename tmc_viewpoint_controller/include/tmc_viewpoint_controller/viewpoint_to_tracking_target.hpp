@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file viewpoint_to_tracking_target.hpp
-/// @brief Calculate the angle to direct the viewpoint towards the target object
+/// @brief Calculate the angle to direct the viewpoint toward the target object
 
 #ifndef TMC_VIEWPOINT_CONTROLLER_VIEWPOINT_TO_TRACKING_TARGET_HPP_
 #define TMC_VIEWPOINT_CONTROLLER_VIEWPOINT_TO_TRACKING_TARGET_HPP_
@@ -52,7 +52,7 @@ class ViewpointToTrackingTarget {
   /// Target trajectory callback
   void TargetPathCallback(const nav_msgs::msg::Path::SharedPtr target_path);
 
-  /// Target trajectory subscriber
+  /// Subscriber for target trajectory
   rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr target_path_sub_;
   /// Target trajectory
   nav_msgs::msg::Path target_path_;

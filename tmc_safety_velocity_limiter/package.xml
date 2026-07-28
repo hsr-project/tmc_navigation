@@ -1,6 +1,6 @@
 <package format="3">
   <name>tmc_safety_velocity_limiter</name>
-  <version>2.1.0</version>
+  <version>3.0.0</version>
   <description>    Limit velocity ratio according to surrounding obstacles.</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
   <license>BSD 3-clause Clear License</license>

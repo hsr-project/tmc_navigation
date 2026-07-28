@@ -32,9 +32,6 @@ target_include_directories(${PROJECT_NAME}_lib
   PUBLIC
     $<INSTALL_INTERFACE:include>
 )
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 
@@ -118,8 +115,8 @@ if(BUILD_TESTING)
   add_launch_test(
     test/laser_2d_localizer_node-test.py
     # Set a timeout longer than 
-    # the rosbag playback duration (approx. 60 sec)
-    TIMEOUT 100  
+    # the rosbag playback duration (approx. 120 sec)
+    TIMEOUT 150  
   )
   
 endif()

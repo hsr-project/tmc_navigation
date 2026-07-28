@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -33,26 +33,26 @@ DAMAGE.
 #include "cost_corrector.hpp"
 
 /*
-Priority Path Cost Correction
+Priority Path Cost Adjustment
 
 Overview:
-Lower the cost when overlapping with a pre-specified path.
+Reduce the cost when overlapping with a pre-specified path.
 
 Background:
-Among the paths from start to goal, there can be multiple paths with the minimum cost,
-and which one is chosen is undefined by the algorithm and changes with the processing progress.
-Therefore, even a slight change in the situation can significantly alter the generated path.
+Among the paths from start to goal, there may be multiple paths with the minimum cost,
+and which one is chosen is undefined in the algorithm and may vary depending on the processing progress.
+Therefore, even slight changes in the situation can cause significant changes in the generated path.
 
 Objective:
-Provide the path you want to prioritize (e.g., the previous path),
-and apply negative cost correction to the matching sections to minimize path fluctuation.
+Provide a path that you want to prioritize (e.g., the previous path),
+apply negative cost adjustments to matching sections, and aim to minimize path fluctuations.
 */
 
 namespace tmc_astar_lib {
 
-/// Parameter Default Values
-static constexpr int32_t kCostOnPreferredPathDefault = 0;      // Cost correction value on the recommended path grid
-static constexpr int32_t kCostAroundPreferredPathDefault = 0;  // Cost correction value around the recommended path grid
+/// Default parameter values
+static constexpr int32_t kCostOnPreferredPathDefault = 0;      // Cost adjustment value for grids on the preferred path
+static constexpr int32_t kCostAroundPreferredPathDefault = 0;  // Cost adjustment value for grids around the preferred path
 
 class PreferredPathCostCorrector : public ICostCorrector {
  public:
@@ -76,9 +76,9 @@ class PreferredPathCostCorrector : public ICostCorrector {
         cost_around_preferred_path = kCostAroundPreferredPathDefault;
       }
     }
-    // Correction cost on the priority path (negative)
+    // Adjustment cost on the preferred path (negative)
     int32_t cost_on_preferred_path;
-    // Correction cost around the priority path (negative)
+    // Adjustment cost around the preferred path (negative)
     int32_t cost_around_preferred_path;
   };
   explicit PreferredPathCostCorrector(const Parameter& param);
@@ -87,13 +87,13 @@ class PreferredPathCostCorrector : public ICostCorrector {
   virtual int32_t GetAdditionalCost(const GetAdditionalCostParams& params);
 
  private:
-  // Parameter Values
+  // Parameter values
   const int32_t cost_on_preferred_path_;
   const int32_t cost_around_preferred_path_;
-  // Map Size
+  // Map size
   int32_t width_;
   int32_t height_;
-  // Expanded correction cost on the map
+  // Expanded adjustment costs applied to the map
   std::vector<int32_t> additional_cost_map_;
 };
 }  // namespace tmc_astar_lib

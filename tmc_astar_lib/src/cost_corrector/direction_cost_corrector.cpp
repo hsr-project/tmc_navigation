@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -35,7 +35,7 @@ DirectionCostCorrector::DirectionCostCorrector() {
   for (int32_t anc_dir = 0; anc_dir < kDirectionNum; ++anc_dir) {
     for (int32_t prev_dir = 0; prev_dir < kDirectionNum; ++prev_dir) {
       for (int32_t cur_dir = 0; cur_dir < kDirectionNum; ++cur_dir) {
-        // No correction if no direction is included
+        // No correction if it includes no direction
         if (anc_dir == static_cast<int32_t>(NodeDirection::DIR_None) ||
             prev_dir == static_cast<int32_t>(NodeDirection::DIR_None) ||
             cur_dir == static_cast<int32_t>(NodeDirection::DIR_None)) {
@@ -47,38 +47,38 @@ DirectionCostCorrector::DirectionCostCorrector() {
         int32_t anc_offset_y;
         GetOffsetFromDirection(static_cast<NodeDirection>(anc_dir), anc_offset_x, anc_offset_y);
         if (anc_offset_x == 0 || anc_offset_y == 0) {
-          // Two steps ago was horizontal or vertical
+          // Two steps back are horizontal or vertical
           if (anc_dir == prev_dir) {
-            // The direction two steps ago and one step ago is the same
+            // The directions of two steps back and one step back are the same
             if (prev_dir != cur_dir) {
-              // This time it is different
+              // This time they are different
               cost = kCostAdjAdjDiag;
             }
           } else {
-            // The direction two steps ago and one step ago is different
+            // The directions of two steps back and one step back are different
             if (anc_dir == cur_dir) {
-              // The direction two steps ago and this time is the same
+              // The directions of two steps back and this time are the same
               cost = kCostAdjDiagAdj;
             } else if (prev_dir == cur_dir) {
-              // The direction one step ago and this time is the same
+              // The directions of one step back and this time are the same
               cost = kCostAdjDiagDiag;
             }
           }
         } else {
-          // Two steps ago was diagonal
+          // Two steps back are diagonal
           if ((anc_dir) == (prev_dir)) {
-            // The direction two steps ago and one step ago is the same
+            // The directions of two steps back and one step back are the same
             if (prev_dir != cur_dir) {
-              // This time it is different
+              // This time they are different
               cost = kCostDiagDiagAdj;
             }
           } else {
-            // The direction two steps ago and one step ago is different
+            // The directions of two steps back and one step back are different
             if (anc_dir == cur_dir) {
-              // The direction two steps ago and this time is the same
+              // The directions of two steps back and this time are the same
               cost = kCostDiagAdjDiag;
             } else if (prev_dir == cur_dir) {
-              // The direction one step ago and this time is the same
+              // The directions of one step back and this time are the same
               cost = kCostDiagAdjAdj;
             }
           }
@@ -92,12 +92,12 @@ DirectionCostCorrector::DirectionCostCorrector() {
 /// Destructor
 DirectionCostCorrector::~DirectionCostCorrector() {}
 
-/// Initialization before route planning
+/// Initialization before path planning
 void DirectionCostCorrector::Setup(const SetupParams& params) {}
 
 /// Get cost correction value
 int32_t DirectionCostCorrector::GetAdditionalCost(const GetAdditionalCostParams& params) {
-  // Since there is no direction at the start point, correction begins from the third step onward
+  // Since the starting point has no direction, correction begins from the third step onward
   if (params.prev_node->total_step() < 2) {
     return 0;
   }

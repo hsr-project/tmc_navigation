@@ -1,0 +1,8 @@
+velocity_acceleration_limiter:
+  ros__parameters:
+    enable_limit_default: true
+    linear_acceleration_limit: 1.0
+    linear_deceleration_limit: 2.0
+    angular_acceleration_limit: 2.0
+    angular_deceleration_limit: 4.0
+    input_velocity_timeout: 0.2

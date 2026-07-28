@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -32,8 +32,8 @@ DAMAGE.
 
 namespace {
 // ROS parameter name
-const char* kUpperLimitThreshold = "upper_limit_threshold";  // Input ratio upper limit [-]
-const char* kLowerLimitThreshold = "lower_limit_threshold";  // Input ratio lower limit [-]
+const char* kUpperLimitThreshold = "upper_limit_threshold";  // Upper limit of input ratio [-]
+const char* kLowerLimitThreshold = "lower_limit_threshold";  // Lower limit of input ratio [-]
 const char* kUpperLimitRatio = "upper_limit_ratio";          // Maximum output ratio [-]
 const char* kLowerLimitRatio = "lower_limit_ratio";          // Linear lower output ratio [-]
 const char* kMinimumRatio = "minimum_ratio";                 // Minimum output ratio [-]
@@ -55,27 +55,27 @@ LinearSlope::LinearSlope(std::map<std::string, rclcpp::Parameter>& parameters) {
 
 /// Calculate velocity ratio from input information
 double LinearSlope::CalcRatio(const double distance_ratio) {
-  // Return max value if above upper limit
+  // Return max value if above the upper limit
   if (distance_ratio > upper_limit_threshold_) {
     return upper_limit_ratio_;
-  // Return linear value if between lower and upper_limit_threshold
+  // Return linear value if within lower to upper limit threshold
   } else if (distance_ratio > lower_limit_threshold_) {
     double calculated_ratio = lower_limit_ratio_ +
                               (distance_ratio - lower_limit_threshold_) *
                               ((upper_limit_ratio_ - lower_limit_ratio_) /
                                (upper_limit_threshold_ - lower_limit_threshold_));
     return calculated_ratio;
-  // Return min value if below lower limit
+  // Return min value if below the lower limit
   } else {
     return minimum_ratio_;
   }
 }
 
-/// Get ROS PARAM
+/// Retrieve ROS PARAM
 void LinearSlope::UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters) {
   GetOptionalParam(parameters, kLowerLimitThreshold, lower_limit_threshold_, kLowerLimitThresholdDef);
   GetOptionalParam(parameters, kUpperLimitThreshold, upper_limit_threshold_, kUpperLimitThresholdDef);
-  // Use default value if upper is not greater than lower, or if the value is not between 0.0 and 1.0
+  // Use default value if upper is not greater than lower or values are not within 0.0 to 1.0
   if (upper_limit_threshold_ <= lower_limit_threshold_ ||
       0.0 > upper_limit_threshold_ || 1.0 < upper_limit_threshold_ ||
       0.0 > lower_limit_threshold_ || 1.0 < lower_limit_threshold_) {
@@ -89,7 +89,7 @@ void LinearSlope::UpdateParameters(std::map<std::string, rclcpp::Parameter>& par
 
   GetOptionalParam(parameters, kUpperLimitRatio, upper_limit_ratio_, kUpperLimitRatioDef);
   GetOptionalParam(parameters, kLowerLimitRatio, lower_limit_ratio_, kLowerLimitRatioDef);
-  // Use default value if upper is not greater than lower, or if the value is not between 0.0 and 1.0
+  // Use default value if upper is not greater than lower or values are not within 0.0 to 1.0
   if (upper_limit_ratio_ <= lower_limit_ratio_ ||
       0.0 > upper_limit_ratio_ || 1.0 < upper_limit_ratio_ ||
       0.0 > lower_limit_ratio_ || 1.0 < lower_limit_ratio_) {

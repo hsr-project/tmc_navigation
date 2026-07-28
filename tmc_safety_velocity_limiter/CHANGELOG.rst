@@ -2,6 +2,15 @@
 Changelog for package tmc_safety_velocity_limiter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.0 (2026-06-29)
+-------------------
+* Migration to ROS2 jazzy
+* Contributors: Kazuki Shibamiya, Hozumi Inoue, Katsushi Fukuoka, Yoshimi Iyoda
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package tmc_safety_velocity_limiter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 2.1.0 (2025-12-04)
 -------------------
 * Migration to ROS2 humble

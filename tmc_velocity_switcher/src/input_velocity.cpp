@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,13 +36,13 @@ DAMAGE.
 
 namespace {
 // parameter server name
-// input speed Topic name
+// input velocity Topic name
 const char* const kParamNameTopicName = "topic_name";
-// Whether to control the X-axis direction of input speed
+// Whether to control the X-axis direction of the input velocity
 const char* const kParamNameAsControlTargetX = "as_control_target_x";
-// Whether to control the Y-axis direction of input speed
+// Whether to control the Y-axis direction of the input velocity
 const char* const kParamNameAsControlTargetY = "as_control_target_y";
-// Whether to control the T-axis direction of input speed
+// Whether to control the T-axis direction of the input velocity
 const char* const kParamNameAsControlTargetT = "as_control_target_theta";
 
 // parameter default value
@@ -82,12 +82,12 @@ void InputVelocity::Callback(const geometry_msgs::msg::Twist::SharedPtr input_ve
   velocity_ = input_velocity;
 }
 
-// Return the currently held Twist value
+// Returns the currently held Twist value
 geometry_msgs::msg::Twist::Ptr InputVelocity::velocity() const {
   return velocity_;
 }
 
-// Return the last subscribed time
+// Returns the time of the last subscription
 double InputVelocity::updated_time() const {
   return updated_time_;
 }

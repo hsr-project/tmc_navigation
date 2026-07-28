@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -43,7 +43,7 @@ AstarExecuter::AstarExecuter(const int32_t width, const int32_t height) {
 }
 
 // Execute A* algorithm
-// Uniquely specify start and goal
+// Specify start and goal uniquely
 bool AstarExecuter::ExecuteAstar(
     const IMap::ConstPtr& map,
     const MapIndex& start,
@@ -86,33 +86,33 @@ bool AstarExecuter::ExecuteAstar(
   while (true) {
     // Dequeue the node with the smallest cost from the start
     AstarNode* const current_node = queue->Pop();
-    // If a goal candidate is reached and no better result is expected, end the search
+    // If a goal candidate is reached and no better result is expected, terminate the search
     if (best_goal_index && (current_node == NULL || current_node->total_cost() >= best_goal_cost)) {
       break;
     }
-    // If the queue is empty (i.e., no room for exploration within max_cost), give up
+    // If the queue becomes empty (=no room for exploration within max_cost), give up
     if (current_node == NULL) {
       break;
     }
-    // Due to design allowing multiple pushes of the same node, discard if already explored
+    // Discard if already explored due to design allowing multiple pushes of the same node
     if (current_node->is_closed()) {
       continue;
     }
     // Check if a goal candidate has been reached
     for (const MapIndexWithCost& goal : goal_index_with_costs) {
       if (current_node->index() == goal.index) {
-        // Add the last step to the cost so far to make it the final cost
+        // Add the last step to the cost so far to calculate the final cost
         const int32_t candidate_final_cost = current_node->total_cost() + goal.cost;
-        // If it's the lowest cost so far, record the point reached as the final candidate
+        // If the current cost is the lowest, record the reached point as the final candidate
         if (candidate_final_cost < best_goal_cost) {
           best_goal_index = goal.index;
           best_goal_cost = candidate_final_cost;
         }
       }
     }
-    // Get the next best
+    // Get the next point
     map->GetNextNodes(queue, node_manager_, current_node, max_cost);
-    // Mark the node as explored
+    // Mark the current node as explored
     current_node->Close();
   }
   if (best_goal_index) {
@@ -122,7 +122,7 @@ bool AstarExecuter::ExecuteAstar(
   return false;
 }
 
-/// Generate the optimal path from the nodes of the A* execution result
+/// Generate the optimal path from the nodes resulting from A* execution
 void AstarExecuter::ConvertToPath(
     const IMap::ConstPtr& map,
     const MapIndex& goal_index, PoseSeq& path) {
@@ -130,12 +130,12 @@ void AstarExecuter::ConvertToPath(
   const int32_t path_length = goal_node->total_step() + 1;
   path.resize(path_length);
 
-  // Cannot trace from the start side due to branches,
-  // Trace from goal to start, filling the output path from the back
+  // Cannot trace from the start side due to branching
+  // Trace from the goal to the start while appending the output path from the back
   AstarNode* current_node = goal_node;
   for (int32_t index = path_length - 1; index >= 0; --index) {
     map->IndexToPose(current_node->index(), path[index]);
-    // End when reaching the start
+    // Terminate when reaching the start
     if (current_node->total_step() == 0) {
       break;
     }

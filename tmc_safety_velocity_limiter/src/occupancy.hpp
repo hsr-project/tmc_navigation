@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -47,7 +47,7 @@ class Occupancy : private boost::noncopyable {
   /// Retrieve raw data of OccupancyGrid
   nav_msgs::msg::OccupancyGrid::ConstSharedPtr OccupancyGrid();
 
-  /// Get the occupancy value of the corresponding location from the base coordinates
+  /// Get the occupancy value of the corresponding location from the base coordinate
   int32_t GetOccupancyFromBase(const double x, const double y);
 
  private:
@@ -60,7 +60,7 @@ class Occupancy : private boost::noncopyable {
 
   // OccupancyGrid Subscriber
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr sub_occupancy_grid_;
-  // Frame name of the base coordinates
+  // Frame name of the base coordinate
   std::string base_frame_;
   // OccupancyGrid
   nav_msgs::msg::OccupancyGrid::ConstSharedPtr occupancy_grid_;

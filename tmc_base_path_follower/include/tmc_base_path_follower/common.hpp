@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -51,13 +51,13 @@ enum BasePoseCoordinates {
 };
 
 struct PathInfo {
-  // Original Path
+  // Original path
   PoseSeq origin_path;
-  // Spline Interpolated Path
+  // Spline interpolated path
   PoseSeq splined_path;
-  // Curvature at each point of the spline interpolated path [rad/m]
+  // Curvature [rad/m] at each point of the spline interpolated path
   std::vector<double> splined_path_curvatures;
-  // Distance from each point of the spline interpolated path to the goal [m]
+  // Distance [m] from each point of the spline interpolated path to the goal
   std::vector<double> splined_path_left_lengths;
 };
 }  // namespace tmc_base_path_follower

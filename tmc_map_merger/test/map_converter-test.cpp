@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -41,7 +41,7 @@ DAMAGE.
 
 namespace tmc_map_merger {
 
-// Generate a Map.
+// Generate a map.
 Map CreateBaseMap(const uint32_t width,
                   const uint32_t height,
                   const geometry_msgs::msg::Point& position) {
@@ -64,14 +64,14 @@ Map CreateBaseMap(const uint32_t width,
   return map;
 }
 
-// Create Filters
+// Create filters.
 std::vector<PointCloudFilter::Ptr> CreateFilters() {
-  // Use empty Filters in the Converter TEST
+  // Use empty filters in the Converter TEST.
   std::vector<PointCloudFilter::Ptr> out;
   return out;
 }
 
-// TEST if the result of GetOrigin with OccupancyGrid type is as expected
+// TEST whether the result of GetOrigin with OccupancyGrid type is as expected.
 TEST(MapConverterTest, OccupancyGridGetOrigin) {
   // Setup
   geometry_msgs::msg::Point position;
@@ -82,7 +82,7 @@ TEST(MapConverterTest, OccupancyGridGetOrigin) {
   geometry_msgs::msg::PoseStamped pose = converter.GetOrigin(msg);
 
   // Verify
-  // Check if the obtained result matches the content of the msg
+  // Check if the obtained result matches the content of the msg.
   ASSERT_EQ(msg.header.stamp.sec, pose.header.stamp.sec);
   ASSERT_EQ(msg.header.stamp.nanosec, pose.header.stamp.nanosec);
   ASSERT_EQ(msg.info.origin.position.x, pose.pose.position.x);
@@ -94,17 +94,17 @@ TEST(MapConverterTest, OccupancyGridGetOrigin) {
   ASSERT_EQ(msg.info.origin.orientation.w, pose.pose.orientation.w);
 }
 
-// TEST if the Map is updated when OccupancyGrid is converted.
-// Do not check if the reflected content is correct as it depends on the Projector.
-// Only check if the Map is updated.
+// TEST whether the map is updated when OccupancyGrid is converted.
+// Do not verify the correctness of the reflected content as it depends on the Projector.
+// Only check if the map is updated.
 TEST(MapConverterTest, OccupancyGridConvert) {
   // Setup
   geometry_msgs::msg::Point position;
   Map map;
-  // Generate pre-conversion Map 5*5
+  // Generate pre-conversion map 5*5.
   map = CreateBaseMap(5, 5, position);
   const std::vector<int8_t> map_data_init = map.data;
-  // Generate conversion target
+  // Generate conversion target.
   position.x = 0.15;
   position.y = 0.25;
   nav_msgs::msg::OccupancyGrid msg = CreateBaseMap(3, 3, position);
@@ -129,18 +129,18 @@ class MapConverterTestFixture : public testing::Test {
 };
 
 
-// TEST if the result of converting PointCloud is reflected in the Map.
-// Check if the Map is updated.
-// Do not check the validity of the content as it depends on the drawer
+// TEST whether the result of converting PointCloud is reflected in the map.
+// Check if the map is updated.
+// Do not check the validity of the content as it depends on the drawer.
 TEST_F(MapConverterTestFixture, PointCloudConvert) {
   // Setup
   const std::string input_name = "rgbd_sensor";
   geometry_msgs::msg::Point position;
   Map map;
-  // Generate pre-conversion Map 20*20
+  // Generate pre-conversion map 20*20.
   map = CreateBaseMap(20, 20, position);
   const std::vector<int8_t> map_data_init = map.data;
-  // Generate conversion target
+  // Generate conversion target.
   PointCloud msg;
   msg.header.frame_id = "map";
   msg.height = 1;
@@ -164,7 +164,7 @@ TEST_F(MapConverterTestFixture, PointCloudConvert) {
   ASSERT_NE(map_data_init, map.data);
 }
 
-// TEST if the result of GetOrigin with LaserScan type is as expected
+// TEST whether the result of GetOrigin with LaserScan type is as expected.
 TEST_F(MapConverterTestFixture, LaserScanGetOrigin) {
   // Setup
   const std::string input_name = "laser_scan";
@@ -188,7 +188,7 @@ TEST_F(MapConverterTestFixture, LaserScanGetOrigin) {
   geometry_msgs::msg::PoseStamped pose = converter.GetOrigin(msg);
 
   // Verify
-  // Check if the obtained result matches the content of the msg
+  // Check if the obtained result matches the content of the msg.
   ASSERT_EQ(msg.header.stamp.sec, pose.header.stamp.sec);
   ASSERT_EQ(msg.header.stamp.nanosec, pose.header.stamp.nanosec);
   ASSERT_EQ(0.0, pose.pose.position.x);
@@ -201,17 +201,17 @@ TEST_F(MapConverterTestFixture, LaserScanGetOrigin) {
 }
 
 // TEST the conversion of LaserScan type.
-// Check if the Map is updated.
-// Do not check the validity of the content as it depends on the PointCloud Converter
+// Check if the map is updated.
+// Do not check the validity of the content as it depends on the PointCloud Converter.
 TEST_F(MapConverterTestFixture, LaseScanConvert) {
   // Setup
   const std::string input_name = "laser_scan";
   geometry_msgs::msg::Point position;
   Map map;
-  // Generate pre-conversion Map 20*20
+  // Generate pre-conversion map 20*20.
   map = CreateBaseMap(20, 20, position);
   const std::vector<int8_t> map_data_init = map.data;
-  // Generate conversion target
+  // Generate conversion target.
   sensor_msgs::msg::LaserScan msg;
   const int data_num = 100;
   msg.angle_max = 1.0;
@@ -243,7 +243,7 @@ TEST_F(MapConverterTestFixture, LaseScanConvert) {
   ASSERT_NE(map_data_init, map.data);
 }
 
-// TEST if the result of GetOrigin with PointCloud2 type is as expected
+// TEST whether the result of GetOrigin with PointCloud2 type is as expected.
 TEST_F(MapConverterTestFixture, PointCloud2GetOrigin) {
   // Setup
   const std::string input_name = "rgbd_sensor";
@@ -261,7 +261,7 @@ TEST_F(MapConverterTestFixture, PointCloud2GetOrigin) {
   geometry_msgs::msg::PoseStamped pose = converter.GetOrigin(msg);
 
   // Verify
-  // Check if the obtained result matches the content of the msg
+  // Check if the obtained result matches the content of the msg.
   ASSERT_EQ(msg.header.stamp.sec, pose.header.stamp.sec);
   ASSERT_EQ(msg.header.stamp.nanosec, pose.header.stamp.nanosec);
   ASSERT_EQ(0.0, pose.pose.position.x);
@@ -273,19 +273,19 @@ TEST_F(MapConverterTestFixture, PointCloud2GetOrigin) {
   ASSERT_EQ(1.0, pose.pose.orientation.w);
 }
 
-// TEST the conversion of PointCloud2 type
-// Check if the Map is updated.
-// Do not check the validity of the content as it depends on the PointCloud Converter
+// TEST the conversion of PointCloud2 type.
+// Check if the map is updated.
+// Do not check the validity of the content as it depends on the PointCloud Converter.
 TEST_F(MapConverterTestFixture, PointCloud2Convert) {
   // Setup
   const std::string input_name = "rgbd_sensor";
   geometry_msgs::msg::Point position;
   Map map;
-  // Generate pre-conversion Map 20*20
+  // Generate pre-conversion map 20*20.
   map = CreateBaseMap(20, 20, position);
   const std::vector<int8_t> map_data_init = map.data;
 
-  // Generate conversion target
+  // Generate conversion target.
   PointCloud pcl_object;
   pcl_object.header.frame_id = "map";
   pcl_object.height = 1;

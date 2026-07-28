@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -126,7 +126,7 @@ void BasePathFollowerNode::PathFollowerActionCallBack() {
         goal = action_server_->accept_pending_goal();
       }
       first_time = false;
-      // If a path with less than 2 points is input, publish velocity 0 and cancel action
+      // If a path with less than two points is input, publish velocity 0 and abort action
       if (goal->path.poses.size() < 2) {
         RCLCPP_ERROR(this->get_logger(), "The number of Path points is less than 2. Abort follow action.");
         const Vector3d velocity = Vector3d::Zero();
@@ -134,10 +134,10 @@ void BasePathFollowerNode::PathFollowerActionCallBack() {
         action_server_->terminate_current(action_result);
         return;
       }
-      // Following path generation
+      // Generate following path
       origin_path = ConvertPathToPoseSeq(goal->path);
       path_info = path_info_creator_->CreatePathInfo(origin_path);
-      // Path following control class initialization
+      // Initialize path following control class
       base_path_follower_->Initialize(path_info);
       rate_.sleep();
       continue;
@@ -184,7 +184,7 @@ void BasePathFollowerNode::PathFollowerActionCallBack() {
       action_server_->succeeded_current(action_result);
       return;
     }
-    // Velocity issuance
+    // Velocity publishing
     PublishVelocity(velocity);
     rate_.sleep();
   }
@@ -197,7 +197,7 @@ void BasePathFollowerNode::FeedbackProgress(const PathInfo& path_info, const uin
   if (path_info.splined_path_left_lengths.size() > 0 && path_length > std::numeric_limits<double>::epsilon() &&
       current_path_index >= 0 && current_path_index < path_info.splined_path_left_lengths.size()) {
     double progress = 0.0;
-    // Calculation of arrival rate to the goal
+    // Calculate arrival rate to the goal
     progress = 1.0 - (path_info.splined_path_left_lengths.at(current_path_index) / path_length);
     auto feedback = std::make_shared<PathFollowActionServer::Feedback>();
     feedback->progress = progress;
@@ -205,7 +205,7 @@ void BasePathFollowerNode::FeedbackProgress(const PathInfo& path_info, const uin
   }
 }
 
-/// Issuance of Velocity
+/// Publish Velocity
 void BasePathFollowerNode::PublishVelocity(const Vector3d& velocity) {
   last_velocity_ = velocity;
   geometry_msgs::msg::Twist command_velocity;

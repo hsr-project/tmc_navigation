@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -45,7 +45,7 @@ PointCloudFilter::Ptr PointCloudFilterFactory::Create(const std::map<std::string
 
     ptr.reset(new PointCloudVoxelGridFilter(leaf_size_eigen));
   } else if (type == "trimming") {
-    // Do not accept filtering of fields other than x, y, z
+    // Only filtering fields other than x, y, z is not accepted
     std::vector<std::string> field_names;
     field_names.push_back("x");
     field_names.push_back("y");

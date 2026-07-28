@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -31,21 +31,21 @@ DAMAGE.
 #include "cost_corrector.hpp"
 
 /*
-Dynamic Obstacle Cost Correction
+Dynamic Obstacle Cost Adjustment
 
 Overview:
 Although the raw values of the dynamic map indicate passability,
-additional costs are imposed on areas deemed impassable due to potential threshold considerations,
-to encourage avoidance.
+areas determined to be impassable due to potential thresholds are
+assigned additional costs to encourage avoidance.
 
-Background & Purpose:
-Increase the cost around obstacles, so that even if they are not impassable,
-it encourages passing away from walls and the vicinity of obstacles.
+Background and Purpose:
+By adding costs around obstacles, even if they are not impassable,
+the system encourages paths that avoid walls and areas near obstacles.
 */
 
 namespace tmc_astar_lib {
 
-// Cost multiplier for areas where dynamic obstacles affect potential and make them impassable
+// Cost multiplier for areas where dynamic obstacles affect potential and block passage
 static const double kObstacleCostFactor = 2.0;
 
 class DynamicObstacleCostCorrector : public ICostCorrector {

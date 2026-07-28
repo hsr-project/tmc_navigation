@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -30,25 +30,25 @@ DAMAGE.
 #include <angles/angles.h>
 
 namespace {
-// Margin to prevent being judged as out of the goal area for slight deviations once entered
-// Multiplied with the distance parameter for goal area judgment
+// Once inside the goal area, a margin is applied to prevent it from being judged as outside the goal area due to slight deviations.
+// Multiplied with the distance parameter for goal area judgment.
 constexpr double kGoalAreaMergin = 1.5;
 }  // anonymous namespace
 
 namespace tmc_base_path_follower {
 
-// Execute goal check
+// Goal check execution.
 void DiffDriveGoalChecker::CheckGoal(const PoseSeq& path, const Pose2d& global_pose,
     bool& is_arrived_goal_area, bool& is_arrived_goal) {
   is_arrived_goal = CheckArrivedGoal(path, global_pose);
   is_arrived_goal_area = DiffDriveGoalChecker::CheckArrivedGoalArea(path, global_pose);
-  // Retain whether it entered the goal area until the last time
+  // Keeps track of whether the goal area was entered in the previous check.
   prev_arrived_goal_area_ = is_arrived_goal_area;
 }
 
-// Goal arrival judgment
+// Goal achievement judgment.
 bool DiffDriveGoalChecker::CheckArrivedGoal(const PoseSeq& path, const Pose2d& global_pose) {
-  // If it was in the goal area until the last time and the angle is within the threshold, it is judged to have reached the goal
+  // If the goal area was entered in the previous check and the angle is within the threshold, it is judged as having reached the goal.
   if (prev_arrived_goal_area_ &&
       CheckAngleToGoal(path.back(), global_pose, param_.goal_stop_error_angle)) {
     return true;
@@ -57,14 +57,14 @@ bool DiffDriveGoalChecker::CheckArrivedGoal(const PoseSeq& path, const Pose2d& g
 }
 
 
-// Goal area arrival judgment
-// Divide the circular area centered on the goal with a goal line considering the path direction
-// Considered as having reached the goal area if it enters the area beyond the goal line
+// Goal area arrival judgment.
+// The circular area centered on the goal is divided by a goal line considering the path direction.
+// If the area beyond the goal line is entered, it is considered as having reached the goal area.
 bool DiffDriveGoalChecker::CheckArrivedGoalArea(const PoseSeq& path, const Pose2d& global_pose) {
   double goal_area_length = param_.goal_area_length;
   double goal_line_length = param_.goal_line_length;
   if (prev_arrived_goal_area_) {
-    // Apply margin to the judgment value if previously judged as within the goal area
+    // If it was judged to be inside the goal area in the previous check, a margin is applied to the judgment value.
     goal_area_length = goal_area_length * kGoalAreaMergin;
     goal_line_length = goal_line_length * kGoalAreaMergin;
   }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -41,14 +41,14 @@ class CheckConditionTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     condition_checker_ = std::make_shared<ConditionChecker>();
-    /// Set to clear conditions and return kSuccess by default
-    /// Use this as a base to test by changing conditions in each test pattern
-    // Create a static map with the upper half as Free and the lower half as Wall in a 4mx4m area
+    /// Set the default condition to clear and return kSuccess
+    /// Use this as a base and change conditions for each test pattern
+    // Create a static map: upper half is Free, lower half is Wall
     CreateStaticMap(0.05, 80, 80);
     static_map_occupancy_threshold_ = kWallValue - 1;
 
-    // Create a dynamic map with the left half as Free and the right half as Wall in a 2mx2m area
-    // Place the origin so that the center of the map matches the static map
+    // Create a dynamic map: left half is Free, right half is Wall
+    // Place the origin so that the center of the map aligns with the static map
     CreateDynamicMap(Pose2d(1.0, 1.0, 0.0), 0.05, 40, 40);
 
     // Place the start, self-position, and goal in the Free area of both static and dynamic maps
@@ -60,7 +60,7 @@ class CheckConditionTest : public ::testing::Test {
   ConditionChecker::Ptr condition_checker_;
   // Static map
   CostMapPtr static_map_;
-  // Wall threshold for static map
+  // Static map wall threshold
   uint32_t static_map_occupancy_threshold_;
   // Dynamic map
   CostMapPtr dynamic_map_;
@@ -73,12 +73,12 @@ class CheckConditionTest : public ::testing::Test {
   // Self-position
   Pose2d global_pose_;
 
-  // Generate a static map. Make the upper half Free and the lower half Wall
+  // Generate a static map: upper half is Free, lower half is Wall
   void CreateStaticMap(const double map_resolution, const uint32_t map_width, const uint32_t map_height) {
     std::vector<unsigned char> map_data;
     // Initialize as Free
     map_data.resize(map_width * map_height, kFreeGrid);
-    // Make the lower half Wall
+    // Set the lower half as Wall
     for (uint32_t v = map_height / 2; v < map_height; ++v) {
       for (uint32_t u = 0; u < map_width; ++u) {
         map_data[u + v * map_width] = kWallValue;
@@ -87,13 +87,13 @@ class CheckConditionTest : public ::testing::Test {
     static_map_.reset(new CostMap(Pose2d(), map_resolution, map_width, map_height, map_data));
   }
 
-  // Generate a dynamic map. Make the left half Free and the right half Wall
+  // Generate a dynamic map: left half is Free, right half is Wall
   void CreateDynamicMap(const Pose2d& map_origin, const double map_resolution,
                         const uint32_t map_width, const uint32_t map_height) {
     std::vector<unsigned char> map_data;
     // Initialize as Free
     map_data.resize(map_width * map_height, kFreeGrid);
-    // Make the right half Wall
+    // Set the right half as Wall
     for (uint32_t v = 0; v < map_height; ++v) {
       for (uint32_t u = map_width / 2; u < map_width; ++u) {
         map_data[u + v * map_width] = kWallValue;
@@ -119,7 +119,7 @@ TEST_F(CheckConditionTest, Success) {
 
 
 /// CheckCondition test
-/// Return kRobotIsOutOfMap if the robot position is outside the range of the static map
+/// Return kRobotIsOutOfMap if the robot's position is outside the static map range
 TEST_F(CheckConditionTest, RobotIsOutOfMap) {
   // setup
   global_pose_.set_y((static_map_->max_v() + 1) * static_map_->resolution() + 0.01);
@@ -151,7 +151,7 @@ TEST_F(CheckConditionTest, GoalIsOnStaticObstacle) {
 
 
 /// CheckCondition test
-/// Return kGoalIsOnStaticObstacle if the goal position is outside the range of the static map
+/// Return kGoalIsOnStaticObstacle if the goal position is outside the static map range
 TEST_F(CheckConditionTest, GoalIsOutOfMap) {
   // setup
   goal_pose_.set_y((static_map_->max_v() + 1) * static_map_->resolution() + 0.01);

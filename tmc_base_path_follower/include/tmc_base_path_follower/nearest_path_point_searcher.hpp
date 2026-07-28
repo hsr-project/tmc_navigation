@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -68,7 +68,7 @@ class NearestPathPointSearcher : public INearestPathPointSearcher {
     }
     // Partial search range from the previous nearest point [m]
     double partial_search_range;
-    // Allowable error value between the partially searched route point and self-position [m]
+    // Acceptable error value between the partially searched route point and self-position [m]
     double partial_search_permit_error;
   };
 

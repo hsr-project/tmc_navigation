@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -46,17 +46,17 @@ class PathSmoother : public IPathSmoother {
   /// Constructor
   PathSmoother() = default;
 
-  /// Outputs a smoothed input path with assigned path orientation
+  /// Outputs a smoothed path with assigned directions based on the input path
   /// @param [I] input_path Input path
   /// @param [O] output_path Output path
   /// @return Success/Failure
   bool SmoothingPath(const PoseSeq& input_path, PoseSeq& output_path);
 
  private:
-  /// Calculates the coordinates of a single point at any location from the smoothed & interpolated input path
+  /// Calculates the coordinates of a single point at an arbitrary location on the smoothed and interpolated input path
   /// @param [I] input_path Input path
-  /// @param [I] index_to_filter Index position to calculate (e.g., if you want the midpoint between the 4th and 5th points, provide 4.5)
-  /// @param [O] filtered_pose Calculated coordinates with x, y only; orientation is not processed
+  /// @param [I] index_to_filter Index position to calculate (e.g., if the midpoint between the 4th and 5th points is desired, provide 4.5)
+  /// @param [O] filtered_pose Calculated coordinates (x, y only), direction is not processed
   /// @return None
   void FilterPathPoint_(const PoseSeq& input_path, const double index_to_filter, Pose2d& filtered_pose);
 };

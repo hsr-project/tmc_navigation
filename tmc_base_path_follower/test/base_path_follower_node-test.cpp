@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file base_path_follower_node-test.cpp
-/// @brief Test for omnidirectional cart path following node
+/// @brief Test for omnidirectional vehicle path-following node
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -54,35 +54,35 @@ DAMAGE.
 #include "test_utils.hpp"
 
 namespace {
-// General timeout time [s] To prevent infinite loops in processes where timeout monitoring as a test is not required
+// General timeout duration [s] Prevents infinite loops for processes that do not require timeout monitoring in tests
 constexpr double kTimeOut = 30.0;
-// Timeout time for path following [s]
+// Timeout duration for path-following [s]
 constexpr double kPathFollowTimeOut = 100.0;
-// Stop timeout time [s] Countermeasure for topic overtaking between action result and final velocity
+// Stop timeout duration [s] Countermeasure for topic overtaking between action result and final velocity
 constexpr double kStopTimeOut = 0.5;
 // Test drive cycle [s]
 constexpr double kCycleTime = 0.01;
-// Maximum following error monitored during movement [m]
+// Maximum tracking error monitored during movement [m]
 constexpr double kMaxLinearErrorThreshold = 0.1;
-// Position error allowed when stopped [m]
+// Position error allowed during stop [m]
 constexpr double kGoalLinearErrorThreshold = 0.05;
-// Angle error allowed when stopped [rad]
+// Angle error allowed during stop [rad]
 constexpr double kRotationalErrorThreshold = 5.0 * M_PI / 180.0;
 // Point interval of the input path [m]
 constexpr double kPathInterval = 0.05;
-// Path following action name
+// Path-following action name
 constexpr const char* const kActionName = "path_follow_action";
 // Maximum progress error monitored during movement
 constexpr double kMaxProgressErrorThreshold = 0.1;
 // Maximum allowable change in progress rate
 constexpr double kMaxProgressChangeThreshold =  0.05;
-// Distance [m] after which the robot is considered to have started moving after the action starts
+// Distance [m] to determine that the robot has started moving after the action starts
 constexpr double kMoveDetectionDistance = 0.5;
 // Test curve path file
 constexpr const char* const kCurvedPathFileName = "curve_path.yaml";
 // Test two-lap path file
 constexpr const char* const kTwoLapPathFileName = "two_lap_path.yaml";
-// Allowable time error [s] in self-position timeout time test
+// Time error allowed in self-position timeout test [s]
 constexpr double kGlobalPoseTimeoutTolerance = 0.1;
 }  // anonymous namespace
 
@@ -161,7 +161,7 @@ class TestNode : public rclcpp::Node {
     stop_publish_pose_service_ = this->create_client<std_srvs::srv::Empty>("/stop_publish_pose");
     action_client_ = rclcpp_action::create_client<PathFollowActionClient>(this, kActionName);
 
-    // If the initial value is 0, it may pass before subscribing, so set it to a value not used in the test
+    // Initial value of 0 may pass before subscription, so set to a value not used in tests
     global_pose_.pose.position.x = std::numeric_limits<double>::max();
     global_pose_.pose.position.y = std::numeric_limits<double>::max();
     velocity_.linear.x = std::numeric_limits<double>::max();
@@ -176,9 +176,9 @@ class TestNode : public rclcpp::Node {
         std::bind(&TestNode::PoseCallback, this, _1));
     sub_velocity_ = this->create_subscription<geometry_msgs::msg::Twist>("/base_velocity", 1,
         std::bind(&TestNode::VelocityCallback, this, _1));
-    // Monitoring of action state is required for tests when path is received
-    // Only the action_client that sends the action can check the action state, and there is no public interface to check externally
-    // Considered creating a function to determine state only for testing or using a hidden topic, decided to use a hidden topic this time
+    // Action state monitoring is required for testing when path is received
+    // Only the action_client sending the action can check the action state, no public interface for external confirmation
+    // Considered creating a function to determine state only for testing or using a hidden topic, decided to use a hidden topic
     sub_action_goal_ = this->create_subscription<action_msgs::msg::GoalStatusArray>(
         "/path_follow_action/_action/status", 1, std::bind(&TestNode::ActionGoalStatusCallback, this, _1));
 
@@ -222,7 +222,7 @@ class TestNode : public rclcpp::Node {
         kTimeOut);
   }
 
-  /// Start path following by action
+  /// Start path-following via action
   void SendPathFollowAction(const nav_msgs::msg::Path& path) {
     progress_ = 0.0;
     auto send_goal_options = rclcpp_action::Client<PathFollowActionClient>::SendGoalOptions();
@@ -239,18 +239,22 @@ class TestNode : public rclcpp::Node {
     ResetResultStatus();
   }
 
-  // Cancel path following by action
+  // Cancel path-following via action
   void CancelFollowAction() {
     action_client_->async_cancel_all_goals();
   }
 
-  /// Wait for path following initiated by action to complete
+  /// Wait for path-following initiated by action to complete
+  // Response drop occurs when ActionServer and ActionClient have the same cycle
+  // Change ActionClient cycle to 200.0Hz to avoid test failure
+  // TODO(kazuki_shibamiya) : actionの作りを見直し、ActionClientの周期を100.0Hzに戻す
   bool WaitForActionResult() {
     return WaitUntil(nodes_,
         [&]() {
           return (result_status_ != std::nullopt);
         },
-        kPathFollowTimeOut);
+        kPathFollowTimeOut,
+        200.0);
   }
 
   void SpinOnce() {
@@ -259,9 +263,9 @@ class TestNode : public rclcpp::Node {
     }
   }
 
-  /// Perform path following by action initiation and wait for completion
+  /// Perform path-following via action and wait for completion
   bool SendPathFollowActionAndWaitComplete(const nav_msgs::msg::Path& path) {
-    // Action initiation
+    // Start action
     SendPathFollowAction(path);
     // Wait for action to complete
     return WaitFollowActionComplete(path);
@@ -286,7 +290,7 @@ class TestNode : public rclcpp::Node {
       if (max_progress_error_ < progress_error) {
         max_progress_error_ = progress_error;
       }
-      // If not reached goal after a certain time, path following fails
+      // Path-following fails if goal is not reached within a certain time
       if (this->get_clock()->now() > limit_time) {
         RCLCPP_WARN(rclcpp::get_logger("base_path_follower_node-test"), "Path following timeout.");
         return false;
@@ -307,13 +311,13 @@ class TestNode : public rclcpp::Node {
         kStopTimeOut);
   }
 
-  /// Perform path following by topic and wait until stop. Do not determine if correctly reached goal
+  /// Perform path-following via topic and wait until stop. Does not determine if goal was reached correctly
   bool PublishPathAndWaitComplete(const nav_msgs::msg::Path& path,
       const int8_t expected_result_status) {
     // Publish path
     action_goal_status_ = action_msgs::msg::GoalStatus::STATUS_UNKNOWN;
     pub_path_->publish(path);
-    // Wait until reaching the goal of path following
+    // Wait until path-following reaches the goal
     const rclcpp::Time limit_time = this->get_clock()->now() +
         rclcpp::Duration::from_seconds(kPathFollowTimeOut);
     max_linear_error_ = 0.0;
@@ -323,7 +327,7 @@ class TestNode : public rclcpp::Node {
       if (max_linear_error_ < distance_to_nearest_point) {
         max_linear_error_ = distance_to_nearest_point;
       }
-      // If not reached goal after a certain time, path following fails
+      // Path-following fails if goal is not reached within a certain time
       if (this->get_clock()->now() > limit_time) {
         RCLCPP_WARN(rclcpp::get_logger("base_path_follower_node-test"), "Path following timeout.");
         return false;
@@ -335,7 +339,7 @@ class TestNode : public rclcpp::Node {
     return true;
   }
 
-  /// Wait for robot to move a specified distance
+  /// Wait for the robot to move a specified distance
   bool WaitToMove() {
     const geometry_msgs::msg::PoseStamped initial_pose = global_pose_;
 
@@ -346,12 +350,12 @@ class TestNode : public rclcpp::Node {
         kPathFollowTimeOut);
   }
 
-  // Reset path following action client result
+  // Reset path-following action client result
   void ResetResultStatus() {
     result_status_ = std::nullopt;
   }
 
-  // Publish following path
+  // Publish tracking path
   void PublishPath(const nav_msgs::msg::Path& path) {
     pub_path_->publish(path);
   }
@@ -359,17 +363,17 @@ class TestNode : public rclcpp::Node {
   /// Accessor
   // Self-position
   geometry_msgs::msg::PoseStamped global_pose() const { return global_pose_; }
-  // Path following action client result
+  // Path-following action client result
   std::optional<rclcpp_action::ResultCode> result_status() const { return result_status_; }
-  // Maximum path following error
+  // Maximum path-following error
   double max_linear_error() const { return max_linear_error_; }
   // Maximum progress error
   double max_progress_error() const { return max_progress_error_; }
-  // Maximum change in progress
+  // Maximum progress change
   double max_progress_change() const { return max_progress_change_; }
-  // Maximum following error monitored during movement [m]
+  // Maximum tracking error monitored during movement [m]
   double max_linear_error_threshold() const { return max_linear_error_threshold_; }
-  // Position error allowed when stopped [m]
+  // Position error allowed during stop [m]
   double goal_linear_error_threshold() const { return goal_linear_error_threshold_; }
 
  private:
@@ -378,7 +382,7 @@ class TestNode : public rclcpp::Node {
     global_pose_ = *pose;
   }
 
-  /// Cart velocity command callback
+  /// Vehicle velocity command callback
   void VelocityCallback(const geometry_msgs::msg::Twist::SharedPtr velocity) {
     velocity_ = *velocity;
   }
@@ -394,7 +398,7 @@ class TestNode : public rclcpp::Node {
       const std::shared_ptr<const PathFollowActionClient::Feedback> feedback) {
     const double progress_change = fabs(progress_ - feedback->progress);
     if (max_progress_change_ < progress_change) {
-      // Record maximum change in progress
+      // Record maximum progress change
       max_progress_change_ = progress_change;
     }
 
@@ -409,19 +413,19 @@ class TestNode : public rclcpp::Node {
 
   // Cycle wait
   rclcpp::Rate rate_;
-  // Following path publisher
+  // Tracking path publisher
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_path_;
   // Test start position publisher
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_initial_pose_;
   // Self-position subscriber
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr sub_global_pose_;
-  // Cart velocity command subscriber
+  // Vehicle velocity command subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_velocity_;
-  // Path following action client
+  // Path-following action client
   rclcpp_action::Client<PathFollowActionClient>::SharedPtr action_client_;
-  // Path following action client result
+  // Path-following action client result
   std::optional<rclcpp_action::ResultCode> result_status_;
-  // Path following action topic result
+  // Path-following action topic result
   int8_t action_goal_status_;
   rclcpp::Subscription<action_msgs::msg::GoalStatusArray>::SharedPtr sub_action_goal_;
 
@@ -430,22 +434,22 @@ class TestNode : public rclcpp::Node {
 
   // Self-position
   geometry_msgs::msg::PoseStamped global_pose_;
-  // Cart velocity command value
+  // Vehicle velocity command value
   geometry_msgs::msg::Twist velocity_;
   // Action progress rate
   double progress_;
-  // Maximum path following error
+  // Maximum path-following error
   double max_linear_error_;
   // Maximum progress error
   double max_progress_error_;
-  // Maximum change in progress
+  // Maximum progress change
   double max_progress_change_;
-  // Maximum following error monitored during movement [m]
+  // Maximum tracking error monitored during movement [m]
   double max_linear_error_threshold_;
-  // Position error allowed when stopped [m]
+  // Position error allowed during stop [m]
   double goal_linear_error_threshold_;
 
-  // Dummy self-position start/stop service
+  // Start/stop service for dummy self-position
   rclcpp::Client<std_srvs::srv::Empty>::SharedPtr start_publish_pose_service_;
   rclcpp::Client<std_srvs::srv::Empty>::SharedPtr stop_publish_pose_service_;
 };
@@ -456,7 +460,7 @@ class BasePathFollowerNodeTest : public testing::Test {
   BasePathFollowerNodeTest() {}
 
  protected:
-  /// Initial test setup
+  /// Test initial setup
   virtual void SetUp() {
     std::string parameter_file = std::string(getenv("PARAMETER_FILE"));
     parameter_file.erase(0, 1);
@@ -494,12 +498,12 @@ class BasePathFollowerNodeTest : public testing::Test {
   std::shared_ptr<RobotDummyNode> robot_dummy_node_;
   std::shared_ptr<std::thread> robot_dummy_thread_;
 
-  // Start/goal position
+  // Start/goal positions
   geometry_msgs::msg::PoseStamped start_pose_;
   geometry_msgs::msg::PoseStamped goal_pose_;
 };
 
-/// Normal path following confirmation by action
+/// Normal case confirmation for path-following via action
 /// Check if action ends normally and progress report is accurate
 TEST_F(BasePathFollowerNodeTest, ActionNormalOperation) {
   // setup
@@ -508,7 +512,7 @@ TEST_F(BasePathFollowerNodeTest, ActionNormalOperation) {
   // Place robot at start position
   ASSERT_TRUE(test_node_->InitiateRobotPose(start_pose_));
   // exercise
-  // Check if it can complete following on a straight path
+  // Check if path-following can be completed for a straight path
   ASSERT_TRUE(test_node_->SendPathFollowActionAndWaitComplete(linear_path));
 
   // verify
@@ -516,11 +520,11 @@ TEST_F(BasePathFollowerNodeTest, ActionNormalOperation) {
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::SUCCEEDED);
 
-  // Check if maximum following error is below specified value
+  // Check if maximum tracking error is below specified value
   EXPECT_LT(test_node_->max_linear_error(), test_node_->max_linear_error_threshold());
   // Check if maximum progress rate error during movement is below specified value
   EXPECT_LT(test_node_->max_progress_error(), kMaxProgressErrorThreshold);
-  // Check if final goal position and angle error is below specified value
+  // Check if final goal position and angle error are below specified value
   const double error_linear = CalcDistance(goal_pose_, test_node_->global_pose());
   const double error_t = angles::shortest_angular_distance(tf2::getYaw(goal_pose_.pose.orientation),
                                                            tf2::getYaw(test_node_->global_pose().pose.orientation));
@@ -528,20 +532,20 @@ TEST_F(BasePathFollowerNodeTest, ActionNormalOperation) {
   EXPECT_LT(fabs(error_t), kRotationalErrorThreshold);
 }
 
-/// Short distance straight path following test
-/// Generate random short distance straight path and follow
-/// Check if it can correctly reach goal with error below certain value
+/// Short-distance straight path-following test
+/// Generate random short-distance straight path and follow it
+/// Check if goal can be reached correctly with error below a certain value
 TEST_F(BasePathFollowerNodeTest, RandomLinearPath) {
   // setup
   // Randomly set goal position
   std::mt19937 rng(static_cast<unsigned int>(time(0)));
-  // Translation random number
+  // Translation random value
   std::uniform_real_distribution<> linear_dist(0.0, 2.0);
   auto linear_rand = [&]() { return linear_dist(rng); };
-  // Rotation random number
+  // Rotation random value
   std::uniform_real_distribution<> angular_dist(-M_PI, M_PI);
   auto angular_rand = [&]() { return angular_dist(rng); };
-  // Goal setting
+  // Set goal
   goal_pose_.pose.position.x = start_pose_.pose.position.x + linear_rand();
   goal_pose_.pose.position.y = start_pose_.pose.position.y + linear_rand();
   goal_pose_.pose.orientation = createQuaternionMsgFromYaw(angular_rand());
@@ -554,7 +558,7 @@ TEST_F(BasePathFollowerNodeTest, RandomLinearPath) {
   ASSERT_TRUE(test_node_->InitiateRobotPose(start_pose_));
 
   // exercise
-  // Check if it can complete following on a straight path
+  // Check if path-following can be completed for a straight path
   ASSERT_TRUE(test_node_->SendPathFollowActionAndWaitComplete(linear_path));
 
   // verify
@@ -562,9 +566,9 @@ TEST_F(BasePathFollowerNodeTest, RandomLinearPath) {
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::SUCCEEDED);
 
-  // Check if maximum following error is below specified value
+  // Check if maximum tracking error is below specified value
   EXPECT_LT(test_node_->max_linear_error(), test_node_->max_linear_error_threshold());
-  // Check if final goal position and angle error is below specified value
+  // Check if final goal position and angle error are below specified value
   const double error_linear = CalcDistance(goal_pose_, test_node_->global_pose());
   const double error_t = angles::shortest_angular_distance(
       tf2::getYaw(goal_pose_.pose.orientation), tf2::getYaw(test_node_->global_pose().pose.orientation));
@@ -572,28 +576,28 @@ TEST_F(BasePathFollowerNodeTest, RandomLinearPath) {
   EXPECT_LT(fabs(error_t), kRotationalErrorThreshold);
 }
 
-/// Curve path following test
-/// Load path including curve from file and follow
-/// Check if it can correctly reach goal with error below certain value
+/// Curved path-following test
+/// Load path including curves from file and follow it
+/// Check if goal can be reached correctly with error below a certain value
 TEST_F(BasePathFollowerNodeTest, FollowCurvePath) {
   // setup
-  // Load path file including curve
+  // Load path file including curves
   nav_msgs::msg::Path curve_path;
   ASSERT_TRUE(ReadPath(kCurvedPathFileName, curve_path));
   // Place robot at start position
   ASSERT_TRUE(test_node_->InitiateRobotPose(curve_path.poses.front()));
 
   // exercise
-  // Check if it can complete following on specified path
+  // Check if path-following can be completed for the specified path
   ASSERT_TRUE(test_node_->SendPathFollowActionAndWaitComplete(curve_path));
 
   // verify
   // Check if action stops with SUCCEEDED
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::SUCCEEDED);
-  // Check if maximum following error is below specified value
+  // Check if maximum tracking error is below specified value
   EXPECT_LT(test_node_->max_linear_error(), test_node_->max_linear_error_threshold());
-  // Check if final goal position and angle error is below specified value
+  // Check if final goal position and angle error are below specified value
   const double error_linear = CalcDistance(curve_path.poses.back(), test_node_->global_pose());
   const double error_t = angles::shortest_angular_distance(
       tf2::getYaw(curve_path.poses.back().pose.orientation),
@@ -602,32 +606,32 @@ TEST_F(BasePathFollowerNodeTest, FollowCurvePath) {
   EXPECT_LT(fabs(error_t), kRotationalErrorThreshold);
 }
 
-/// Path following test for two laps around the same place
-/// Load path from file and follow
-/// Check if it follows the path in order
-/// Check if it can correctly reach goal
+/// Path-following test for running the same location twice
+/// Load path from file and follow it
+/// Check if path is followed in order
+/// Check if goal can be reached correctly
 TEST_F(BasePathFollowerNodeTest, FollowTwoLapPath) {
   // setup
-  // Load path file for two laps around the same place
+  // Load path file for running the same location twice
   nav_msgs::msg::Path two_lap_path;
   ASSERT_TRUE(ReadPath(kTwoLapPathFileName, two_lap_path));
   // Place robot at start position
   ASSERT_TRUE(test_node_->InitiateRobotPose(two_lap_path.poses.front()));
 
   // exercise
-  // Check if it can complete following on specified path
+  // Check if path-following can be completed for the specified path
   ASSERT_TRUE(test_node_->SendPathFollowActionAndWaitComplete(two_lap_path));
 
   // verify
-  /// The path used in this test makes two laps of a small circle with a radius of 25cm
-  /// Therefore, the condition for following error is too strict beyond the range we want to verify as capability
-  /// Do not check maximum following error
+  /// The path used in this test involves two laps of a small circle with a radius of 25cm
+  /// Therefore, the tracking error condition is stricter than the range we want to verify
+  /// Maximum tracking error check will not be performed
   // Check if action stops with SUCCEEDED
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::SUCCEEDED);
-  // Check if it follows the path in order. Confirm that progress change is within threshold
+  // Check if path is followed in order. Confirm progress change is within threshold
   EXPECT_LT(test_node_->max_progress_change(), kMaxProgressChangeThreshold);
-  // Check if final goal position and angle error is below specified value
+  // Check if final goal position and angle error are below specified value
   const double error_linear = CalcDistance(two_lap_path.poses.back(), test_node_->global_pose());
   const double error_t = angles::shortest_angular_distance(
       tf2::getYaw(two_lap_path.poses.back().pose.orientation),
@@ -636,7 +640,7 @@ TEST_F(BasePathFollowerNodeTest, FollowTwoLapPath) {
   EXPECT_LT(fabs(error_t), kRotationalErrorThreshold);
 }
 
-/// Check if it stops when action is canceled
+/// Check if action stops when canceled
 TEST_F(BasePathFollowerNodeTest, CancelAction) {
   // setup
   // Create straight path
@@ -645,24 +649,24 @@ TEST_F(BasePathFollowerNodeTest, CancelAction) {
   ASSERT_TRUE(test_node_->InitiateRobotPose(start_pose_));
 
   // exercise
-  // Issue action and wait until it starts moving
+  // Issue action and wait until movement starts
   test_node_->SendPathFollowAction(linear_path);
   EXPECT_TRUE(test_node_->WaitToMove());
   // Issue cancel
   test_node_->CancelFollowAction();
-  // Wait for action completion
+  // Wait for action to complete
   ASSERT_TRUE(test_node_->WaitForActionResult());
   // verify
   // Check if action stops with CANCELED
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::CANCELED);
-  // Check if current speed is 0 and stopped
+  // Check if current velocity is 0 and stopped
   EXPECT_TRUE(test_node_->WaitToStop());
 }
 
 /// Input another action during action execution
-/// Check if it can correctly reach goal for subsequent action
-/// Check if goal judgment corresponding to later input path is returned
+/// Check if goal can be reached correctly for subsequent action
+/// Check if goal determination corresponding to the later input path is returned
 TEST_F(BasePathFollowerNodeTest, UpdateActionByAction) {
   // setup
   // Create straight path
@@ -674,7 +678,7 @@ TEST_F(BasePathFollowerNodeTest, UpdateActionByAction) {
   // Issue action and wait until robot starts moving
   test_node_->SendPathFollowAction(linear_path);
   EXPECT_TRUE(test_node_->WaitToMove());
-  // Generate path from current position to another goal
+  // Generate path to another goal from current position
   geometry_msgs::msg::PoseStamped second_goal_pose;
   second_goal_pose.pose.position.x = 2.0;
   second_goal_pose.pose.position.y = -1.0;
@@ -683,19 +687,19 @@ TEST_F(BasePathFollowerNodeTest, UpdateActionByAction) {
       test_node_->global_pose(), second_goal_pose, kPathInterval);
   // Issue new path
   test_node_->SendPathFollowAction(second_linear_path);
-  // Confirm that the initial action becomes ABORTED
+  // Confirm that the earlier action becomes ABORTED
   ASSERT_TRUE(test_node_->WaitForActionResult());
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::ABORTED);
   test_node_->ResetResultStatus();
-  // Check if it can complete following on new path
+  // Check if path-following can be completed for the new path
   test_node_->WaitFollowActionComplete(second_linear_path);
 
   // verify
   // Check if subsequent action ends with SUCCEEDED
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::SUCCEEDED);
-  // Check if it has reached the goal corresponding to subsequent action
+  // Check if the goal corresponding to the subsequent action is reached
   const double error_linear = CalcDistance(second_goal_pose, test_node_->global_pose());
   const double error_t = angles::shortest_angular_distance(
       tf2::getYaw(second_goal_pose.pose.orientation), tf2::getYaw(test_node_->global_pose().pose.orientation));
@@ -703,8 +707,8 @@ TEST_F(BasePathFollowerNodeTest, UpdateActionByAction) {
   EXPECT_LT(fabs(error_t), kRotationalErrorThreshold);
 }
 
-/// Abnormal input path confirmation
-/// Check if action returns ABORTED when path with less than 2 points is input
+/// Abnormal case confirmation for input path
+/// Check if action returns ABORTED when a path with less than 2 points is input
 TEST_F(BasePathFollowerNodeTest, InvalidGoal) {
   // setup
   // Create single-point path
@@ -743,7 +747,7 @@ TEST_F(BasePathFollowerNodeTest, PreemptedByInvalidGoal) {
   one_point_path.poses.push_back(test_node_->global_pose());
   // Reissue action with new path
   test_node_->SendPathFollowAction(one_point_path);
-  // Confirm that the initial action becomes ABORTED
+  // Confirm that the earlier action becomes ABORTED
   ASSERT_TRUE(test_node_->WaitForActionResult());
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::ABORTED);
@@ -754,12 +758,12 @@ TEST_F(BasePathFollowerNodeTest, PreemptedByInvalidGoal) {
   ASSERT_TRUE(test_node_->WaitForActionResult());
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::ABORTED);
-  // Check if current speed is 0 and stopped
+  // Check if current velocity is 0 and stopped
   EXPECT_TRUE(test_node_->WaitToStop());
 }
 
-/// Normal path following confirmation by topic
-/// Check if it stops at goal coordinates
+/// Normal case confirmation for path-following via topic
+/// Check if robot stops at goal coordinates
 TEST_F(BasePathFollowerNodeTest, TopicNormalOperation) {
   // setup
   // Create straight path
@@ -768,15 +772,15 @@ TEST_F(BasePathFollowerNodeTest, TopicNormalOperation) {
   ASSERT_TRUE(test_node_->InitiateRobotPose(start_pose_));
 
   // exercise
-  // Check if it can complete following on a straight path
+  // Check if path-following can be completed for a straight path
   ASSERT_TRUE(test_node_->PublishPathAndWaitComplete(linear_path, action_msgs::msg::GoalStatus::STATUS_SUCCEEDED));
 
   // verify
-  // Check if maximum following error is below specified value
+  // Check if maximum tracking error is below specified value
   EXPECT_LT(test_node_->max_linear_error(), test_node_->max_linear_error_threshold());
   // Check if maximum progress rate error during movement is below specified value
   EXPECT_LT(test_node_->max_progress_error(), kMaxProgressErrorThreshold);
-  // Check if final goal position and angle error is below specified value
+  // Check if final goal position and angle error are below specified value
   const double error_linear = CalcDistance(goal_pose_, test_node_->global_pose());
   const double error_t = angles::shortest_angular_distance(tf2::getYaw(goal_pose_.pose.orientation),
                                                            tf2::getYaw(test_node_->global_pose().pose.orientation));
@@ -784,8 +788,8 @@ TEST_F(BasePathFollowerNodeTest, TopicNormalOperation) {
   EXPECT_LT(fabs(error_t), kRotationalErrorThreshold);
 }
 
-/// Overwrite path following by topic
-/// Check if goal judgment corresponding to later input path is returned
+/// Overwriting path-following via topic
+/// Check if goal determination corresponding to the later input path is returned
 TEST_F(BasePathFollowerNodeTest, UpdateTopicByTopic) {
   // setup
   // Create straight path
@@ -797,18 +801,18 @@ TEST_F(BasePathFollowerNodeTest, UpdateTopicByTopic) {
   // Publish path and wait until robot starts moving
   test_node_->PublishPath(linear_path);
   EXPECT_TRUE(test_node_->WaitToMove());
-  // Generate path from current position to another goal
+  // Generate path to another goal from current position
   geometry_msgs::msg::PoseStamped second_goal_pose;
   second_goal_pose.pose.position.x = 2.0;
   second_goal_pose.pose.position.y = -1.0;
   second_goal_pose.pose.orientation = createQuaternionMsgFromYaw(0.0);
   const nav_msgs::msg::Path second_linear_path = CreateLinearPath(test_node_->global_pose(),
                                                                   second_goal_pose, kPathInterval);
-  // Issue new path and check if it can complete following on that path
+  // Issue new path and check if path-following can be completed for it
   ASSERT_TRUE(test_node_->PublishPathAndWaitComplete(second_linear_path,
               action_msgs::msg::GoalStatus::STATUS_SUCCEEDED));
 
-  // Check if it has reached the new goal
+  // Check if the new goal is reached
   const double error_linear = CalcDistance(second_goal_pose, test_node_->global_pose());
   const double error_t = angles::shortest_angular_distance(tf2::getYaw(second_goal_pose.pose.orientation),
                                                            tf2::getYaw(test_node_->global_pose().pose.orientation));
@@ -826,14 +830,14 @@ TEST_F(BasePathFollowerNodeTest, GlobalPoseTimeout) {
   ASSERT_TRUE(test_node_->InitiateRobotPose(start_pose_));
 
   // exercise
-  // Issue action and wait until it starts moving
+  // Issue action and wait until movement starts
   test_node_->SendPathFollowAction(linear_path);
   EXPECT_TRUE(test_node_->WaitToMove());
   const rclcpp::Time stop_global_pose_time = test_node_->get_clock()->now();
   // Stop dummy self-position publishing
   test_node_->StopPublishDummyPose();
 
-  // Wait for action completion
+  // Wait for action to complete
   ASSERT_TRUE(test_node_->WaitForActionResult());
   const double elapsed_time = (test_node_->get_clock()->now() - stop_global_pose_time).seconds();
 
@@ -842,9 +846,9 @@ TEST_F(BasePathFollowerNodeTest, GlobalPoseTimeout) {
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::ABORTED);
 
-  // Check if current speed is 0 and stopped
+  // Check if current velocity is 0 and stopped
   EXPECT_TRUE(test_node_->WaitToStop());
-  // If a valid value is specified for the timeout time parameter, confirm that it times out after the specified time
+  // Confirm timeout occurs after specified time if a valid timeout parameter is set
   double global_pose_timeout;
   if (GetParam(base_path_follower_node_, "global_pose_timeout", global_pose_timeout) &&
       global_pose_timeout > std::numeric_limits<double>::epsilon()) {
@@ -853,13 +857,13 @@ TEST_F(BasePathFollowerNodeTest, GlobalPoseTimeout) {
   }
 }
 
-/// When the nearest point is the goal but is a certain distance away from the goal
+/// When the nearest point is the goal but the robot is a certain distance away from the goal
 /// Considered as overrun, check if action becomes ABORTED and robot stops
 TEST_F(BasePathFollowerNodeTest, OverRunning) {
   // setup
   // Create straight path
   const nav_msgs::msg::Path linear_path = CreateLinearPath(start_pose_, goal_pose_, kPathInterval);
-  // Place robot beyond the goal position
+  // Place robot at a position beyond the goal
   geometry_msgs::msg::PoseStamped robot_pose;
   robot_pose.pose.position.x = goal_pose_.pose.position.x + 1.0;
   robot_pose.pose.position.y = goal_pose_.pose.position.y + 1.0;
@@ -867,9 +871,9 @@ TEST_F(BasePathFollowerNodeTest, OverRunning) {
   ASSERT_TRUE(test_node_->InitiateRobotPose(robot_pose));
 
   // exercise
-  // Issue action and wait until it starts moving
+  // Issue action and wait until movement starts
   test_node_->SendPathFollowAction(linear_path);
-  // Wait for action completion
+  // Wait for action to complete
   ASSERT_TRUE(test_node_->WaitForActionResult());
 
   // verify
@@ -877,7 +881,7 @@ TEST_F(BasePathFollowerNodeTest, OverRunning) {
   ASSERT_NE(test_node_->result_status(), std::nullopt);
   EXPECT_EQ(test_node_->result_status().value(), rclcpp_action::ResultCode::ABORTED);
 
-  // Check if current speed is 0 and stopped
+  // Check if current velocity is 0 and stopped
   EXPECT_TRUE(test_node_->WaitToStop());
 }
 }  // namespace tmc_base_path_follower

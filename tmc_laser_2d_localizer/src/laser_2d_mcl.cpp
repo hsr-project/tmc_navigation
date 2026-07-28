@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -42,7 +42,7 @@ DAMAGE.
 /**
   @brief Default parameters
   @par
-  If parameter settings are not available, default parameters are used, but
+  If parameter settings are missing, default parameters are used, but
   It might be better to throw an error and terminate if no external settings are provided.
 */
 namespace {
@@ -50,15 +50,15 @@ namespace {
 double const kParticleNum = 200;
 /// Effective particle ratio. Resampling trigger threshold
 double const kEffectiveParticleRatio = 0.5;
-/// Standard deviation of odometry error caused by xy movement affecting yx movement
+/// Standard deviation of odometry error caused by xy movement on yx movement
 double const kStandardDeviationXyToYx = 0.1;
-/// Standard deviation of odometry error caused by xy movement affecting xy movement
+/// Standard deviation of odometry error caused by xy movement on xy movement
 double const kStandardDeviationXyToXy = 0.1;
-/// Standard deviation of odometry error caused by xy movement affecting angular movement
+/// Standard deviation of odometry error caused by xy movement on angular movement
 double const kStandardDeviationXyToTheta = 0.01;
-/// Standard deviation of odometry error caused by angular movement affecting xy movement
+/// Standard deviation of odometry error caused by angular movement on xy movement
 double const kStandardDeviationThetaToXy = 1.0;
-/// Standard deviation of odometry error caused by angular movement affecting angular movement
+/// Standard deviation of odometry error caused by angular movement on angular movement
 double const kStandardDeviationThetaToTheta = 0.1;
 /// Standard deviation of xy error in particle dispersion during self-localization reset
 double const kStandardDeviationInitXY = 0.0;
@@ -76,7 +76,7 @@ double const kDistanceTriggeringFilter = 0.1;
 double const kAngleTriggeringFilter = 0.5;
 /// (m)width of the potential of Distance Map.
 double const kPotentialWidth = 3.0;
-/// At what distance from the wall should an obstacle be considered not on the map
+/// Distance from the wall to consider an obstacle as not on the map
 double const kFilteringThresh = 1.0;
 }  // anonimous namespace
 
@@ -84,7 +84,7 @@ namespace tmc_laser_2d_localizer {
 /**
   @brief Constructor
   @par
-  Initialization of each member variable, allocation of data area
+  Initialize each member variable and allocate data areas
 */
 Laser2dMcl::Laser2dMcl()
     : is_range_data_initialized_(false),
@@ -110,7 +110,7 @@ Laser2dMcl::Laser2dMcl()
   // Odometry initialization
   odometry_ = Pose2d(0.0, 0.0, 0.0);
   init_odometry_ = Pose2d(0.0, 0.0, 0.0);
-  // Initialization of 2D LRF self-localization data area
+  // Initialize data area for 2D LRF self-localization
   laser_2d_pose_ = Pose2d(0.0, 0.0, 0.0);
 
   return;
@@ -119,19 +119,19 @@ Laser2dMcl::Laser2dMcl()
 /**
   @brief Destructor
   @par
-  Release of data area allocated in the constructor
+  Release data areas allocated in the constructor
 */
 Laser2dMcl::~Laser2dMcl() {}
 
 /**
-  @brief Parameter data acquisition
+  @brief Retrieve parameter data
   @param value Parameter data
   @return None
 
 */
 void Laser2dMcl::set_params(const Laser2dMclParams& value) {
   memcpy(&params_, &value, sizeof(value));
-  // Since self-localization is included in the parameters, set the initialization flag to true
+  // Since self-location is included in the parameters, set the initialization flag to true
   is_pose_initialized_ = true;
   return;
 }
@@ -145,12 +145,12 @@ Pose2d Laser2dMcl::init_pose_param(void) const {
 }
 
 /**
-  @brief Odometry data acquisition
+  @brief Retrieve odometry data
   @param value Odometry data
 */
 
 void Laser2dMcl::set_odometry(const Pose2d& value) {
-  // Save only the first time to init_odometry_
+  // Save to init_odometry_ only on the first time
   static bool s_is_first = true;
   if (s_is_first) {
     init_odometry_ = value;
@@ -161,8 +161,8 @@ void Laser2dMcl::set_odometry(const Pose2d& value) {
 }
 
 /**
-  @brief Self-localization map data acquisition
-  @param value Self-localization map data
+  @brief Retrieve self-location map data
+  @param value Self-location map data
 */
 void Laser2dMcl::set_distance_map(const std::shared_ptr<DistanceMap>& value) {
   p_distance_map_ = value;
@@ -170,7 +170,7 @@ void Laser2dMcl::set_distance_map(const std::shared_ptr<DistanceMap>& value) {
 
 /**
   @brief Set 2D point cloud
-  Input data using the robot center (=self-localization) as the coordinate system.
+  Input data with the robot center (= self-location) as the coordinate system.
   Generally referred to as the robot coordinate system.
 */
 void Laser2dMcl::set_point_cloud_2d(const icSlam_tagRangeXY& value) {
@@ -180,7 +180,7 @@ void Laser2dMcl::set_point_cloud_2d(const icSlam_tagRangeXY& value) {
 }
 
 /**
-   @brief Self-localization reset
+   @brief Reset self-location
    Align particles to the input position
 */
 void Laser2dMcl::set_initial_pose(const Pose2d& value) {
@@ -190,11 +190,11 @@ void Laser2dMcl::set_initial_pose(const Pose2d& value) {
 }
 
 /**
-  @brief Execute MCL and obtain self-localization estimation result
-  @return Self-localization estimation result in global coordinates
+  @brief Execute MCL and retrieve self-localization results
+  @return Self-localization results in global coordinates
 */
 Pose2d Laser2dMcl::CorrectPosition() {
-  // Self-localization estimation result
+  // Self-localization results
   static icSlam_tagOrientedPoint s_result_pose = { 0.0, 0.0, 0.0 };
 
   static bool s_only_first = true;
@@ -208,12 +208,12 @@ Pose2d Laser2dMcl::CorrectPosition() {
     } else if (p_distance_map_ == nullptr) {
       CONSOLE_BRIDGE_logError("Map has not been initialized. Do nothing.");
     }
-    // If external data is not initialized, return the initial value and terminate
+    // If external data is not initialized, return the initial value as is and terminate
     return params_.init_pose;
   }
 
   // Update particle initial position
-  // Assign initial position to the estimated value
+  // Assign the initial position to the estimated value
   if (is_pose_initialized_) {
     icSlam_tagOrientedPoint initPose;
     initPose.f_x = params_.init_pose.x();
@@ -231,7 +231,7 @@ Pose2d Laser2dMcl::CorrectPosition() {
   // Calculate odometry movement
   static bool s_is_first = true;
   static icSlam_tagOrientedPoint s_oldOdom;
-  // Copy init_odometry_ to oldOdom only the first time
+  // Copy init_odometry_ to oldOdom only on the first time
   if (s_is_first) {
     s_oldOdom.f_x = init_odometry_.x();
     s_oldOdom.f_y = init_odometry_.y();
@@ -256,14 +256,14 @@ Pose2d Laser2dMcl::CorrectPosition() {
                              params_.standard_deviation_theta_to_theta, params_.standard_deviation_xy_to_xy,
                              params_.standard_deviation_theta_to_xy);
   }
-  // Move particles with the motion model
+  // Move particles using the motion model
   icSlam_Fd_predict(dOdom);
 
-  // Set map
+  // Set the map
   icSlam_Fd_setMapSize(p_distance_map_->width(), p_distance_map_->height(), p_distance_map_->resolution(),
                        params_.potential_width, params_.filtering_thresh);
 
-  // Redistribute particles that are out of the map
+  // Redistribute particles that are outside the map
   icSlam_Fd_killRingOut(static_cast<uint8_t*>(p_distance_map_->data().data()), &s_result_pose,
                         p_distance_map_->origin().x(), p_distance_map_->origin().y());
 
@@ -276,14 +276,14 @@ Pose2d Laser2dMcl::CorrectPosition() {
                                                  p_distance_map_->origin().x(), p_distance_map_->origin().y());
 
 
-  // Adopt estimation result if likelihood is high or laser_2d_correct_pose is used
+  // Adopt the estimation result if the likelihood is high or in the case of laser_2d_correct_pose
   if (best_matching_score_ > localization_score_limit_ || is_manual_reset_ || s_only_first) {
     is_manual_reset_ = false;
     s_only_first = false;
     // Normalize particle weights
     icSlam_Fd_normalizeWeights();
 
-    // Obtain self-localization estimation position
+    // Retrieve self-localization position
     icSlam_Fd_getExpectedPose(&s_result_pose);
     laser_2d_pose_ = Pose2d(s_result_pose.f_x, s_result_pose.f_y, s_result_pose.f_theta);
 
@@ -295,14 +295,14 @@ Pose2d Laser2dMcl::CorrectPosition() {
     CONSOLE_BRIDGE_logDebug("localization success (score: %lf, limit: %lf)",
         best_matching_score_, localization_score_limit_);
   } else {
-    // Discard result if likelihood is low and adopt odometry
+    // Discard results and adopt odometry if the likelihood is low
     Point2d diff_odometry(dOdom.f_x, dOdom.f_y);
     Point2d rotate_diff_odometry = previous_laser_2d_pose_.rot() * diff_odometry;
     laser_2d_pose_ = Pose2d(rotate_diff_odometry.x() + previous_laser_2d_pose_.x(),
                             rotate_diff_odometry.y() + previous_laser_2d_pose_.y(),
                             dOdom.f_theta + previous_laser_2d_pose_.theta());
 
-    // Redistribute particles near self-localization using odometry
+    // Redistribute particles near the self-location using odometry
     icSlam_tagOrientedPoint initPose;
     initPose.f_x = laser_2d_pose_.x();
     initPose.f_y = laser_2d_pose_.y();
@@ -312,7 +312,7 @@ Pose2d Laser2dMcl::CorrectPosition() {
     CONSOLE_BRIDGE_logDebug("odom mode (score: %lf, limit: %lf)", best_matching_score_, localization_score_limit_);
   }
 
-  // Save estimation result
+  // Save estimation results
   previous_laser_2d_pose_ = laser_2d_pose_;
 
   // Calculate covariance matrix
@@ -320,7 +320,7 @@ Pose2d Laser2dMcl::CorrectPosition() {
 }
 
 /**
- * @brief Secure current particle status
+ * @brief Save the current particle state
  * @return Particle distribution in global coordinates
  */
 std::vector<Point2d> Laser2dMcl::GetParticlePositions() {
@@ -331,14 +331,14 @@ std::vector<Point2d> Laser2dMcl::GetParticlePositions() {
   // Read actual particles
   result = icSlam_Fd_GetParticlePositions(&t_particle);
 
-  // Terminate abnormally if the number of particles is not between 0 and 200
+  // Terminate abnormally if the number of particles is outside the range of 0–200
   assert(((t_particle.d_numPart) >= 0) && ((t_particle.d_numPart) <= params_.number_of_particles));
 
   if (result == ICSLAM_D_RET_SUCCESS) {
     particle_positions.resize(static_cast<uint32_t>(t_particle.d_numPart));
-    // Convert obtained particles to point cloud
+    // Convert the retrieved particles into a point cloud
     for (uint32_t i = 0; i < static_cast<uint32_t>(t_particle.d_numPart); ++i) {
-      // Expand contents
+      // Expand the contents
       particle_positions[i] = Point2d(t_particle.t_particle[i].t_pose.f_x, t_particle.t_particle[i].t_pose.f_y);
     }
   }
@@ -347,10 +347,10 @@ std::vector<Point2d> Laser2dMcl::GetParticlePositions() {
 }
 
 /**
- * @brief Delete one of the adjacent points if they are within a certain interval.
+ * @brief Remove one of the adjacent points if they are within a certain interval.
  * @param pc Point cloud
- * @param interval Interval threshold (m)
- * @note Copying has a large overhead, so I want to modify it to reference with vector
+ * @param interval Threshold interval (m)
+ * @note Copying has a large overhead, so it should be modified to use references with vectors
  */
 icSlam_tagRangeXY Laser2dMcl::FilterPointCloud(const icSlam_tagRangeXY& point_cloud, double interval) {
   // Terminate if the number of lasers is negative
@@ -360,7 +360,7 @@ icSlam_tagRangeXY Laser2dMcl::FilterPointCloud(const icSlam_tagRangeXY& point_cl
   // Initialize the number of lasers to 0
   ret_pc.d_numLaser = 0;
 
-  // Return immediately if the number of lasers is 0.
+  // Return as is if the number of lasers is 0.
   if (point_cloud.d_numLaser == 0) {
     CONSOLE_BRIDGE_logInform("no laser. filtering is skipped.");
     return ret_pc;
@@ -377,7 +377,7 @@ icSlam_tagRangeXY Laser2dMcl::FilterPointCloud(const icSlam_tagRangeXY& point_cl
   // Execute the following process if the number of lasers is 2 or more.
   ret_pc.t_laser[0] = point_cloud.t_laser[0];
   icSlam_tagPoint base = point_cloud.t_laser[0];
-  int32_t index = 1;  // Array number of ret_pc to write
+  int32_t index = 1;  // Array index of ret_pc to write
   // Skip the first point
   for (uint32_t i = 1; i < static_cast<uint32_t>(point_cloud.d_numLaser); ++i) {
     if (fabs(point_cloud.t_laser[i].f_x - base.f_x) > interval ||
@@ -393,8 +393,8 @@ icSlam_tagRangeXY Laser2dMcl::FilterPointCloud(const icSlam_tagRangeXY& point_cl
 }
 
 /**
- * @brief Obtain map resolution
- * @return Resolution of the map used by self-localization (m)
+ * @brief Retrieve map resolution
+ * @return Map resolution used by self-location (m)
  */
 double Laser2dMcl::GetMapResolution() const {
   assert(p_distance_map_ != nullptr);
@@ -402,7 +402,7 @@ double Laser2dMcl::GetMapResolution() const {
 }
 
 /**
- * @brief Map initialization confirmation
+ * @brief For map initialization confirmation
  * @return true: Map received, false: Map not yet received
  */
 bool Laser2dMcl::IsMapInitialized() const { return p_distance_map_ != nullptr; }

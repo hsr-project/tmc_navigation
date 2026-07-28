@@ -1,4 +1,6 @@
-# tmc_pose_2d_lib
+tmc_pose_2d_lib
+====================
+
 2次元の座標変換を扱うクラスのライブラリ。下記のクラスが実装されている  
 
 - Point2D 2D点
@@ -14,7 +16,7 @@
 |  座標系名  |  原点位置、向き  |  単位  |
 | ---- | ---- |  ---  |
 |  `map`  |  なし(ここをグローバルな絶対基準とする)  |  m  |
-|  `image`  |  地図画像の左下が原点、`nav_msgs::OccupancyGrid/origin`や`DistanceMap/origin_map_image`の値は`map->image`を指す  |  m  |
+|  `image`  |  地図画像の左下が原点、`nav_msgs/msg/OccupancyGrid/origin`や`DistanceMap/origin_map_image`の値は`map->image`を指す  |  m  |
 |  `image_uv`  |  地図画像左下が原点で、右方向が`u+`、上方向が`v+`、かつ整数値のみ持つ。  |  px  |
 
 
@@ -22,16 +24,16 @@
 
 ### DistanceMap/data について
 
-型は、`std::vector<unsigned char> data`。`nav_msgs::OccupancyGrid/data`の情報を下記の値域に変換し格納している。  
+型は、`std::vector<unsigned char> data`。`nav_msgs/msg/OccupancyGrid/data`の情報を下記の値域に変換し格納している。  
 画像(グリッド)の画素値に相当。画像の左下から右に順に値が入っている。  
 
 値が1ならFree、0ならUnknown。255なら障害物を表す。  
 それ以外なら、最寄りの障害物までの近さを示す値が入っている(値が大きいほど、障害物までの距離が近い)。  
 
-元となる`nav_msgs::OccupancyGrid/data`の情報に、最寄りの障害物までの近さを示す値が元々入っている場合、  
-`nav_msgs::OccupancyGrid`メッセージ内には後述する`potential_width`の情報が含まれていないので、DistanceMap::SetPotentialWidthで別途与える必要がある。  
+元となる`nav_msgs/msg/OccupancyGrid/data`の情報に、最寄りの障害物までの近さを示す値が元々入っている場合、  
+`nav_msgs/msg/OccupancyGrid`メッセージ内には後述する`potential_width`の情報が含まれていないので、DistanceMap::SetPotentialWidthで別途与える必要がある。  
 
-元となる`nav_msgs::OccupancyGrid/data`の情報がFree、Unknown、障害物の三値のみで表現されており最寄りの障害物までの近さが入っていない場合、  
+元となる`nav_msgs/msg/OccupancyGrid/data`の情報がFree、Unknown、障害物の三値のみで表現されており最寄りの障害物までの近さが入っていない場合、  
 DistanceMap::InflateMapで`potential_width`の情報を与えれば、障害物からのポテンシャルを広げることができ、最寄りの障害物までの近さを示す値を付与できる。  
 
 最寄りの障害物までの距離を求めるには、  

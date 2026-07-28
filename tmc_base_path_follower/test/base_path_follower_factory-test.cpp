@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -60,8 +60,8 @@ class BasePathFollowerFactoryTest : public ::testing::Test {
 
 
 /// BasePathFollowerFactoryCreate test
-/// Can create when all parameters for the omni movement model are specified
-/// Do not verify if it is generated according to the specified parameters, as it is hidden and not visible from the outside
+/// It can be created when all parameters of the movement model omni are specified
+/// Whether it is generated according to the specified parameters is concealed and cannot be confirmed externally
 TEST_F(BasePathFollowerFactoryTest, CreateOmniWithAllParameter) {
   // setup
   LoadParameterFromYaml(test_node_, yaml_directory_,
@@ -76,8 +76,8 @@ TEST_F(BasePathFollowerFactoryTest, CreateOmniWithAllParameter) {
 
 
 /// BasePathFollowerFactoryCreate test
-/// Can create when all parameters for the diff_drive movement model are specified
-/// Do not verify if it is generated according to the specified parameters, as it is hidden and not visible from the outside
+/// It can be created when all parameters of the movement model diff_drive are specified
+/// Whether it is generated according to the specified parameters is concealed and cannot be confirmed externally
 TEST_F(BasePathFollowerFactoryTest, CreateDiffDriveWithAllParameter) {
   // setup
   LoadParameterFromYaml(test_node_, yaml_directory_,
@@ -91,7 +91,7 @@ TEST_F(BasePathFollowerFactoryTest, CreateDiffDriveWithAllParameter) {
 }
 
 /// BasePathFollowerFactoryCreate test
-/// Throws an exception and cannot create when an undefined movement model is specified
+/// It cannot be created and throws an exception when an undefined movement model is specified
 TEST_F(BasePathFollowerFactoryTest, CreateWithUnknownMoveModel) {
   // setup
     LoadParameterFromYaml(test_node_, yaml_directory_,
@@ -103,8 +103,8 @@ TEST_F(BasePathFollowerFactoryTest, CreateWithUnknownMoveModel) {
 }
 
 /// BasePathFollowerFactoryCreate test
-/// Can create even if no parameters are specified
-/// Do not verify if it is generated according to the default values, as it is hidden and not visible from the outside
+/// It can be created even if no parameters are specified
+/// Whether it is generated according to the default values is concealed and cannot be confirmed externally
 TEST_F(BasePathFollowerFactoryTest, CreateWithNoParameter) {
   // setup
   LoadParameterFromYaml(test_node_, yaml_directory_,

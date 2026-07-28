@@ -1,7 +1,7 @@
 <package format="3">
   <name>tmc_laser_2d_localizer</name>
-  <version>2.1.0</version>
-  <description>Estimate self-position using two-dimensional distance data</description>
+  <version>3.0.0</version>
+  <description>Perform self-localization using two-dimensional distance data</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
 
   <license>BSD 3-clause Clear License</license>

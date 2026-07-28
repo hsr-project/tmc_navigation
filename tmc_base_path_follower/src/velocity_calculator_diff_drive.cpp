@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -34,21 +34,21 @@ DAMAGE.
 
 namespace tmc_base_path_follower {
 
-// If the angle deviates from the path, turn
-// Once turning starts, continue turning until the direction aligns
+// Rotate if the angle deviates from the path
+// Once rotation starts, continue rotating until the direction aligns
 // Follow the path
-// If it exceeds the goal area, turn to align with the goal
+// If the goal area is exceeded, rotate to align with the goal
 bool DiffDriveVelocityCalculator::CalculateVelocity(
     const PathInfo& path_info, const Pose2d& global_pose, const uint32_t current_path_index,
     const Vector3d& last_velocity, const double time_interval, const bool is_arrived_goal_area,
     const std::optional<double>& transit_velocity, Vector3d& output_velocity) {
   if (is_arrived_goal_area) {
-    // Cart speed calculation for turning towards the goal
+    // Cart speed calculation for rotating towards the goal
     const double angular_error_to_goal = angles::shortest_angular_distance(
         global_pose.theta(), path_info.splined_path.back().theta());
     output_velocity = CalculateSpinVelocity(angular_error_to_goal);
   } else {
-    // Stop if the nearest point is the last point but not within the goal area
+    // Stop if not within the goal area and the nearest point is the last point
     if (current_path_index == path_info.splined_path.size() - 1) {
       output_velocity = Vector3d::Zero();
       return false;
@@ -56,9 +56,9 @@ bool DiffDriveVelocityCalculator::CalculateVelocity(
     const double angular_error_to_path = angles::shortest_angular_distance(
         global_pose.theta(), path_info.splined_path[current_path_index].theta());
 
-    // In-place turn determination
-    // Start turning if the path and own direction are misaligned
-    // If already turning, continue until the angle with the path is below a certain value
+    // On-the-spot rotation determination
+    // Start rotating if the path and the direction are misaligned
+    // If already rotating, continue until the angle with the path is below a certain value
     if ((!is_spinning_to_path_angle_ && fabs(angular_error_to_path) > param_.spin_start_error_angle) ||
         (is_spinning_to_path_angle_ && fabs(angular_error_to_path) > param_.spin_end_error_angle)) {
       is_spinning_to_path_angle_ = true;
@@ -67,7 +67,7 @@ bool DiffDriveVelocityCalculator::CalculateVelocity(
     }
 
     if (is_spinning_to_path_angle_) {
-      // Cart speed calculation for turning in the path direction
+      // Cart speed calculation for rotating towards the path direction
       output_velocity = CalculateSpinVelocity(angular_error_to_path);
     } else {
       // Cart speed calculation for following the path
@@ -91,17 +91,17 @@ Vector3d DiffDriveVelocityCalculator::CalculateForwardVelocity(
   // Translational speed proportional to the distance from the goal
   double linear_velocity = (param_.velocity_margin +
       (path_info.splined_path.back().point() - global_pose.point()).norm() * param_.goal_deceleration);
-  // Limit with maximum speed
+  // Limit at maximum speed
   linear_velocity = std::min<double>(linear_velocity, param_.max_linear_velocity);
   if (transit_velocity) {
-    // Limit with passing speed
+    // Limit at passing speed
     linear_velocity = std::min<double>(linear_velocity, transit_velocity.value());
   }
   Vector3d velocity = Vector3d::Zero();
   velocity(kPoseX) = linear_velocity;
   velocity(kPoseY) = 0.0;
 
-  // Calculation of turning speed
+  // Calculation of rotational speed
   // FF calculation
   const double feedforward_velocity = linear_velocity * path_info.splined_path_curvatures[current_path_index];
   const Pose2d nearest_point = path_info.splined_path[current_path_index];
@@ -123,15 +123,15 @@ Vector3d DiffDriveVelocityCalculator::CalculateForwardVelocity(
   return velocity;
 }
 
-/// In-place turning speed calculation
+/// On-the-spot rotation speed calculation
 Vector3d DiffDriveVelocityCalculator::CalculateSpinVelocity(const double angular_error) {
   Vector3d velocity = Vector3d::Zero();
   if (fabs(angular_error) > std::numeric_limits<double>::epsilon()) {
     const double sign_angular_error = angular_error / fabs(angular_error);
-    // Calculate the magnitude of turning speed (minimum speed + speed according to angle error)
+    // Calculate the magnitude of rotational speed (minimum speed + speed based on angle error)
     double angular_velocity_abs = param_.spin_min_angular_velocity +
         fabs(angular_error) * param_.angle_error_angular_velocity_rate;
-    // Do not exceed the maximum turning speed
+    // Do not exceed the maximum rotational speed
     angular_velocity_abs = std::min<double>(angular_velocity_abs, param_.spin_max_angular_velocity);
     velocity(kPoseTheta) = angular_velocity_abs * sign_angular_error;
   }

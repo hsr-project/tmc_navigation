@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -45,7 +45,7 @@ sensor_msgs::msg::JointState CreateJointState(const std::vector<std::string>& jo
   return joint_state;
 }
 
-// Set velocity in joint_state
+// Set velocity to joint_state
 void SetJointStateVelocity(sensor_msgs::msg::JointState& joint_state,
                            const std::string& joint_name, const double velocity) {
   for (size_t i = 0; i < joint_state.name.size(); i++) {
@@ -92,7 +92,7 @@ void LoadParameterFromYaml(std::shared_ptr<rclcpp::Node> node, const std::string
   rcl_parse_yaml_file(yaml_path.c_str(), yaml_params);
   const rclcpp::ParameterMap yaml_param_map = rclcpp::parameter_map_from(yaml_params);
   rcl_yaml_node_struct_fini(yaml_params);
-  // Set ros parameters to node
+  // Set ROS parameters to node
   const std::string parameter_space = "/" + std::string(node->get_name());
   auto iter = yaml_param_map.find(parameter_space);
   for (auto& param : iter->second) {

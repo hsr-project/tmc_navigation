@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -34,9 +34,9 @@ DAMAGE.
 
 namespace tmc_map_merger {
 
-/// @brief Class implementing a simple Memory that stores observed information as is
+/// @brief A class implementing a simple Memory that directly stores observed information
 /// Becomes Unknown after a certain period of time since the last update
-/// Class with implemented Get, Update, Reset methods
+/// A class with implemented Get, Update, and Reset methods
 /// @see MapMemoryMerger
 struct SimpleMemory {
   struct Option {
@@ -48,7 +48,7 @@ struct SimpleMemory {
       : memory(kUnknown) {
   }
 
-  /// @brief Retrieve current memory
+  /// @brief Retrieve the current memory
   virtual int8_t Get(const rclcpp::Time& time, const Option& option) const {
     if (memory != kUnknown && time - last_valid < option.timeout ||
         option.timeout.seconds() < std::numeric_limits<double>::epsilon()) {
@@ -59,14 +59,14 @@ struct SimpleMemory {
 
   /// @brief Update memory with observed information
   virtual void Update(int8_t data, const rclcpp::Time& time, const Option& option) {
-    // Unobserved information is stored unconditionally
+    // Stores all information except unobserved data without exception
     if (data >= kFree) {
       memory = data;
       last_valid = time;
     }
   }
 
-  /// @brief Clear memory
+  /// @brief Clear the memory
   virtual void Reset(const rclcpp::Time& time, const Option& option) {
     memory = option.default_data;
     last_valid = rclcpp::Time(0);
@@ -77,9 +77,9 @@ struct SimpleMemory {
 };
 
 
-/// @brief Class implementing a safer Memory that stores observed information if its value is greater than the stored information
+/// @brief A class implementing a safer Memory that stores observed information only if its value is greater than the stored information
 /// Becomes Unknown after a certain period of time since the last update
-/// Class with implemented Get, Update, Reset methods
+/// A class with implemented Get, Update, and Reset methods
 /// @see MapMemoryMerger
 struct SafetyMemory : public SimpleMemory {
   SafetyMemory()
@@ -88,16 +88,16 @@ struct SafetyMemory : public SimpleMemory {
 
   /// @brief Update memory with observed information
   void Update(int8_t data, const rclcpp::Time& time, const Option& option) {
-    // Unoccupied information is stored unconditionally
+    // Stores all unoccupied information without exception
     if (data == kFree) {
       memory = data;
       last_valid = time;
-    // If it is assumed to be occupied, store if the value is greater
+    // If it is assumed to be occupied, stores only when the value is greater
     } else if (data > kFree) {
       if (data > memory) {
         memory = data;
       }
-      // Even if the observed value is not large, the fact that it was observed is true, so update the time
+      // Even if the observed value is not large, the fact of observation is recorded, so the time is updated
       last_valid = time;
     }
   }

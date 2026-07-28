@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -40,16 +40,16 @@ namespace tmc_base_path_follower {
 PathInfo PathInfoCreator::CreatePathInfo(const PoseSeq& path) {
   PathInfo path_info;
   path_info.origin_path = path;
-  // Spline Interpolation Generation
+  // Spline interpolation generation
   SplineInterpolation(path, path_info.splined_path, path_info.splined_path_curvatures);
-  // Remaining Distance Generation for Spline Interpolated Route
+  // Remaining distance generation for spline interpolated route
   CalculateLeftPathLengths(path_info.splined_path, path_info.splined_path_left_lengths);
 
   return path_info;
 }
 
 
-/// @brief Spline Interpolation of Route
+/// @brief Spline interpolation of the route
 /// @param[in] input_path Pre-interpolation route
 /// @param[out] splined_path Interpolated route
 /// @param[out] splined_path_curvatures Curvature at each point of the interpolated route
@@ -59,7 +59,7 @@ void PathInfoCreator::SplineInterpolation(const PoseSeq& input_path, PoseSeq& sp
   splined_path.clear();
   splined_path_curvatures.clear();
   PoseSeq path = input_path;
-  // To not reflect the goal posture in the interpolation, insert a value calculated from the posture change from two points before
+  // To avoid reflecting the goal posture in the interpolation, use the value calculated from the posture change of two points before
   if (path.size() > 2) {
     path.back().set_theta(angles::normalize_angle(path[path.size() - 2].theta() * 2 - path[path.size() - 3].theta()));
   }
@@ -69,7 +69,7 @@ void PathInfoCreator::SplineInterpolation(const PoseSeq& input_path, PoseSeq& sp
     const double path_interval = ((*next_it).point() - (*it).point()).norm();
     const double dt = path_interval / param_.passing_velocity;
     /// Prevent division by zero. Skip if two points overlap
-    /// In subsequent processing, dt, dt^2, dt^3 are used as divisors, but when dt is close to zero
+    /// In subsequent processing, dt, dt^2, dt^3 are used as divisors, but when dt is close to 0
     /// Check the smallest dt^3
     const double dt_cubic = dt * dt * dt;
     if (dt_cubic < std::numeric_limits<double>::epsilon()) {
@@ -92,18 +92,18 @@ void PathInfoCreator::SplineInterpolation(const PoseSeq& input_path, PoseSeq& sp
     Eigen::Vector4d coeff_x(start_pos(kPoseX), start_vel(kPoseX), square_coeff(kPoseX), cubic_coeff(kPoseX));
     Eigen::Vector4d coeff_y(start_pos(kPoseY), start_vel(kPoseY), square_coeff(kPoseY), cubic_coeff(kPoseY));
 
-    // Check the extremum of the interpolation curve, and if there is a path that turns back, interpolate with a straight line
+    // Check the extremes of the interpolation curve, and if there is a route that folds back, interpolate with a straight line
     if (CheckSplinePathExtremum(coeff_x, dt) && CheckSplinePathExtremum(coeff_y, dt)) {
       coeff_x << start_pos(kPoseX), (end_pos[kPoseX] - start_pos(kPoseX)) / dt, 0.0, 0.0;
       coeff_y << start_pos(kPoseY), (end_pos[kPoseY] - start_pos(kPoseY)) / dt, 0.0, 0.0;
     }
 
-    // Curvature Calculation
+    // Curvature calculation
     // Although accurate curvature can be calculated with spline interpolation, to avoid reflecting fine directional changes,
     // Use the rough curvature calculated from three adjacent points of the pre-interpolation input route
     double curvature = 0.0;
     if (path.size() > 2) {
-      // Calculate curvature from the vector to the center point of the three points
+      // Calculate curvature from the vector relative to the center point of the three points
       Point2d prev_to_curr;
       Point2d curr_to_next;
       if (it == path.begin()) {
@@ -137,7 +137,7 @@ void PathInfoCreator::SplineInterpolation(const PoseSeq& input_path, PoseSeq& sp
   splined_path_curvatures.push_back(0.0);
 }
 
-// Check for extrema in the spline curve
+// Check if there are extremes in the spline curve
 bool PathInfoCreator::CheckSplinePathExtremum(const Eigen::Vector4d& coeff, const double time) {
   bool has_extremum = false;
   if (fabs(coeff(3)) > std::numeric_limits<double>::epsilon()) {
@@ -158,7 +158,7 @@ bool PathInfoCreator::CheckSplinePathExtremum(const Eigen::Vector4d& coeff, cons
   return has_extremum;
 }
 
-// Calculate the remaining playback length to the goal at all route points
+// Calculate the remaining playback length to the goal for all route points
 void PathInfoCreator::CalculateLeftPathLengths(const PoseSeq& path, std::vector<double>& left_path_lengths) {
   left_path_lengths.resize(path.size());
   double sum_length = 0.0;

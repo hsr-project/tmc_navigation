@@ -54,9 +54,6 @@ target_include_directories(${PROJECT_NAME}_lib
     $<INSTALL_INTERFACE:include>
 )
 
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 add_executable(safety_velocity_limiter
@@ -123,6 +120,7 @@ install(DIRECTORY launch
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_index_cpp REQUIRED)
 
   install(DIRECTORY test/parameter
     DESTINATION share/${PROJECT_NAME}/test
@@ -133,6 +131,7 @@ if(BUILD_TESTING)
     test/safety_velocity_limiter-test.cpp
     TIMEOUT 240)
   ament_target_dependencies(safety_velocity_limiter_test
+    ament_index_cpp
     tf2_geometry_msgs
   )
   target_link_libraries(safety_velocity_limiter_test ${PROJECT_NAME}_lib)

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -53,14 +53,14 @@ Obstacle* Obstacle::GetInstance() {
 }
 
 void Obstacle::Init(const rclcpp::Node::SharedPtr node) {
-  // Parameter acquisition
+  // Parameter retrieval
   GetOptionalParam(node, "base_frame", base_frame_, std::string(kBaseFrameId));
   // Subscriber registration
   sub_pointcloud_ = node->create_subscription<sensor_msgs::msg::PointCloud2>(
       kTopicObstacleCloud, rclcpp::SensorDataQoS(), std::bind(&Obstacle::ObstacleCloudCallback, this, _1));
 }
 
-/// Obtain obstacle Cloud
+/// Retrieve obstacle cloud
 PointCloudPtr Obstacle::ObstacleCloud() {
   PointCloudPtr cloud = PointCloudPtr(new PointCloud());
   // Coordinate transformation
@@ -80,6 +80,10 @@ Obstacle::~Obstacle() {}
 
 /// Pointcloud callback
 void Obstacle::ObstacleCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
+  if (msg->data.empty() || msg->width == 0 || msg->height == 0) {
+    obstacle_cloud_->clear();
+    return;
+  }
   // PointCloud2 -> PointCloud
   pcl::fromROSMsg(*msg, *obstacle_cloud_);
 }

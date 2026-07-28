@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -38,7 +38,7 @@ DAMAGE.
 namespace tmc_base_path_follower {
 
 /// Parameter test
-/// Able to generate parameters
+/// It can generate parameters
 TEST(OmniGoalCheckerParameterTest, ConstructParameter) {
   // setup
   const double goal_area_length = 0.1;
@@ -58,7 +58,7 @@ TEST(OmniGoalCheckerParameterTest, ConstructParameter) {
 
 
 /// Parameter test
-/// If an invalid value is specified, it is generated with the default value
+/// If an invalid value is specified, it will be generated with the default value
 TEST(OmniGoalCheckerParameterTest, ConstructWithInvalidParameterMakeDefault) {
   // setup
   const double goal_area_length = -0.1;
@@ -108,7 +108,7 @@ TEST_F(OmniGoalCheckerTest, ArrivedGoalArea) {
 }
 
 /// CheckGoal test
-/// If the self-position is before the goal line on the path, it is determined not to have entered the goal area
+/// If the self-position is closer along the path than the goal line, it is determined not to have entered the goal area
 TEST_F(OmniGoalCheckerTest, NotArrivedGoalAreaGoalLine) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -118,7 +118,7 @@ TEST_F(OmniGoalCheckerTest, NotArrivedGoalAreaGoalLine) {
 }
 
 /// CheckGoal test
-/// If the difference in distance between the self-position and the goal is greater than the threshold, it is determined not to have entered the goal area
+/// If the difference in distance between the self-position and the goal is farther than the threshold, it is determined not to have entered the goal area
 TEST_F(OmniGoalCheckerTest, NotArrivedGoalAreaGoalAreaLength) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -128,7 +128,7 @@ TEST_F(OmniGoalCheckerTest, NotArrivedGoalAreaGoalAreaLength) {
 }
 
 /// CheckGoal test
-/// In the case of a path with only one point, if the difference in distance between the self-position and the goal is within the threshold, it is determined to have entered the goal area
+/// In the case of a single-point path, if the difference in distance between the self-position and the goal is within the threshold, it is determined to have entered the goal area
 TEST_F(OmniGoalCheckerTest, ArrivedGoalAreaOnePointPath) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -141,7 +141,7 @@ TEST_F(OmniGoalCheckerTest, ArrivedGoalAreaOnePointPath) {
 }
 
 /// CheckGoal test
-/// In the case of a path with only one point, if the difference in distance between the self-position and the goal is greater than the threshold, it is determined not to have entered the goal area
+/// In the case of a single-point path, if the difference in distance between the self-position and the goal is farther than the threshold, it is determined not to have entered the goal area
 TEST_F(OmniGoalCheckerTest, NotArrivedGoalAreaOnePointPath) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -169,7 +169,7 @@ TEST_F(OmniGoalCheckerTest, NotArrivedGoalLiner) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
 
-  // Determined not to have reached the goal because it is out of range
+  // Determined not to have reached the goal as it is out of range
   goal_checker_->CheckGoal(path_, NotArrivedGoalLinerPose(path_.back()), is_arrived_goal_area, is_arrived_goal);
   EXPECT_FALSE(is_arrived_goal);
 }
@@ -180,7 +180,7 @@ TEST_F(OmniGoalCheckerTest, NotArrivedGoalAngular) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
 
-  // Determined not to have reached the goal because it is out of range
+  // Determined not to have reached the goal as it is out of range
   goal_checker_->CheckGoal(path_, NotArrivedGoalAngularPose(path_.back()), is_arrived_goal_area, is_arrived_goal);
   EXPECT_FALSE(is_arrived_goal);
 }

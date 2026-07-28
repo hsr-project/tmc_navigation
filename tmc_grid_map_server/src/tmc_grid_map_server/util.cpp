@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file     util.cpp
-/// @brief    Functions commonly used within this package
+/// @brief    Commonly used functions within this package
 #include <vector>
 
 #include <nav_msgs/msg/occupancy_grid.hpp>
@@ -56,7 +56,7 @@ void ConvertMapTmcToRos(const tmc_navigation_msgs::msg::OccupancyGridUint& tmc_m
   ros_map.info = tmc_map.info;
 
   // Convert from tmc specification to ros specification
-  // Since tmc specification data starts from the top left and ros specification starts from the bottom left, store in reverse order in the height direction
+  // Since tmc specification starts data from the top-left and ros specification starts from the bottom-left, store in reverse order in the height direction
   for (int32_t i = (tmc_map.info.height - 1); i >= 0; --i) {
     for (auto j = 0u; j <= (tmc_map.info.width - 1); ++j) {
       const uint8_t tmc_data = tmc_map.data[tmc_map.info.width * i + j];
@@ -64,7 +64,7 @@ void ConvertMapTmcToRos(const tmc_navigation_msgs::msg::OccupancyGridUint& tmc_m
       if (tmc_data == kTMC_UNKNOWN) {
           data = kROS_UNKNOWN;
       } else {
-        // Convert from tmc specification range [1,255] to ros specification range [0,100]
+        // Convert value range from tmc specification [1,255] to ros specification [0,100]
         data = static_cast<int8_t>(round((static_cast<double>(tmc_data - 1) / 254.0) * 100.0));
       }
       ros_map.data.push_back(data);
@@ -88,7 +88,7 @@ void ConvertMapRosToTmc(const nav_msgs::msg::OccupancyGrid& ros_map,
   tmc_map.info = ros_map.info;
 
   // Convert from ros specification to tmc specification
-  // Since tmc specification data starts from the top left and ros specification starts from the bottom left, store in reverse order in the height direction
+  // Since tmc specification starts data from the top-left and ros specification starts from the bottom-left, store in reverse order in the height direction
   for (int32_t i = (ros_map.info.height - 1); i >= 0; --i) {
     for (auto j = 0u; j <= (ros_map.info.width - 1); ++j) {
       const int8_t ros_data = ros_map.data[ros_map.info.width * i + j];
@@ -96,7 +96,7 @@ void ConvertMapRosToTmc(const nav_msgs::msg::OccupancyGrid& ros_map,
       if (ros_data == kROS_UNKNOWN) {
           data = kTMC_UNKNOWN;
       } else {
-        // Convert from ros specification range [0,100] to tmc specification range [1,255]
+        // Convert value range from ros specification [0,100] to tmc specification [1,255]
         data = static_cast<uint8_t>(round((static_cast<double>(ros_data) * 254.0) / 100.0) + 1.0);
       }
       tmc_map.data.push_back(data);
@@ -128,8 +128,8 @@ bool CreateTmcPotentialMap(const nav_msgs::msg::OccupancyGrid& ros_map, const do
 
   tmc_navigation_msgs::msg::OccupancyGridUint tmc_map;
   // Convert to tmc specification
-  // If converted to DistanceMap while in ros specification, the range specification difference is absorbed
-  // The data order specification difference is not absorbed, so convert to tmc specification once
+  // If converted to DistanceMap while keeping ros specification, the value range differences are absorbed
+  // However, the data arrangement differences are not absorbed, so convert to tmc specification once
   ConvertMapRosToTmc(ros_convert_wall_map, tmc_map);
 
   // Convert to DistanceMap

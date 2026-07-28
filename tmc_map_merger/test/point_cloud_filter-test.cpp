@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -42,7 +42,7 @@ DAMAGE.
 namespace tmc_map_merger {
 
 typedef std::pair<std::string, std::string> TestPair;
-/// @note The parameters of the pair are the ROS parameter namespace and the Subscriber class name respectively
+/// @note The parameters of the pair are the ROS parameter namespace and the Subscriber class name, respectively.
 class PointCloudFilterFactoryTest
     : public testing::TestWithParam<TestPair> {
 
@@ -93,7 +93,7 @@ template<typename T>
 class PointCloudFilterTypedTest : public testing::Test {};
 TYPED_TEST_CASE_P(PointCloudFilterTypedTest);
 
-/// @brief Ensure that the output is empty when the input is empty
+/// @brief Ensure that the output is empty when the input is empty.
 TYPED_TEST_P(PointCloudFilterTypedTest, Empty) {
   // Setup
   PointCloud::Ptr cloud_in(new PointCloud());
@@ -115,12 +115,12 @@ TYPED_TEST_P(PointCloudFilterTypedTest, Empty) {
   }
 }
 
-// Add here when tests increase
+// Add here when more tests are added.
 REGISTER_TYPED_TEST_CASE_P(
     PointCloudFilterTypedTest,
     Empty);
 
-// Add here when types increase
+// Add here when more types are added.
 typedef testing::Types<
   PointCloudVoxelGridFilter,
   PointCloudTrimmingFilter,
@@ -133,8 +133,8 @@ INSTANTIATE_TYPED_TEST_CASE_P(
     PointCloudFilterTypedTest,
     PointCloudFilterTypes);
 
-/// @brief Ensure that concentrated points are reduced to one point
-/// @note Confirm that the position of the points after processing is within the voxel (do not worry about which point is representative)
+/// @brief Ensure that densely placed points are reduced to a single point.
+/// @note Confirm that the position of the points after processing is within the voxel (it does not matter which point is chosen as the representative).
 TEST(PointCloudFilterTest, VoxelGrid) {
   // Setup
   PointCloud::Ptr cloud_in(new PointCloud());
@@ -169,7 +169,7 @@ TEST(PointCloudFilterTest, VoxelGrid) {
   EXPECT_EQ(output_default->points[0].z, output_specified->points[0].z);
 }
 
-/// @brief Boundary value test for upper and lower limit filter
+/// @brief Boundary value test for upper and lower limit filters.
 TEST(PointCloudFilterTest, Trimming) {
   // Setup
   PointCloud::Ptr min_cloud_in(new PointCloud());
@@ -223,7 +223,7 @@ TEST(PointCloudFilterTest, Trimming) {
   }
 }
 
-/// @brief Boundary value test for noise filter
+/// @brief Boundary value test for noise filters.
 TEST(PointCloudFilterTest, Noise) {
   // Setup
   PointCloud::Ptr one_noise_cloud_in(new PointCloud());
@@ -289,7 +289,7 @@ TEST(PointCloudFilterTest, Noise) {
   }
 }
 
-/// @brief Test for coordinate transformation filter
+/// @brief Test for coordinate transformation filters.
 TEST(PointCloudFilterTest, Transform) {
   // Setup
   Eigen::Affine3d empty;

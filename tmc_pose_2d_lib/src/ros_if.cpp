@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -37,14 +37,14 @@ DAMAGE.
 namespace tmc_pose_2d_lib {
 
 DistanceMap RosMsg2DistanceMap(const nav_msgs::msg::OccupancyGrid& msg) {
-  // Note: Since there is no potential_width information in msg, it needs to be provided separately
+  // Note: Since the msg does not contain information about potential_width, it needs to be provided separately.
 
-  // Convert the values of OccupancyGrid to the values of DistanceMap
-  // Initialize elements with unknown for the size
+  // Convert the values of OccupancyGrid to the values of DistanceMap.
+  // Initialize elements of size with unknown.
   std::vector<unsigned char> data(msg.data.size(), 0);
   for (uint32_t  i = 0; i < msg.data.size(); ++i) {
-    // Convert values from [0,100] to rounded values stretched to [1,255]
-    // If negative, it is unknown
+    // Convert values in the range [0,100] to values stretched to [1,255] and rounded.
+    // If negative, set to unknown.
     if (msg.data[i] >= 0) {
       data[i] = static_cast<unsigned char>(round((static_cast<double>(msg.data[i]) / 100.0) * 254.0 + 1.0));
     }
@@ -58,7 +58,7 @@ DistanceMap RosMsg2DistanceMap(const nav_msgs::msg::OccupancyGrid& msg) {
   return distance_map;
 }
 DistanceMap RosMsg2DistanceMap(const tmc_navigation_msgs::msg::OccupancyGridUint& msg) {
-  // Note: Since there is no potential_width information in msg, it needs to be provided separately
+  // Note: Since the msg does not contain information about potential_width, it needs to be provided separately.
 
   DistanceMap distance_map(
     Pose2d(msg.info.origin.position.x,

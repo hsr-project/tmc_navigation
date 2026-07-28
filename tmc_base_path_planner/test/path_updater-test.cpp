@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,7 +36,7 @@ DAMAGE.
 namespace tmc_base_path_planner {
 
 /// Parameter test
-/// Able to generate parameters
+/// Parameters can be generated
 TEST(PathUpdaterParameterTest, ConstructParameter) {
   // exercise
   const PathUpdater::Parameter param = PathUpdater::Parameter(0.1, 0.2, 1);
@@ -49,7 +49,7 @@ TEST(PathUpdaterParameterTest, ConstructParameter) {
 
 
 /// Parameter test
-/// If invalid values are specified, they are generated with default values
+/// If invalid values are specified, default values are used for generation
 TEST(PathUpdaterParameterTest, ConstructWithInvalidParameterMakeDefault) {
   // exercise
   const PathUpdater::Parameter invalid_param = PathUpdater::Parameter(0.0, -0.1, -1);
@@ -62,7 +62,7 @@ TEST(PathUpdaterParameterTest, ConstructWithInvalidParameterMakeDefault) {
 
 
 /// SearchStartPoseOnPrevPath test
-/// If there is no previous path, the nearest point is not found and the input position becomes the start position
+/// If there is no previous path, no nearest point is found, and the input position becomes the start position
 TEST(SearchStartPoseOnPrevPathTest, NoPrevPath) {
   // setup
   PathUpdater path_updater = PathUpdater(
@@ -74,7 +74,7 @@ TEST(SearchStartPoseOnPrevPathTest, NoPrevPath) {
   std::optional<uint32_t> start_index_on_prev_path = path_updater.SearchStartPoseOnPrevPath(pose, start_pose);
 
   // verify
-  // The nearest point is not found
+  // No nearest point is found
   EXPECT_FALSE((bool)start_index_on_prev_path);
   // The start position matches the input position
   EXPECT_TRUE(IsMatchPoses(start_pose, pose));
@@ -82,7 +82,7 @@ TEST(SearchStartPoseOnPrevPathTest, NoPrevPath) {
 
 
 /// SearchStartPoseOnPrevPath test
-/// Test fixture for distance to previous path
+/// Test fixture for distance to the previous path
 class SearchStartPoseDistanceTest : public ::testing::Test {
  public:
   SearchStartPoseDistanceTest() {
@@ -111,7 +111,7 @@ class SearchStartPoseDistanceTest : public ::testing::Test {
 /// If the previous path is closer than the threshold, the start position is found on the previous path
 TEST_F(SearchStartPoseDistanceTest, FoundStartPoseNearByPrevPath) {
   // setup
-  // Set the self-position to a point shifted less than the threshold in the x direction relative to the previous path point
+  // Shift the point on the previous path by less than the threshold in the x-direction to set it as the self-position
   const Pose2d global_pose = Pose2d(prev_path_[near_index_].x() + kDistanceOnPrevPathDefault - 0.01,
                                     prev_path_[near_index_].y(), 0.0);
   // exercise
@@ -120,7 +120,7 @@ TEST_F(SearchStartPoseDistanceTest, FoundStartPoseNearByPrevPath) {
       global_pose, start_pose);
 
   // verify
-  // The nearest point is found, and the nearest point is output as the start position
+  // The nearest point is found, and it is output as the start position
   ASSERT_TRUE((bool)start_index_on_prev_path);
   EXPECT_EQ(near_index_, start_index_on_prev_path.value());
   EXPECT_TRUE(IsMatchPoses(start_pose, prev_path_[near_index_]));
@@ -128,10 +128,10 @@ TEST_F(SearchStartPoseDistanceTest, FoundStartPoseNearByPrevPath) {
 
 
 /// SearchStartPoseDistance test
-/// If the previous path is farther than the threshold, the start position is not found on the previous path, and the self-position becomes the start position
+/// If the previous path is farther than the threshold, no start position is found on the previous path, and the self-position becomes the start position
 TEST_F(SearchStartPoseDistanceTest, NotFoundStartPoseFarFromPrevPath) {
   // setup
-  // Set the self-position to a point shifted more than the threshold in the x direction relative to the previous path point
+  // Shift the point on the previous path by more than the threshold in the x-direction to set it as the self-position
   const Pose2d global_pose = Pose2d(prev_path_[near_index_].x() + kDistanceOnPrevPathDefault + 0.01,
                                     prev_path_[near_index_].y(), 0.0);
   // exercise
@@ -140,17 +140,17 @@ TEST_F(SearchStartPoseDistanceTest, NotFoundStartPoseFarFromPrevPath) {
       global_pose, start_pose);
 
   // verify
-  // The nearest point is not found, and the self-position is output as the start position
+  // No nearest point is found, and the self-position is output as the start position
   EXPECT_FALSE((bool)start_index_on_prev_path);
   EXPECT_TRUE(IsMatchPoses(start_pose, global_pose));
 }
 
 
 /// SearchStartPoseDistance test
-/// By clearing the previous path with ClearPrevPath, the previous path is cleared, and the start position is not found on the previous path, making the self-position the start position
+/// By clearing the previous path with ClearPrevPath, the previous path is cleared, no start position is found on the previous path, and the self-position becomes the start position
 TEST_F(SearchStartPoseDistanceTest, ClearPrevPath) {
   // setup
-  // Set the self-position to a point shifted less than the threshold in the x direction relative to the previous path point
+  // Shift the point on the previous path by less than the threshold in the x-direction to set it as the self-position
   const Pose2d global_pose = Pose2d(prev_path_[near_index_].x() + kDistanceOnPrevPathDefault - 0.01,
                                     prev_path_[near_index_].y(), 0.0);
   // exercise
@@ -160,7 +160,7 @@ TEST_F(SearchStartPoseDistanceTest, ClearPrevPath) {
       global_pose, start_pose);
 
   // verify
-  // The nearest point is not found, and the self-position is output as the start position
+  // No nearest point is found, and the self-position is output as the start position
   EXPECT_FALSE((bool)start_index_on_prev_path);
   EXPECT_TRUE(IsMatchPoses(start_pose, global_pose));
 }
@@ -182,7 +182,7 @@ class UpdatePathTest : public ::testing::Test {
     }
     PoseSeq update_path;
     const bool is_needed_update = path_updater_->UpdatePath(prev_path_, std::nullopt, update_path);
-    // The first input returns a need for update
+    // The first input returns that an update is needed
     EXPECT_TRUE(is_needed_update);
     // The output path matches the input path
     EXPECT_TRUE(IsMatchPaths(update_path, prev_path_));
@@ -210,7 +210,7 @@ TEST_F(UpdatePathTest, BackwardMatch) {
   const bool is_needed_update = path_updater_->UpdatePath(path, start_index_on_prev_path_, update_path);
 
   // verify
-  // No update is needed
+  // Returns that no update is needed
   EXPECT_FALSE(is_needed_update);
   // The output path matches the previous path
   EXPECT_TRUE(IsMatchPaths(update_path, prev_path_));
@@ -218,7 +218,7 @@ TEST_F(UpdatePathTest, BackwardMatch) {
 
 
 /// UpdatePath test
-/// If a path that does not match the goal of the previous path is input, a full update is needed
+/// If a path is input that does not match the goal of the previous path, a full update is performed
 TEST_F(UpdatePathTest, GoalChange) {
   // setup
   PoseSeq path;
@@ -226,7 +226,7 @@ TEST_F(UpdatePathTest, GoalChange) {
   for (uint32_t i = start_index_on_prev_path_; i < prev_path_.size() - 1; ++i) {
     path.push_back(prev_path_[i]);
   }
-  // Move the goal slightly
+  // Slightly move the goal
   path.push_back(Pose2d(prev_path_.back().x() + 0.001, prev_path_.back().y(), prev_path_.back().theta()));
 
   // exercise
@@ -234,7 +234,7 @@ TEST_F(UpdatePathTest, GoalChange) {
   const bool is_needed_update = path_updater_->UpdatePath(path, start_index_on_prev_path_, update_path);
 
   // verify
-  // A need for update is returned
+  // Returns that an update is needed
   EXPECT_TRUE(is_needed_update);
   // The output path matches the input path
   EXPECT_TRUE(IsMatchPaths(update_path, path));
@@ -242,11 +242,11 @@ TEST_F(UpdatePathTest, GoalChange) {
 
 
 /// UpdatePath test
-/// If the change in each point (except the goal) relative to the previous path is smaller than the threshold, no update is needed
+/// If the changes to each point (except the goal) on the previous path are smaller than the threshold, no update is needed
 TEST_F(UpdatePathTest, ChangeLessThanGridError) {
   // setup
   PoseSeq path;
-  // Move each point except the goal to be smaller than the threshold relative to the previous path
+  // Move all points except the goal on the previous path by less than the threshold
   for (uint32_t i = start_index_on_prev_path_; i < prev_path_.size() - 1; ++i) {
     const Pose2d path_point = Pose2d(prev_path_[i].x() + kGridErrorDefault - 0.01,
                                      prev_path_[i].y() + kGridErrorDefault - 0.01,
@@ -261,7 +261,7 @@ TEST_F(UpdatePathTest, ChangeLessThanGridError) {
   const bool is_needed_update = path_updater_->UpdatePath(path, start_index_on_prev_path_, update_path);
 
   // verify
-  // No update is needed
+  // Returns that no update is needed
   EXPECT_FALSE(is_needed_update);
   // The output path matches the previous path
   EXPECT_TRUE(IsMatchPaths(update_path, prev_path_));
@@ -269,7 +269,7 @@ TEST_F(UpdatePathTest, ChangeLessThanGridError) {
 
 
 /// UpdatePath test
-/// If changes occur from the beginning relative to the previous path, a full update is needed
+/// If changes occur from the beginning of the previous path, a full update is performed
 TEST_F(UpdatePathTest, ChangeGreaterThanGridErrorAtBeginning) {
   // setup
   PoseSeq path;
@@ -277,7 +277,7 @@ TEST_F(UpdatePathTest, ChangeGreaterThanGridErrorAtBeginning) {
   for (uint32_t i = start_index_on_prev_path_; i < prev_path_.size(); ++i) {
     path.push_back(prev_path_[i]);
   }
-  // Move the initial points more than the threshold
+  // Move the points at the beginning by more than the threshold
   path[kSamePointNumMergePathDefault] = Pose2d(
       path[kSamePointNumMergePathDefault].x() + kGridErrorDefault + 0.01,
       path[kSamePointNumMergePathDefault].y() + kGridErrorDefault + 0.01,
@@ -288,7 +288,7 @@ TEST_F(UpdatePathTest, ChangeGreaterThanGridErrorAtBeginning) {
   const bool is_needed_update = path_updater_->UpdatePath(path, start_index_on_prev_path_, update_path);
 
   // verify
-  // A need for update is returned
+  // Returns that an update is needed
   EXPECT_TRUE(is_needed_update);
   // The output path matches the input path
   EXPECT_TRUE(IsMatchPaths(update_path, path));
@@ -296,7 +296,7 @@ TEST_F(UpdatePathTest, ChangeGreaterThanGridErrorAtBeginning) {
 
 
 /// UpdatePath test
-/// If changes occur from the middle relative to the previous path, a merge update is needed
+/// If changes occur from the middle of the previous path, a merge update is performed
 TEST_F(UpdatePathTest, ChangeGreaterThanGridErrorAtMiddle) {
   // setup
   PoseSeq path;
@@ -304,7 +304,7 @@ TEST_F(UpdatePathTest, ChangeGreaterThanGridErrorAtMiddle) {
   for (uint32_t i = start_index_on_prev_path_; i < prev_path_.size(); ++i) {
     path.push_back(prev_path_[i]);
   }
-  // Move the middle points more than the threshold
+  // Move the points in the middle by more than the threshold
   path[kSamePointNumMergePathDefault + 1] = Pose2d(
       path[kSamePointNumMergePathDefault + 1].x() + kGridErrorDefault + 0.01,
       path[kSamePointNumMergePathDefault + 1].y() + kGridErrorDefault + 0.01,
@@ -315,7 +315,7 @@ TEST_F(UpdatePathTest, ChangeGreaterThanGridErrorAtMiddle) {
   const bool is_needed_update = path_updater_->UpdatePath(path, start_index_on_prev_path_, update_path);
 
   // verify
-  // A need for update is returned
+  // Returns that an update is needed
   EXPECT_TRUE(is_needed_update);
   PoseSeq expect_path;
   for (uint32_t i = 0; i < start_index_on_prev_path_; ++i) {
@@ -324,7 +324,7 @@ TEST_F(UpdatePathTest, ChangeGreaterThanGridErrorAtMiddle) {
   for (uint32_t i = 0; i < path.size(); ++i) {
     expect_path.push_back(path[i]);
   }
-  // The previous path and input path are concatenated and output
+  // The previous path and the input path are concatenated and output
   EXPECT_TRUE(IsMatchPaths(update_path, expect_path));
 }
 
@@ -345,7 +345,7 @@ TEST_F(UpdatePathTest, ClearPrevPath) {
   const bool is_needed_update = path_updater_->UpdatePath(path, start_index_on_prev_path_, update_path);
 
   // verify
-  // A need for update is returned
+  // Returns that an update is needed
   EXPECT_TRUE(is_needed_update);
   // The output path matches the input path
   EXPECT_TRUE(IsMatchPaths(update_path, path));

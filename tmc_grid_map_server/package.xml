@@ -1,7 +1,7 @@
 <package format="3">
   <name>tmc_grid_map_server</name>
-  <version>2.1.0</version>
-  <description>This is a package that publishes grid maps.</description>
+  <version>3.0.0</version>
+  <description>This is a package that publishes a grid map.</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
 
   <license>BSD 3-clause Clear License</license>

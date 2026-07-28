@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -43,24 +43,24 @@ class CupBumper : public VirtualBumper {
   typedef std::shared_ptr<CupBumper> Ptr;
   CupBumper(std::map<std::string, rclcpp::Parameter>& parameters, VelocitySlope::Ptr& velocity_slope);
 
-  /// Returns the speed limit ratio based on the distance to the nearest point within range.
-  /// Outputs the coordinates of the obstacle that caused the limitation if restricted
+  /// Returns the speed limit ratio based on the distance to the nearest point within the range.
+  /// Outputs the coordinates of the obstacle that caused the limitation when restricted.
   /// @param input_velocity [I] Input velocity
   /// @param obstacle_pose [O] Outputs obstacle coordinates
   /// @return Limitation ratio (0.0 to 1.0)
   double LimitVelocityRatio(const Twist& input_velocity, geometry_msgs::msg::PoseStamped& obstacle_pose);
 
  private:
-  /// Finds the point with the shortest distance within range
+  /// Finds the point with the shortest distance within the range.
   /// @param input_cloud [I] Point cloud
-  /// @param input_velocity [I] Movement speed
+  /// @param input_velocity [I] Movement velocity
   /// @param nearest_pose [O] Point with the shortest distance
   /// @param distance_ratio [O] Ratio of obstacle distance to search distance
-  /// @return Whether found or not true found false not found
+  /// @return Whether found or not: true if found, false if not found
   bool FindNearestPoseInRange(const PointCloudPtr& input_cloud, const Twist& input_velocity,
                               geometry_msgs::msg::PoseStamped& nearest_pose, double& distance_ratio);
 
-  /// ROS PARAM acquisition
+  /// Retrieve ROS PARAM
   void UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters);
 
   double bottom_length_;

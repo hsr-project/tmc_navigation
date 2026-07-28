@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file bumper_set.hpp
-/// @brief Class to manage multiple virtual bumpers
+/// @brief A class that manages multiple virtual bumpers
 #ifndef TMC_SAFETY_VELOCITY_LIMITER_BUMPER_SET_HPP_
 #define TMC_SAFETY_VELOCITY_LIMITER_BUMPER_SET_HPP_
 
@@ -56,7 +56,7 @@ class BumperSet {
   /// Create an instance of a virtual bumper
   VirtualBumper::Ptr CreateVirtualBumper(std::map<std::string, rclcpp::Parameter>& parameters);
 
-  /// Create an instance of speed gradient
+  /// Create an instance of a speed gradient
   VelocitySlope::Ptr CreateVelocitySlope(std::map<std::string, rclcpp::Parameter>& parameters);
 
   std::map<std::string, VirtualBumper::Ptr> bumper_list_;

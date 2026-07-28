@@ -57,9 +57,6 @@ target_include_directories(${PROJECT_NAME}_lib
     $<INSTALL_INTERFACE:include>
 )
 
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 add_executable(base_path_follower
@@ -126,6 +123,7 @@ install(DIRECTORY img
 if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_index_cpp REQUIRED)
 
   install(DIRECTORY test/pathdata
     DESTINATION share/${PROJECT_NAME}/test
@@ -140,6 +138,7 @@ if(BUILD_TESTING)
     TIMEOUT 300
   )
   target_link_libraries(base_path_follower_node-omni-test ${PROJECT_NAME}_lib yaml-cpp)
+  ament_target_dependencies(base_path_follower_node-omni-test ament_index_cpp)
 
   # base_path_follower_node-diff_drive-test
   ament_add_gtest(base_path_follower_node-diff_drive-test test/base_path_follower_node-test.cpp
@@ -147,6 +146,7 @@ if(BUILD_TESTING)
     TIMEOUT 300
   )
   target_link_libraries(base_path_follower_node-diff_drive-test ${PROJECT_NAME}_lib yaml-cpp)
+  ament_target_dependencies(base_path_follower_node-diff_drive-test ament_index_cpp)
 
   # base_path_follower
   ament_add_gmock(base_path_follower-test test/base_path_follower-test.cpp)
@@ -155,6 +155,7 @@ if(BUILD_TESTING)
   # base_path_follower_factory
   ament_add_gtest(base_path_follower_factory-test test/base_path_follower_factory-test.cpp)
   target_link_libraries(base_path_follower_factory-test ${PROJECT_NAME}_lib)
+  ament_target_dependencies(base_path_follower_factory-test ament_index_cpp)
 
   # parameter_creator-test
   ament_add_gtest(parameter_creator-test test/parameter_creator-test.cpp)

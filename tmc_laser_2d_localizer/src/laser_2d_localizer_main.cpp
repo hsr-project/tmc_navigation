@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -43,7 +43,7 @@ int32_t main(int32_t argc, char** argv) {
     rclcpp::NodeOptions option;
     option.allow_undeclared_parameters();
     option.automatically_declare_parameters_from_overrides(true);
-    // Self-position object generation
+    // Create self-position object
     auto laser_2d_localizer_node = std::make_shared<tmc_laser_2d_localizer::Laser2dLocalizerNode>(option);
     laser_2d_localizer_node->Init();
     rclcpp::spin(laser_2d_localizer_node);

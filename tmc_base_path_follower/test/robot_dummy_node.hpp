@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -42,16 +42,16 @@ DAMAGE.
 namespace tmc_base_path_follower {
 // Test drive cycle [s]
 constexpr double kCycleTime = 0.01;
-// Timeout duration for speed command input [s]
+// Timeout duration for velocity command input [s]
 constexpr double kTwistTimeOut = 0.5;
 
 using std::placeholders::_1;
 using std::placeholders::_2;
 /// Dummy node class for the robot
 /// Receives velocity and simulates robot movement
-/// Performs the following actions
-/// - Upon receiving initial position movement command from the test node, continuously moves to that position at a constant speed
-/// - After reaching the initial position, moves according to the velocity from base_path_follower
+/// Performs the following operations
+/// - When receiving an initial position movement command from the test node, it continuously moves to that position at a constant speed
+/// - After reaching the initial position, it moves according to the velocity from base_path_follower
 class RobotDummyNode : public rclcpp::Node {
  public:
   explicit RobotDummyNode(const rclcpp::NodeOptions& options = rclcpp::NodeOptions()) :
@@ -75,12 +75,12 @@ class RobotDummyNode : public rclcpp::Node {
 
     sub_velocity_ = this->create_subscription<geometry_msgs::msg::Twist>("/base_velocity", 1,
         std::bind(&RobotDummyNode::VelocityCallback, this, _1));
-    // Start/stop service for self-position publishing
+    // Start/stop service for publishing self-position
     start_publish_pose_service_ = this->create_service<std_srvs::srv::Empty>("/start_publish_pose",
         std::bind(&RobotDummyNode::StartPublishPoseServiceCallback, this, _1, _2));
     stop_publish_pose_service_ = this->create_service<std_srvs::srv::Empty>("/stop_publish_pose",
         std::bind(&RobotDummyNode::StopPublishPoseServiceCallback, this, _1, _2));
-    // This node only operates passively, so it does not wait for communication establishment
+    // This node operates passively and does not wait for communication establishment
   }
 
   /// Main processing
@@ -88,7 +88,7 @@ class RobotDummyNode : public rclcpp::Node {
     killed_ = false;
     rclcpp::Rate loop_rate(1.0 / kCycleTime);
     while (rclcpp::ok() && !killed_) {
-      // Moves according to the initial position during initial position movement command from the test node, otherwise according to velocity
+      // Moves to the initial position during the initial position movement command from the test node, otherwise moves according to velocity
       if (moving_to_initial_pose_) {
         current_pose_ = initial_pose_;
         moving_to_initial_pose_ = false;
@@ -110,7 +110,7 @@ class RobotDummyNode : public rclcpp::Node {
   }
 
  private:
-  /// Cart speed command callback
+  /// Cart velocity command callback
   void VelocityCallback(const geometry_msgs::msg::Twist::SharedPtr velocity) {
     velocity_ = *velocity;
     last_twist_subscribed_time_ = this->get_clock()->now();
@@ -122,14 +122,14 @@ class RobotDummyNode : public rclcpp::Node {
     initial_pose_ = *pose;
   }
 
-  /// Self-position publishing start service
+  /// Start service for publishing self-position
   void StartPublishPoseServiceCallback(
       std_srvs::srv::Empty::Request::SharedPtr req,
       std_srvs::srv::Empty::Response::SharedPtr res) {
     publish_global_pose_ = true;
   }
 
-  /// Self-position publishing stop service
+  /// Stop service for publishing self-position
   void StopPublishPoseServiceCallback(std_srvs::srv::Empty::Request::SharedPtr req,
                                       std_srvs::srv::Empty::Response::SharedPtr res) {
     publish_global_pose_ = false;
@@ -137,7 +137,7 @@ class RobotDummyNode : public rclcpp::Node {
 
   /// Update self-position
   void UpdateCurrentPose() {
-    // If no speed command is received for a certain period, the speed is set to 0
+    // If no velocity command is received for a certain period, the velocity is set to 0
     if (this->get_clock()->now() - last_twist_subscribed_time_ >
         rclcpp::Duration::from_seconds(kTwistTimeOut)) {
       velocity_.linear.x = 0.0;
@@ -145,7 +145,7 @@ class RobotDummyNode : public rclcpp::Node {
       velocity_.angular.z = 0.0;
     }
     // Self-position calculation
-    // Cart speed is based on the front direction of the cart, so convert to absolute coordinates for calculation
+    // Since the cart's velocity is based on the front direction of the cart, it is converted to absolute coordinates for calculation
     double yaw = tf2::getYaw(current_pose_.pose.orientation);
     current_pose_.pose.position.x += (velocity_.linear.x * cos(yaw) - velocity_.linear.y * sin(yaw)) * kCycleTime;
     current_pose_.pose.position.y += (velocity_.linear.x * sin(yaw) + velocity_.linear.y * cos(yaw)) * kCycleTime;
@@ -157,23 +157,23 @@ class RobotDummyNode : public rclcpp::Node {
 
   // Self-position publisher
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_global_pose_;
-  // Cart speed command subscriber
+  // Cart velocity command subscriber
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_velocity_;
   // Initial position subscriber
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr sub_initial_pose_;
-  // Cart speed command value
+  // Cart velocity command value
   geometry_msgs::msg::Twist velocity_;
   // Self-position
   geometry_msgs::msg::PoseStamped current_pose_;
   // Initial position
   geometry_msgs::msg::PoseStamped initial_pose_;
-  // Moving to initial position
+  // Moving to the initial position
   bool moving_to_initial_pose_;
-  // Time of last speed command subscription
+  // Time of the last subscribed velocity command
   rclcpp::Time last_twist_subscribed_time_;
-  // Self-position publishing start service
+  // Start service for publishing self-position
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr start_publish_pose_service_;
-  // Self-position publishing stop service
+  // Stop service for publishing self-position
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr stop_publish_pose_service_;
   // Whether to publish self-position
   bool publish_global_pose_;

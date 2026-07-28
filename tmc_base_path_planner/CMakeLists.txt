@@ -50,9 +50,6 @@ target_include_directories(${PROJECT_NAME}_lib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 add_executable(base_path_planner
@@ -122,6 +119,7 @@ install(DIRECTORY config
 if(BUILD_TESTING)
   find_package(ament_cmake_gmock REQUIRED)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_index_cpp REQUIRED)
   find_package(angles REQUIRED)
   find_package(console_bridge REQUIRED)
 
@@ -134,12 +132,12 @@ if(BUILD_TESTING)
     base_path_planner_node-test
     test/base_path_planner_node-test.cpp
     TIMEOUT 500)
-  ament_target_dependencies(base_path_planner_node-test angles)
+  ament_target_dependencies(base_path_planner_node-test ament_index_cpp angles)
   target_link_libraries(base_path_planner_node-test ${PROJECT_NAME}_lib)
   # for base_path_planner_factory
   ament_add_gtest(base_path_planner_factory-test
     test/base_path_planner_factory-test.cpp)
-  ament_target_dependencies(base_path_planner_factory-test angles)
+  ament_target_dependencies(base_path_planner_factory-test ament_index_cpp angles)
   target_link_libraries(base_path_planner_factory-test ${PROJECT_NAME}_lib)
   # for grid_cells_publisher
   ament_add_gtest(grid_cells_publisher-test
@@ -149,7 +147,7 @@ if(BUILD_TESTING)
   # for astar_path_planner_factory
   ament_add_gtest(astar_path_planner_factory-test
     test/astar_path_planner_factory-test.cpp)
-  ament_target_dependencies(astar_path_planner_factory-test angles)
+  ament_target_dependencies(astar_path_planner_factory-test ament_index_cpp angles)
   target_link_libraries(astar_path_planner_factory-test ${PROJECT_NAME}_lib)
 
   # for base_path_planner

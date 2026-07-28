@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file viewpoint_to_path.cpp
-/// @brief Calculate the angle to direct the viewpoint to the destination
+/// @brief Calculate the angle to direct the viewpoint towards the destination
 #include <tmc_viewpoint_controller/viewpoint_to_path.hpp>
 
 #include <algorithm>
@@ -44,9 +44,9 @@ using std::placeholders::_1;
 const char* const kPathTopicName = "base_local_path";
 /// Default value of focus_path_length [m]
 const double kDefaultFocusPathLength = 0.5;
-/// Allowable distance from the robot to the nearest path point [m]
+/// Allowable distance [m] between the robot and the nearest path point
 const double kMaxNearestDist = 1.0;
-/// Allowable distance from the target viewpoint position to the path point [m]
+/// Allowable distance [m] from the target viewpoint position to the path point
 const double kMaxTargetError = 1.0;
 /// Length of a valid path [number of points]
 const uint32_t kValidPathNum = 1;
@@ -125,7 +125,7 @@ ViewpointToPath::ViewpointToPath(const rclcpp::Node::SharedPtr node)
   // Parameter acquisition process
   // Focus path point
   GetOptionalParam(node, "focus_path_length", focus_path_length_, kDefaultFocusPathLength);
-  // Path Subscriber setting
+  // Path Subscriber setup
   path_sub_ = node->create_subscription<nav_msgs::msg::Path>(
       kPathTopicName, 1, std::bind(&ViewpointToPath::PathCallback, this, _1));
 }
@@ -141,7 +141,7 @@ bool ViewpointToPath::ViewPointToPathDirection(const Eigen::Vector3d& robot_pose
   IndexWithDistance nearest_path_info;    // (Nearest point, distance to the nearest point)
   // Calculate the nearest point on the path
   nearest_path_info = NearestPathPoint(robot_pose, path_);
-  // Do not control the viewpoint if the distance to the nearest point is above a certain level
+  // If the distance to the nearest point exceeds a certain threshold, do not control the viewpoint
   if (nearest_path_info.second > kMaxNearestDist) {
     RCLCPP_DEBUG(rclcpp::get_logger("view_point_controller"), "Exceed max nearest distance.");
     RCLCPP_DEBUG(rclcpp::get_logger("view_point_controller"), "No Need to View-Control");
@@ -161,7 +161,7 @@ bool ViewpointToPath::ViewPointToPathDirection(const Eigen::Vector3d& robot_pose
   // Neck rotation amount
   double robot_view_direction = 0.0;
   if (target_path_info.first == 0) {
-    // Return the viewpoint to the default position (forward) when the path becomes shorter (approaching the goal)
+    // When the path becomes shorter (approaching the goal), return the viewpoint to the fixed position (forward)
     robot_view_direction = 0.0;
     view_direction = -robot_pose(2);
     RCLCPP_DEBUG(rclcpp::get_logger("view_point_controller"),
@@ -169,7 +169,7 @@ bool ViewpointToPath::ViewPointToPathDirection(const Eigen::Vector3d& robot_pose
     RCLCPP_DEBUG(rclcpp::get_logger("view_point_controller"), "No target_index, so set default position");
     path_.poses.clear();
   } else {
-    // Determine the viewpoint angle from the target point
+    // Calculate the viewpoint angle from the target point
     Eigen::Vector2d next_target_position;
     Eigen::Vector2d target_position;
     target_position << path_.poses[target_path_info.first].pose.position.x,
@@ -177,7 +177,7 @@ bool ViewpointToPath::ViewPointToPathDirection(const Eigen::Vector3d& robot_pose
     next_target_position << path_.poses[target_path_info.first - 1].pose.position.x,
         path_.poses[target_path_info.first - 1].pose.position.y;
     view_direction = atan2(target_position(1) - next_target_position(1), target_position(0) - next_target_position(0));
-    // Determine the neck pan angle from the viewpoint angle
+    // Calculate the neck pan angle from the viewpoint angle
     robot_view_direction = angles::normalize_angle(view_direction - robot_pose(2));
   }
   out_direction = robot_view_direction;

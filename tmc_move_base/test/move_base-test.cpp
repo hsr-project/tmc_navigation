@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file move_base-test.cpp
-/// @brief Test of autonomous movement action node
+/// @brief Test for autonomous navigation action node
 #include <chrono>
 #include <limits>
 #include <optional>
@@ -80,7 +80,7 @@ class TestNode : public rclcpp::Node {
     action_client_ = rclcpp_action::create_client<MoveBaseAction>(this, "move_base/move");
     goal_publisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("move_base_simple/goal", 1);
     tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
-    // Wait until linked with subscriber
+    // Wait until linked with the subscriber
     if (!WaitUntil([&]() { return (goal_publisher_->get_subscription_count() != 0); }, kTimeout)) {
       RCLCPP_FATAL(rclcpp::get_logger("move_base-test"), "Can not link to subscriber.");
       exit(EXIT_FAILURE);
@@ -92,14 +92,14 @@ class TestNode : public rclcpp::Node {
     }
   }
 
-  // Send goal topic
+  // Send the goal topic
   void SendGoalTopic(const geometry_msgs::msg::PoseStamped& goal_pose) {
     geometry_msgs::msg::PoseStamped goal = goal_pose;
     goal.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
     goal_publisher_->publish(goal);
   }
 
-  // Send action goal
+  // Send the action goal
   void SendMoveBaseActionGoal(const geometry_msgs::msg::PoseStamped& goal_pose) {
     auto send_goal_options = rclcpp_action::Client<MoveBaseAction>::SendGoalOptions();
     send_goal_options.goal_response_callback =
@@ -116,7 +116,7 @@ class TestNode : public rclcpp::Node {
     action_client_->async_send_goal(goal, send_goal_options);
   }
 
-  // Check if the action result matches the argument
+  // Determine if the action result matches the argument
   bool IsMatchActionResult(const rclcpp_action::ResultCode& in_result_code) {
     if (move_base_result_ && move_base_result_.value().code == in_result_code) {
       return true;
@@ -145,7 +145,7 @@ class TestNode : public rclcpp::Node {
 
   // Wait until some condition is met
   bool WaitUntil(std::function<bool()> condition_function, double timeout_sec) {
-    // Error check of arguments
+    // Error check for arguments
     if (!condition_function) {
       throw std::invalid_argument("Function for waiting is empty.");
     }
@@ -206,7 +206,7 @@ class MoveBaseTest : public ::testing::Test {
     // Publish StaticTF
     test_node_->SendStaticTransform(kMapFrameName, kOtherFrameName, CreateTransform(10.0, 10.0, 1.57));
     /// Set goal position
-    /// Set two PoseStamped to be the same as a result of coordinate transformation
+    /// Set two PoseStamped to match after coordinate transformation
     goal_in_map_frame_.header.frame_id = kMapFrameName;
     goal_in_map_frame_.pose = CreatePose(10.0, 11.0, 3.14);
     goal_in_other_frame_.header.frame_id = kOtherFrameName;
@@ -231,8 +231,8 @@ class MoveBaseTest : public ::testing::Test {
 };
 
 
-/// When autonomous movement is requested by action, request route planning from PathPlanner
-/// When PathPlanner becomes SUCCEEDED, it should become SUCCEEDED
+/// When autonomous navigation is requested via action, request route planning from PathPlanner
+/// When PathPlanner becomes SUCCEEDED, it should also become SUCCEEDED
 TEST_F(MoveBaseTest, RequestByAction) {
   // PathPlanner dummy is set to become SUCCEEDED after 1 second
   path_planner_dummy_->SetActionCompleteCondition(1.0, rclcpp_action::ResultCode::SUCCEEDED);
@@ -246,12 +246,12 @@ TEST_F(MoveBaseTest, RequestByAction) {
   ASSERT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::SUCCEEDED); }, kTimeout));
 
-  // Request route planning according to the input goal coordinates
+  // Route planning should be requested based on the input goal coordinates
   EXPECT_TRUE(IsMatchPoseStamped(path_planner_dummy_->current_requested_goal(), goal_in_map_frame_));
 }
 
 
-/// When cancel is requested, it should become CANCELED
+/// When cancellation is requested, it should become CANCELED
 /// Cancel PathPlanner
 TEST_F(MoveBaseTest, Cancel) {
   // Execute action
@@ -265,7 +265,7 @@ TEST_F(MoveBaseTest, Cancel) {
 }
 
 
-/// Convert the specified FrameID to map coordinate system and request route planning
+/// Convert the specified FrameID to map coordinates and request route planning
 TEST_F(MoveBaseTest, TransformGoal) {
   // Specify goal based on other frame and execute action
   test_node_->SendMoveBaseActionGoal(goal_in_other_frame_);
@@ -277,14 +277,14 @@ TEST_F(MoveBaseTest, TransformGoal) {
   ASSERT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::SUCCEEDED); }, kTimeout));
 
-  // Convert input goal coordinates to map coordinate system and request route planning
+  // Convert input goal coordinates to map coordinates and request route planning
   EXPECT_TRUE(IsMatchPoseStamped(path_planner_dummy_->current_requested_goal(), goal_in_map_frame_));
 }
 
 
-/// If the specified FrameID does not exist, it should become ABORTED
+/// When the specified FrameID does not exist, it should become ABORTED
 TEST_F(MoveBaseTest, TransformGoalError) {
-  // Specify non-existent FrameID and execute action
+  // Specify a non-existent FrameID and execute action
   geometry_msgs::msg::PoseStamped goal_in_unknown_frame = goal_in_other_frame_;
   goal_in_unknown_frame.header.frame_id = "unknown";
   test_node_->SendMoveBaseActionGoal(goal_in_unknown_frame);
@@ -295,15 +295,15 @@ TEST_F(MoveBaseTest, TransformGoalError) {
 }
 
 
-/// If an action is thrown by overwrite, the preceding action should end with ABORTED
-/// Do not request cancel to PathPlanner
+/// When an action is overridden, the preceding action should end with ABORTED
+/// Do not request cancellation from PathPlanner
 TEST_F(MoveBaseTest, NewGoalAvailable) {
   // PathPlanner dummy is set to succeed after 1 second
   path_planner_dummy_->SetActionCompleteCondition(1.0, rclcpp_action::ResultCode::SUCCEEDED);
   // Execute action
   test_node_->SendMoveBaseActionGoal(goal_in_map_frame_);
 
-  // When a request occurs to PathPlanner, request MoveBase action again
+  // When a request is made to PathPlanner, request MoveBase action again
   ASSERT_TRUE(test_node_->WaitUntil([&]() { return path_planner_dummy_->IsRequested(); }, kTimeout));
 
   test_node_->SendMoveBaseActionGoal(goal_in_other_frame_);
@@ -311,7 +311,7 @@ TEST_F(MoveBaseTest, NewGoalAvailable) {
   // The preceding action should end with ABORTED
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED); }, kTimeout));
-  // No cancel request has been made to PathPlanner
+  // No cancellation request should be made to PathPlanner
   EXPECT_FALSE(path_planner_dummy_->IsCanceled());
 
   // The subsequent action should end with SUCCEEDED
@@ -320,7 +320,7 @@ TEST_F(MoveBaseTest, NewGoalAvailable) {
 }
 
 
-/// When PathPlanner becomes ABORTED, it should become ABORTED
+/// When PathPlanner becomes ABORTED, it should also become ABORTED
 TEST_F(MoveBaseTest, PathPlannerAborted) {
   // PathPlanner dummy is set to become Aborted after 1 second
   path_planner_dummy_->SetActionCompleteCondition(1.0, rclcpp_action::ResultCode::ABORTED);
@@ -333,7 +333,7 @@ TEST_F(MoveBaseTest, PathPlannerAborted) {
 }
 
 
-/// If PathPlanner continues in a route planning failure state (PLANNING) for longer than the timeout period,
+/// If PathPlanner remains in a failed state (PLANNING) for longer than the timeout period,
 /// Stop route planning and become ABORTED
 TEST_F(MoveBaseTest, PathPlanFailTimeout) {
   /// Set PathPlanner dummy to continuously feedback PLANNING
@@ -348,26 +348,26 @@ TEST_F(MoveBaseTest, PathPlanFailTimeout) {
   // Execute action
   test_node_->SendMoveBaseActionGoal(goal_in_map_frame_);
 
-  /// Should not become ABORTED until timeout
-  /// There is a concern that setting a strict time may result in unintended results due to lag caused by the load on the execution environment,
-  /// Therefore, confirm with a margin up to 2 seconds before the timeout
+  /// Should not become ABORTED until the timeout
+  /// Due to concerns about unintended results caused by lag under heavy load in the execution environment with strict time settings,
+  /// Confirm up to 2 seconds before the timeout with some margin
   ASSERT_FALSE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED); },
       kPlanningTimeoutParamValue - 2.0));
-  // No cancel request has been made to PathPlanner
+  // No cancellation request should be made to PathPlanner
   EXPECT_FALSE(path_planner_dummy_->IsCanceled());
 
   // Should become ABORTED after timeout
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED); },
       2.0 + kTimeout));
-  // Request cancel to PathPlanner
+  // Request cancellation from PathPlanner
   EXPECT_TRUE(path_planner_dummy_->IsCanceled());
 }
 
 
-/// After PathPlanner continues in a route planning failure state (PLANNING) for less than the timeout period, transition to route planning success (RUNNING)
-/// Continue autonomous movement, and when PathPlanner becomes SUCCEEDED, it should become SUCCEEDED
+/// After PathPlanner remains in a failed state (PLANNING) for less than the timeout period, transition to route planning success (RUNNING)
+/// Continue autonomous navigation, and when PathPlanner becomes SUCCEEDED, it should also become SUCCEEDED
 TEST_F(MoveBaseTest, PathPlanFailRecovery) {
   /// Set PathPlanner dummy to continuously feedback PLANNING
   /// Set to operate longer than the timeout period and become SUCCEEDED
@@ -381,9 +381,9 @@ TEST_F(MoveBaseTest, PathPlanFailRecovery) {
   // Execute action
   test_node_->SendMoveBaseActionGoal(goal_in_map_frame_);
 
-  /// Should not become ABORTED until timeout
-  /// There is a concern that setting a strict time may result in unintended results due to lag caused by the load on the execution environment,
-  /// Therefore, confirm with a margin up to 2 seconds before the timeout
+  /// Should not become ABORTED until the timeout
+  /// Due to concerns about unintended results caused by lag under heavy load in the execution environment with strict time settings,
+  /// Confirm up to 2 seconds before the timeout with some margin
   ASSERT_FALSE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::ABORTED); },
       kPlanningTimeoutParamValue - 2.0));
@@ -397,11 +397,11 @@ TEST_F(MoveBaseTest, PathPlanFailRecovery) {
   EXPECT_TRUE(test_node_->WaitUntil([&]() {
       return test_node_->IsMatchActionResult(rclcpp_action::ResultCode::SUCCEEDED); },
       2.0 + kTimeout));
-  // No cancel request has been made to PathPlanner
+  // No cancellation request should be made to PathPlanner
   EXPECT_FALSE(path_planner_dummy_->IsCanceled());
 }
 
-/// When autonomous movement is requested by topic, request route planning from PathPlanner
+/// When autonomous navigation is requested via topic, request route planning from PathPlanner
 TEST_F(MoveBaseTest, RequestByTopic) {
   // Send goal topic
   test_node_->SendGoalTopic(goal_in_map_frame_);
@@ -411,7 +411,7 @@ TEST_F(MoveBaseTest, RequestByTopic) {
 
   // Check if the input goal is commanded to PathPlanner
   EXPECT_TRUE(IsMatchPoseStamped(path_planner_dummy_->current_requested_goal(), goal_in_map_frame_));
-  // Wait until the Follower action is completed to avoid abnormal termination of the test
+  // Wait until the Follower action completes before ending the test to avoid anomalies
   EXPECT_TRUE(test_node_->WaitUntil([&]() { return !path_planner_dummy_->IsRunning(); }, kTimeout));
 }
 }  // namespace tmc_move_base
@@ -429,7 +429,7 @@ int main(int argc, char** argv) {
   move_base_node->declare_parameter("planning_timeout", tmc_move_base::kPlanningTimeoutParamValue);
   move_base_node->set_parameter(planning_timeout_param);
   move_base_node->Init();
-  // Start thread
+  // Create thread
   auto move_base_node_thread = std::make_shared<std::thread>([&]() {
       rclcpp::spin(move_base_node);
       });

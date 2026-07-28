@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -31,13 +31,13 @@ DAMAGE.
 #include <string>
 
 #include <rclcpp/rclcpp.hpp>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/transform_listener.h>
 
 namespace tmc_map_merger {
 
-/// @brief Helper class for transforming frame coordinates to the fixed_frame coordinate system
-/// Implement as a Singleton because there is a TF Listener.
+/// @brief Helper class for transforming frame coordinates into the fixed_frame coordinate system
+/// Implemented as a Singleton because there is a TF Listener.
 class Tf2Helper {
  public:
   Tf2Helper() :  timeout_(0, 0) {}
@@ -50,7 +50,7 @@ class Tf2Helper {
   }
 
   virtual ~Tf2Helper() {}
-  /// @brief Initialization (explicit initialization is required as the Listener starts with thread creation)
+  /// @brief Initialization (Listener starts by creating a thread, so explicit initialization is required)
   void Init(const rclcpp::Node::SharedPtr& node, const std::string& fixed_frame, const rclcpp::Duration timeout) {
     buffer_ = std::make_shared<tf2_ros::Buffer>(node->get_clock());
     // Start the Listener
@@ -59,7 +59,7 @@ class Tf2Helper {
     listener_ = std::shared_ptr<tf2_ros::TransformListener>(new tf2_ros::TransformListener(*buffer_));
   }
 
-  /// @brief Transform the given Pose to the fixed coordinate system
+  /// @brief Transform the given Pose into the fixed coordinate system
   bool GetPoseFromFixedFrame(const geometry_msgs::msg::PoseStamped& pose, geometry_msgs::msg::PoseStamped& new_pose) {
     // Overwrite the map coordinate system with the fixed_map coordinate system
     bool success = false;

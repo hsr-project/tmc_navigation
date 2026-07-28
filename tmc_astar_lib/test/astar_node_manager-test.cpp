@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -32,7 +32,7 @@ DAMAGE.
 #include <tmc_astar_lib/node_direction.hpp>
 
 namespace {
-// Edge size of the static map
+// Static map edge size
 constexpr int32_t kStaticMapSize = 1000;
 }  // anonymous namespace
 
@@ -52,7 +52,7 @@ class AstarNodeManagerTest : public ::testing::Test {
 };
 
 /// AstarNodeManager test
-/// Nodes corresponding to all grids can be obtained, and individual values can be set
+/// Nodes corresponding to all grids can be retrieved, and individual values can be set
 TEST_F(AstarNodeManagerTest, MaximumCapacity) {
   // exercise
   for (int32_t y = 0; y < kStaticMapSize; ++y) {
@@ -66,14 +66,14 @@ TEST_F(AstarNodeManagerTest, MaximumCapacity) {
   for (int32_t y = 0; y < kStaticMapSize; ++y) {
     for (int32_t x = 0; x < kStaticMapSize; ++x) {
       AstarNode* node = nodes_->GetNode(MapIndex(x, y));
-      // Use ASSERT to check because EXPECT would result in an enormous log if it fails
+      // Use ASSERT to check because EXPECT would generate an overwhelming log if it fails
       ASSERT_EQ(kStaticMapSize * y + x, node->total_cost());
     }
   }
 }
 
 /// AstarNodeManager test
-/// An exception is raised when trying to reference a node out of range
+/// An exception is raised when attempting to reference a node out of range
 TEST_F(AstarNodeManagerTest, FailCase) {
   // exercise & verify
   EXPECT_THROW(nodes_->GetNode(MapIndex(kStaticMapSize, 0)), std::exception);

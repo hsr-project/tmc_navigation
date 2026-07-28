@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -38,7 +38,7 @@ DAMAGE.
 namespace tmc_base_path_follower {
 
 /// Parameter test
-/// Able to generate parameters
+/// It can generate parameters
 TEST(DiffDriveGoalCheckerParameterTest, ConstructParameter) {
   // setup
   const double goal_area_length = 0.1;
@@ -56,7 +56,7 @@ TEST(DiffDriveGoalCheckerParameterTest, ConstructParameter) {
 
 
 /// Parameter test
-/// If an invalid value is specified, it is generated with the default value
+/// If invalid values are specified, it generates with default values
 TEST(DiffDriveGoalCheckerParameterTest, ConstructWithInvalidParameterMakeDefault) {
   // setup
   const double goal_area_length = -0.1;
@@ -93,8 +93,8 @@ class DiffDriveGoalCheckerTest : public ::testing::Test {
 };
 
 /// CheckGoal test
-/// If the distance difference between the self-position and the goal is within the threshold, and
-/// If the self-position is further along the path than the goal line, it is determined to have entered the goal area
+/// If the distance difference between the self-position and the goal is within the threshold,
+/// and the self-position is further along the path than the goal line, it is determined to have entered the goal area
 TEST_F(DiffDriveGoalCheckerTest, ArrivedGoalArea) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -124,7 +124,7 @@ TEST_F(DiffDriveGoalCheckerTest, NotArrivedGoalAreaGoalAreaLength) {
 }
 
 /// CheckGoal test
-/// Once it is determined to have entered the goal area, a margin is allowed in the judgment range, and it is not determined to have exited the goal area even if slightly off
+/// Once it is determined to have entered the goal area, a margin is added to the judgment range so that it is not determined to have exited the goal area even if slightly off
 TEST_F(DiffDriveGoalCheckerTest, GoalAreaMergin) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -133,24 +133,24 @@ TEST_F(DiffDriveGoalCheckerTest, GoalAreaMergin) {
   goal_checker_->CheckGoal(path_, ArriveGoalAreaPose(path_.back()), is_arrived_goal_area, is_arrived_goal);
   EXPECT_TRUE(is_arrived_goal_area);
 
-  // Even if slightly out of the goal area, it is determined to be within the goal area
+  // Even if slightly outside the goal area, it is determined to be within the goal area
   goal_checker_->CheckGoal(path_, AheadGoalLinePose(path_.back()), is_arrived_goal_area, is_arrived_goal);
   EXPECT_TRUE(is_arrived_goal_area);
   goal_checker_->CheckGoal(path_, OutsideGoalAreaPose(path_.back()), is_arrived_goal_area, is_arrived_goal);
   EXPECT_TRUE(is_arrived_goal_area);
 
-  // Move the X coordinate twice the distance from the goal line
+  // Move the X-coordinate twice the distance of the goal line
   Pose2d global_pose = ArriveGoalAreaPose(path_.back());
   const double diff_x = -kGoalLineLengthDefault * 2.0;
   global_pose.set_x(path_.back().x() + diff_x);
 
   goal_checker_->CheckGoal(path_, global_pose, is_arrived_goal_area, is_arrived_goal);
-  // If significantly out of the goal area, it is determined to be outside the goal area
+  // If significantly outside the goal area, it is determined to be outside the goal area
   EXPECT_FALSE(is_arrived_goal_area);
 }
 
 /// CheckGoal test
-/// In the case of a path with only one point, if the distance difference between the self-position and the goal is within the threshold, it is determined to have entered the goal area
+/// In the case of a single-point path, if the distance difference between the self-position and the goal is within the threshold, it is determined to have entered the goal area
 TEST_F(DiffDriveGoalCheckerTest, ArrivedGoalAreaOnePointPath) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -163,7 +163,7 @@ TEST_F(DiffDriveGoalCheckerTest, ArrivedGoalAreaOnePointPath) {
 }
 
 /// CheckGoal test
-/// In the case of a path with only one point, if the distance difference between the self-position and the goal is farther than the threshold, it is determined not to have entered the goal area
+/// In the case of a single-point path, if the distance difference between the self-position and the goal is farther than the threshold, it is determined not to have entered the goal area
 TEST_F(DiffDriveGoalCheckerTest, NotArrivedGoalAreaOnePointPath) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -177,8 +177,8 @@ TEST_F(DiffDriveGoalCheckerTest, NotArrivedGoalAreaOnePointPath) {
 
 
 /// CheckGoal test
-/// If it was previously determined to have entered the goal area,
-/// It is determined to have reached the goal if the angle difference between the self-position and the goal is within the threshold
+/// If it was determined to have entered the goal area previously,
+/// and the angular difference between the self-position and the goal is within the threshold, it is determined to have reached the goal
 TEST_F(DiffDriveGoalCheckerTest, ArrivedGoal) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -187,14 +187,14 @@ TEST_F(DiffDriveGoalCheckerTest, ArrivedGoal) {
   goal_checker_->CheckGoal(path_, ArriveGoalAreaPose(path_.back()), is_arrived_goal_area, is_arrived_goal);
   EXPECT_TRUE(is_arrived_goal_area);
 
-  // If the angle difference is within the threshold, it is determined to have reached the goal
+  // If only the angular difference is within the threshold, it is determined to have reached the goal
   goal_checker_->CheckGoal(path_, NotArrivedGoalLinerPose(path_.back()), is_arrived_goal_area, is_arrived_goal);
   EXPECT_TRUE(is_arrived_goal);
 }
 
 /// CheckGoal test
-/// If it was previously determined not to have entered the goal area,
-/// It is determined not to have reached the goal even if the angle difference between the self-position and the goal is within the threshold
+/// If it was determined not to have entered the goal area previously,
+/// even if the angular difference between the self-position and the goal is within the threshold, it is determined not to have reached the goal
 TEST_F(DiffDriveGoalCheckerTest, NotArrivedGoalAreaNotArrivedGoal) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -209,8 +209,8 @@ TEST_F(DiffDriveGoalCheckerTest, NotArrivedGoalAreaNotArrivedGoal) {
 }
 
 /// CheckGoal test
-/// Even if it was previously determined to have entered the goal area,
-/// It is determined not to have reached the goal if the angle difference between the self-position and the goal is not within the threshold
+/// Even if it was determined to have entered the goal area previously,
+/// if the angular difference between the self-position and the goal is not within the threshold, it is determined not to have reached the goal
 TEST_F(DiffDriveGoalCheckerTest, NotArrivedGoalAngular) {
   bool is_arrived_goal_area = false;
   bool is_arrived_goal = false;
@@ -225,7 +225,7 @@ TEST_F(DiffDriveGoalCheckerTest, NotArrivedGoalAngular) {
 }
 
 /// CheckGoal test
-/// When initialized, it should not be determined to have entered the goal area again
+/// Upon initialization, it should not be determined to have entered the goal area again
 /// It is determined not to have reached the goal
 TEST_F(DiffDriveGoalCheckerTest, Initialize) {
   bool is_arrived_goal_area = false;
@@ -246,13 +246,13 @@ TEST_F(DiffDriveGoalCheckerTest, Initialize) {
   EXPECT_TRUE(is_arrived_goal_area);
   EXPECT_TRUE(is_arrived_goal);
 
-  // When initialized, it is determined not to have reached the goal
+  // Upon initialization, it is determined not to have reached the goal
   goal_checker_->Initialize();
   goal_checker_->CheckGoal(path_, ArriveGoalPose(path_.back()), is_arrived_goal_area, is_arrived_goal);
   EXPECT_TRUE(is_arrived_goal_area);
   EXPECT_FALSE(is_arrived_goal);
 
-  // After initializing, if it is determined to have entered the goal area once, it is determined to have reached the goal
+  // After initialization, if it is determined to have entered the goal area once, it is determined to have reached the goal
   goal_checker_->CheckGoal(path_, ArriveGoalPose(path_.back()), is_arrived_goal_area, is_arrived_goal);
   EXPECT_TRUE(is_arrived_goal_area);
   EXPECT_TRUE(is_arrived_goal);

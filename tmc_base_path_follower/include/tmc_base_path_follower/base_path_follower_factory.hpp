@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,13 +36,13 @@ DAMAGE.
 
 namespace tmc_base_path_follower {
 
-/// BasePathFollower object creation
+/// Create BasePathFollower object
 BasePathFollower::Ptr CreateBasePathFollower(const rclcpp::Node::SharedPtr& node) {
-  // Path vicinity point search function
+  // Path proximity point search functionality
   INearestPathPointSearcher::Ptr nearest_path_point_searcher = std::make_shared<NearestPathPointSearcher>(
       CreateNearestPathPointSearcherParameter(node));
 
-  // Create a speed calculation function class and goal judgment function class for the specified speed model
+  // Generate speed calculation class and goal determination class for the specified speed model
   std::string move_model_name;
   GetOptionalParam(node, "move_model_name", move_model_name, std::string(kMoveModelNameDefault));
 
@@ -59,7 +59,7 @@ BasePathFollower::Ptr CreateBasePathFollower(const rclcpp::Node::SharedPtr& node
     throw std::runtime_error("Unknown move model: " + move_model_name);
   }
 
-  // Path passing speed calculation function
+  // Path traversal speed calculation functionality
   bool use_path_transit_velocity;
   GetOptionalParam(node, "use_path_transit_velocity", use_path_transit_velocity, kUsePathTransitVelocityDefault);
 
@@ -68,7 +68,7 @@ BasePathFollower::Ptr CreateBasePathFollower(const rclcpp::Node::SharedPtr& node
     path_transit_velocity_calculator.reset(
       new PathTransitVelocityCalculator(CreatePathTransitVelocityCalculatorParameter(node)));
   } else {
-    // Specify nullptr if not limiting path passing speed
+    // Specify nullptr if path traversal speed limit is not required
     path_transit_velocity_calculator = nullptr;
   }
   BasePathFollower::Ptr follower;

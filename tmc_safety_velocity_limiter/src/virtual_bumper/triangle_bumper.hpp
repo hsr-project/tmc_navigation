@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -44,23 +44,23 @@ class TriangleBumper : public VirtualBumper {
   TriangleBumper(std::map<std::string, rclcpp::Parameter>& parameters, const VelocitySlope::Ptr& velocity_slope);
 
   /// Returns the speed limit ratio based on the distance to the nearest point within range
-  /// Outputs the coordinates of the point that caused the limitation if a limitation is applied
+  /// Outputs the coordinates of the point that caused the restriction if a limit is applied
   /// @param input_velocity [I] Input velocity
-  /// @param obstacle_pose [O] Outputs the coordinates of the obstacle that caused the limitation
-  /// @return Limitation ratio (0.0 to 1.0)
+  /// @param obstacle_pose [O] Outputs the coordinates of the obstacle that caused the restriction
+  /// @return Restriction ratio (0.0 to 1.0)
   double LimitVelocityRatio(const Twist& input_velocity, geometry_msgs::msg::PoseStamped& obstacle_pose);
 
  private:
-  /// Searches for the point with the shortest distance within range
+  /// Finds the point with the shortest distance within the range
   /// @param input_cloud [I] Point cloud
-  /// @param input_velocity [I] Movement speed
+  /// @param input_velocity [I] Movement velocity
   /// @param nearest_pose [O] Point with the shortest distance
   /// @param distance_ratio [O] Ratio of obstacle distance to search distance
-  /// @return Whether found or not true if found, false if not found
+  /// @return Whether found or not: true if found, false if not found
   bool FindNearestPoseInRange(const PointCloudPtr& input_cloud, const Twist& input_velocity,
                               geometry_msgs::msg::PoseStamped& nearest_pose, double& distance_ratio);
 
-  /// Retrieve ROS PRAM
+  /// ROS PRAM retrieval
   void UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters);
 
   double obstacle_search_distance_;

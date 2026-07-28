@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -71,13 +71,13 @@ TYPED_TEST_P(MemoryTypedTest, TimeoutDisabled) {
   EXPECT_EQ(object.Get(rclcpp::Time(std::numeric_limits<int32_t>::max(), 999999999), option), obstacle);
 }
 
-// Add here when tests increase
+// Add more tests here if needed
 REGISTER_TYPED_TEST_CASE_P(
     MemoryTypedTest,
     TimeoutEnabled,
     TimeoutDisabled);
 
-// Add here when Memory classes increase
+// Add more Memory classes here if needed
 typedef testing::Types<
   SimpleMemory,
   SafetyMemory>
@@ -112,7 +112,7 @@ TEST(SimpleMemoryTest, Priority) {
   EXPECT_EQ(object.Get(rclcpp::Time(1), option), kUnknown);
 }
 
-/// @brief Verify that if the observed value is greater than the stored value, it is stored, and if it is smaller, it is not stored
+/// @brief Verify that if the observed value is greater than the stored value, it is stored; otherwise, it is not stored
 TEST(SafetyMemoryTest, Priority) {
   // Setup
   SafetyMemory object;

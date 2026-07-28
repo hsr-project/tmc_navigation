@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -74,16 +74,16 @@ class TestNode : public rclcpp::Node {
 
   /// Initialization
   void Init();
-  // Wait until connection with target node is established
+  // Wait until the connection with the target node is established
   bool WaitForConnectionEstablished();
   bool WaitForResult(const double timeout);
-  // Spin test node
+  // Spin the test node
   void SpinOnce();
   // Provide subscribed data
   std::shared_ptr<geometry_msgs::msg::PoseWithCovarianceStamped> localized_pose() const { return localized_pose_; }
-  // Start service
+  // Start the service
   void CallStartService();
-  // Stop service
+  // Stop the service
   void CallStopService();
   // Publish Marker
   void PublishMarker(const int object_id, const geometry_msgs::msg::Pose& object_pose);
@@ -91,7 +91,7 @@ class TestNode : public rclcpp::Node {
   void PublishOdometry(const double odom_x, const double odom_y);
   // Publish joint_state
   void PublishJointState(const std::string& joint_name, const double velocity);
-  // Publish joint_state with dummy axis name
+  // Publish joint_state with dummy axis names
   void PublishDummyJointState();
   // Send tf_static
   void SendTransformStatic(const tf2::Transform& transform, const std::string& frame_id,
@@ -101,7 +101,7 @@ class TestNode : public rclcpp::Node {
   void SendTransform(const tf2::Transform& transform, const std::string& frame_id,
                      const std::string& child_frame_id,
                      geometry_msgs::msg::TransformStamped& transform_stamped);
-  // Generate expected value
+  // Generate expected values
   void CreateExpectMarkerPose(const int object_id, const geometry_msgs::msg::Pose& camera_marker_object_pose,
                               const geometry_msgs::msg::TransformStamped& transform_stamped,
                               geometry_msgs::msg::Pose& localized_pose);
@@ -120,7 +120,7 @@ class TestNode : public rclcpp::Node {
   std::vector<std::string> joints_list_;
 
   void LocalizedPoseSubscriptionCallback_(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
-  // Execute service
+  // Execute the service
   void CallEmptyService(rclcpp::Client<std_srvs::srv::Empty>::SharedPtr& client);
   // Set marker information
   void MarkerPoseInfo_(const int object_id, geometry_msgs::msg::Pose& object_pose);

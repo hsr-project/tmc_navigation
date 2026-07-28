@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -53,7 +53,7 @@ void BasePathPlanner::Initialize() {
   path_updater_->ClearPrevPath();
 }
 
-/// Path Planning
+/// Path planning
 BasePathPlannerErrorCode BasePathPlanner::PlanPath(
     const Pose2d& in_start_pose, const Pose2d& in_goal_pose, const Pose2d& in_global_pose,
     const CostMapPtr& in_dynamic_map, const Pose2d& in_dynamic_map_origin, const bool in_skip_non_update,
@@ -68,11 +68,11 @@ BasePathPlannerErrorCode BasePathPlanner::PlanPath(
   static_map_->MapToImage(goal_pose);
   static_map_->MapToImage(global_pose);
   static_map_->MapToImage(dynamic_map_origin);
-  // Filter obstacles around the start and goal to prevent complete failure in path planning when they are blocked by obstacles
+  // Filter surrounding obstacles to prevent complete failure in path planning when the start and goal are blocked by obstacles
   CostMapPtr dynamic_map = in_dynamic_map;
   map_filter_->FilterMapOnStartAndGoal(dynamic_map, dynamic_map_origin, start_pose, goal_pose, global_pose);
 
-  // Pre-check if path planning is possible
+  // Pre-check whether path planning is possible
   BasePathPlannerErrorCode error_code = condition_checker_->CheckCondition(
       static_map_, static_map_occupancy_threshold(), dynamic_map, dynamic_map_origin,
       start_pose, goal_pose, global_pose);
@@ -81,12 +81,12 @@ BasePathPlannerErrorCode BasePathPlanner::PlanPath(
     return error_code;
   }
 
-  // Determine the start position for path planning
+  // Determine the starting position for path planning
   Pose2d plan_start_pose;
   const std::optional<uint32_t> start_index_on_prev_path = path_updater_->SearchStartPoseOnPrevPath(
       global_pose, plan_start_pose);
 
-  // Grid path planning
+  // Grid-based path planning
   if (!planner_core_->PlanPath(plan_start_pose, goal_pose, dynamic_map, dynamic_map_origin,
                                kEnableAdaptiveStartPositioning, planned_grid_path_, planned_grid_path_)) {
     path_updater_->ClearPrevPath();

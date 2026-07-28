@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -46,13 +46,13 @@ namespace {
 const char* const kDefaultJointStatesTopicName = "joint_states";
 /// Neck trajectory topic name
 const char* const kDefaultCommandTopicName = "command";
-/// Function On service name
+/// Service name to turn the function on
 const char* const kStartServiceName = "~/start";
-/// Function Off service name
+/// Service name to turn the function off
 const char* const kStopServiceName = "~/stop";
-/// Tracking mode transition service name
+/// Service name to switch to Tracking mode
 const char* const kTrackingModeServiceName = "~/set_viewpoint_mode_tracking";
-/// Path mode transition service name
+/// Service name to switch to Path mode
 const char* const kPathModeServiceName = "~/set_viewpoint_mode_path";
 /// tf map frame name
 const char* const kDefaultMapFrameName = "map";
@@ -62,7 +62,7 @@ const char* const kDefaultBaseFrameName = "base_footprint";
 const char* const kDefaultNeckPanName = "head_pan_joint";
 /// Neck tilt axis name
 const char* const kDefaultNeckTiltName = "head_tilt_joint";
-/// Neck tilt default angle [rad]
+/// Default neck tilt angle [rad]
 const double kNeckTiltDefaultAngle = 0.0;
 /// Drive cycle [Hz]
 const double kDefaultRate = 1.0;
@@ -78,14 +78,14 @@ const double kTimeout = 120.0;
 const int32_t kConsoleMessageIndicatePeriod = 5000;
 /// Viewpoint control mode
 enum ViewpointControlMode {
-  /// Mode to direct the viewpoint towards the path
+  /// Mode to direct the viewpoint towards the path direction
   kModePath = 0,
-  /// Mode to direct the viewpoint towards the target
+  /// Mode to direct the viewpoint towards the target direction
   kModeTrackingTarget = 1
 };
 
 
-/// Clamp the input value within the range from minval to maxval
+/// Clamp the input value within the range of minval to maxval
 double Clamp(const double x, const double minval, const double maxval) {
   assert(minval < maxval && "min,maxval is wrong range!");
   if (x < minval) return minval;
@@ -116,7 +116,7 @@ bool FilterTrajectory(const trajectory_msgs::JointTrajectory& trajectory, trajec
   return true;
 }
 #else
-/// As a provisional measure until the filter_trajectory_with_constraints service is converted to ROS2, generate the trajectory independently
+/// As a temporary measure until the filter_trajectory_with_constraints service is ported to ROS2, generate the trajectory independently
 bool FilterTrajectory(const trajectory_msgs::msg::JointTrajectory& trajectory,
     trajectory_msgs::msg::JointTrajectory& filtered) {
   filtered.joint_names = trajectory.joint_names;
@@ -130,13 +130,15 @@ bool FilterTrajectory(const trajectory_msgs::msg::JointTrajectory& trajectory,
   filtered.points[0].accelerations.resize(2);
   filtered.points[0].accelerations[0] = 0.0;
   filtered.points[0].accelerations[1] = 0.0;
-  // To reflect the size of the trajectory to be followed to some extent in time_from_start, convert the total position difference into seconds and provide it
-  // There is no particular basis for this conversion. It was adopted as a provisional measure because it worked well operationally
-  const double position_diff_sum = fabs(trajectory.points[1].positions[0] - trajectory.points[0].positions[0]) +
-      fabs(trajectory.points[1].positions[1] - trajectory.points[0].positions[1]);
-  filtered.points[0].time_from_start.sec = static_cast<int32_t>(std::floor(position_diff_sum));
-  filtered.points[0].time_from_start.nanosec = static_cast<uint32_t>(
-      (position_diff_sum - filtered.points[0].time_from_start.sec) * 1000000000);
+  // Reflect the size of the trajectory to be followed to some extent in time_from_start
+  // Originally, the trajectory was generated with a speed limit of 1 rad/s and an acceleration limit of 1 rad/s^2, so roughly set the limit to half the speed
+  constexpr double kTemporalMaxRotationSpeed = 0.5;
+  const double head_pan_diff = fabs(trajectory.points[1].positions[0] - trajectory.points[0].positions[0]);
+  const double head_pan_time = head_pan_diff / kTemporalMaxRotationSpeed;
+  const double head_tilt_diff = fabs(trajectory.points[1].positions[1] - trajectory.points[0].positions[1]);
+  const double head_tilt_time = head_tilt_diff / kTemporalMaxRotationSpeed;
+  const double time_from_start = std::max(head_pan_time, head_tilt_time);
+  filtered.points[0].time_from_start = rclcpp::Duration::from_seconds(time_from_start);
   return true;
 }
 #endif
@@ -151,6 +153,7 @@ ViewpointControllerNode::ViewpointControllerNode(const rclcpp::NodeOptions& opti
       tf_buffer_(this->get_clock()),
       tf_listener_(tf_buffer_),
       current_neck_pan_angle_(0.0),
+      current_neck_tilt_angle_(0.0),
       enable_view_ctrl_(true),
       max_rotation_once_(0.0),
       head_pan_min_(0.0),
@@ -180,11 +183,11 @@ void ViewpointControllerNode::Init() {
   GetOptionalParam(shared_from_this(), "head_pan_min", head_pan_min_, kDefaultHeadPanMin);
   // Neck left rotation mechanical limit
   GetOptionalParam(shared_from_this(), "head_pan_max", head_pan_max_, kDefaultHeadPanMax);
-  // Fixed angle of tilt axis
+  // Fixed tilt axis angle
   GetOptionalParam(shared_from_this(), "fixed_neck_tilt_angle", fixed_neck_tilt_, kNeckTiltDefaultAngle);
   // Drive cycle
   GetOptionalParam(shared_from_this(), "rate", rate_, kDefaultRate);
-  // Axis name acquisition
+  // Get axis name
   GetOptionalParam(shared_from_this(), "neck_pan_name", neck_pan_name_, std::string(kDefaultNeckPanName));
   GetOptionalParam(shared_from_this(), "neck_tilt_name", neck_tilt_name_, std::string(kDefaultNeckTiltName));
 
@@ -195,23 +198,23 @@ void ViewpointControllerNode::Init() {
   }
 #endif
 
-  // JointStates Subscriber settings
+  // JointStates Subscriber setup
   joint_states_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
       joint_states_topic, 1, std::bind(&ViewpointControllerNode::CallbackJointState, this, _1));
 
-  // Neck trajectory Publisher settings
+  // Neck trajectory Publisher setup
   command_trajectory_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(command_topic, 1);
 
-  // Function On, Off service definition
+  // Define function On/Off services
   start_service_ = this->create_service<std_srvs::srv::Empty>(
       kStartServiceName, std::bind(&ViewpointControllerNode::StartServiceCallback, this, _1, _2));
   stop_service_ = this->create_service<std_srvs::srv::Empty>(
       kStopServiceName, std::bind(&ViewpointControllerNode::StopServiceCallback, this, _1, _2));
 
-  // Viewpoint mode (tracking) switch service definition
+  // Define viewpoint mode (tracking) switch service
   set_viewpoint_mode_tracking_service_ = this->create_service<std_srvs::srv::Empty>(kTrackingModeServiceName,
       std::bind(&ViewpointControllerNode::SetViewpointModeTrackingServiceCallback, this, _1, _2));
-  // Viewpoint mode (path) switch service definition
+  // Define viewpoint mode (path) switch service
   set_viewpoint_mode_path_service_ = this->create_service<std_srvs::srv::Empty>(
       kPathModeServiceName, std::bind(&ViewpointControllerNode::SetViewpointModePathServiceCallback, this, _1, _2));
 }
@@ -248,11 +251,11 @@ void ViewpointControllerNode::ChangeViewpoint() {
         tf2::getYaw(map_to_robot.getRotation());
 
     if (viewpoint_control_mode_ == kModeTrackingTarget) {
-      // tracking mode
+      // Tracking mode
       is_detect_direction = viewpoint_to_tracking_target_->ViewpointToTrackingTargetDircetion(
           robot_pose, robot_view_direction);
     } else {
-      // path mode
+      // Path mode
       is_detect_direction = viewpoint_to_path_->ViewPointToPathDirection(robot_pose, robot_view_direction);
     }
   } catch (const std::exception& e) {
@@ -260,7 +263,7 @@ void ViewpointControllerNode::ChangeViewpoint() {
     RCLCPP_WARN_THROTTLE(this->get_logger(), clock, kConsoleMessageIndicatePeriod, "%s", e.what());
   }
 
-  // Request command_trajectory once viewpoint planning is done
+  // Request command_trajectory once viewpoint planning is completed
   if (is_detect_direction) {
     double filtered_view_direction = NeckPanningFilter(robot_view_direction);
     // Generate command_trajectory
@@ -270,7 +273,7 @@ void ViewpointControllerNode::ChangeViewpoint() {
     command_trajectory.points.resize(2);
     command_trajectory.points[0].positions.resize(2);
     command_trajectory.points[0].positions[0] = current_neck_pan_angle_;
-    command_trajectory.points[0].positions[1] = fixed_neck_tilt_;
+    command_trajectory.points[0].positions[1] = current_neck_tilt_angle_;
     command_trajectory.points[1].positions.resize(2);
     command_trajectory.points[1].positions[0] = filtered_view_direction;
     command_trajectory.points[1].positions[1] = fixed_neck_tilt_;
@@ -286,7 +289,7 @@ void ViewpointControllerNode::ChangeViewpoint() {
 
 /// JointStates acquisition callback function
 void ViewpointControllerNode::CallbackJointState(const sensor_msgs::msg::JointState::SharedPtr joint_states) {
-  // Search for neck pan axis from joint_states
+  // Find neck pan axis from joint_states
   std::vector<std::string>::iterator pan_name_it =
       std::find(joint_states->name.begin(), joint_states->name.end(), neck_pan_name_);
   if (pan_name_it != joint_states->name.end()) {
@@ -294,6 +297,15 @@ void ViewpointControllerNode::CallbackJointState(const sensor_msgs::msg::JointSt
     current_neck_pan_angle_ = joint_states->position[index];
   } else {
     throw std::runtime_error("There is no NECK_PAN joint");
+  }
+  // Find neck tilt axis from joint_states
+  std::vector<std::string>::iterator tilt_name_it =
+      std::find(joint_states->name.begin(), joint_states->name.end(), neck_tilt_name_);
+  if (tilt_name_it != joint_states->name.end()) {
+    int32_t index = std::distance(joint_states->name.begin(), tilt_name_it);
+    current_neck_tilt_angle_ = joint_states->position[index];
+  } else {
+    throw std::runtime_error("There is no NECK_TILT joint");
   }
 }
 

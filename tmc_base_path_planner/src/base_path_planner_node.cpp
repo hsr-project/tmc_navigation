@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -31,21 +31,21 @@ DAMAGE.
 #include <tmc_base_path_planner/param.hpp>
 
 namespace {
-/// Static Map topic name
+/// Static Map Topic Name
 constexpr const char* const kStaticMapTopic = "static_obstacle_ros_map";
-/// Dynamic Map topic name
+/// Dynamic Map Topic Name
 constexpr const char* const kDynamicMapTopic = "dynamic_obstacle_map";
-/// Self-position topic name
+/// Self-Position Topic Name
 constexpr const char* const kGlobalPoseTopic = "global_pose";
-/// Path topic name
+/// Route Topic Name
 constexpr const char* const kPathTopicName = "base_local_path";
-/// Path planning action name
+/// Route Planning Action Name
 constexpr const char* const kPathPlanAction = "base_path_plan";
-/// Path following action name
+/// Route Following Action Name
 constexpr const char* const kPathFollowAction = "path_follow_action";
-/// Map frame name
+/// Map Frame Name
 constexpr const char* const kMapFrameName = "map";
-/// TF timeout duration [s]
+/// TF Timeout Duration [s]
 constexpr double kTfWaitTime = 1.0;
 }  // anonymous namespace
 
@@ -53,12 +53,12 @@ constexpr double kTfWaitTime = 1.0;
 namespace tmc_base_path_planner {
 using std::placeholders::_1;
 using std::placeholders::_2;
-/// Convert from PoseSeq to nav_msgs::msg::Path type
+/// Convert PoseSeq to nav_msgs::msg::Path
 nav_msgs::msg::Path ConvertPoseSeqToPath(const PoseSeq& pose_seq, const rclcpp::Time& stamp) {
   nav_msgs::msg::Path path;
   path.header.stamp = stamp;
   path.header.frame_id = kMapFrameName;
-  // Store route points
+  // Store Route Points
   geometry_msgs::msg::PoseStamped path_pose;
   path_pose.header = path.header;
   for (PoseSeq::const_iterator it = pose_seq.begin(); it != pose_seq.end(); ++it) {
@@ -69,7 +69,7 @@ nav_msgs::msg::Path ConvertPoseSeqToPath(const PoseSeq& pose_seq, const rclcpp::
 }
 
 
-/// Coordinate transformation
+/// Coordinate Transformation
 bool TransformPoseStamped(const tf2_ros::Buffer& tf_buffer, const geometry_msgs::msg::PoseStamped& in_pose,
                           const std::string& frame_id, geometry_msgs::msg::PoseStamped& out_pose) {
   try {
@@ -99,7 +99,7 @@ BasePathPlannerNode::BasePathPlannerNode(const rclcpp::NodeOptions& options = rc
 void BasePathPlannerNode::Init() {
   LoadParameter_();
   grid_cells_publisher_ = std::make_shared<GridCellsPublisher>(shared_from_this());
-  // Subscriber registration
+  // Subscriber Registration
   sub_static_map_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
       kStaticMapTopic, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable(),
       std::bind(&BasePathPlannerNode::StaticMapCallback_, this, _1));
@@ -110,24 +110,24 @@ void BasePathPlannerNode::Init() {
   sub_global_pose_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
       kGlobalPoseTopic, 1, std::bind(&BasePathPlannerNode::GlobalPoseCallback_, this, _1));
 
-  // Publisher registration
+  // Publisher Registration
   pub_base_path_ = this->create_publisher<nav_msgs::msg::Path>(kPathTopicName, 1);
 
   path_follow_action_client_ = rclcpp_action::create_client<PathFollowActionClient>(this, kPathFollowAction);
 }
 
-/// Path planning ACTION callback
+/// Route Planning ACTION Callback
 void BasePathPlannerNode::PathPlanActionCallback_() {
   const auto goal = action_server_->get_current_goal();
   auto result = std::make_shared<BasePathPlanActionServer::Result>();
   auto feedback = std::make_shared<BasePathPlanActionServer::Feedback>();
-  // Initialize planner
+  // Initialize Planner
   path_plan_mutex_.lock();
   base_path_planner_->Initialize();
   path_plan_mutex_.unlock();
 
   const Pose2d start_pose = GetPose2dFromRosMsg(current_global_pose_.pose);
-  // Convert to Map frame if the goal is specified in a frame other than the Map frame
+  // If the goal is specified in a frame other than the map frame, convert it to the map frame
   geometry_msgs::msg::PoseStamped goal_pose_map;
 
   if (goal->goal.header.frame_id != kMapFrameName) {
@@ -142,19 +142,19 @@ void BasePathPlannerNode::PathPlanActionCallback_() {
   const Pose2d goal_pose = GetPose2dFromRosMsg(goal_pose_map.pose);
   rclcpp::Rate rate(param_.rate);
   while (rclcpp::ok()) {
-    // Terminate if canceled
+    // Exit if canceled
     if (CheckCancelAndTerminate_()) {
       return;
     }
-    // Terminate if the required Topic has timed out
+    // Exit if required topics have timed out
     if (CheckTopicTimeoutAndTerminate_()) {
       return;
     }
-    // Terminate when the Follower's Action is completed
+    // Exit when the follower's action is completed
     if (CheckFollowActionCompleteAndTerminate_()) {
       return;
     }
-    // Path planning
+    // Route Planning
     const CostMapPtr dynamic_map(new CostMap(RosMsg2DistanceMap(current_dynamic_map_)));
     const Pose2d dynamic_map_origin = GetPose2dFromRosMsg(current_dynamic_map_.info.origin);
     const Pose2d global_pose = GetPose2dFromRosMsg(current_global_pose_.pose);
@@ -165,25 +165,25 @@ void BasePathPlannerNode::PathPlanActionCallback_() {
     path_plan_mutex_.unlock();
 
     if (error_code == BasePathPlannerErrorCode::kSuccess) {
-      // Path planning succeeded
+      // Route Planning Successful
       // Generate nav_msgs/Path from PoseSeq
       const nav_msgs::msg::Path path = ConvertPoseSeqToPath(planed_path, this->get_clock()->now());
-      // Publish path
+      // Publish Route
       SendFollowAction_(path);
     } else if (error_code == BasePathPlannerErrorCode::kSkip) {
-      // No update from the previous path
-      // Do not publish path
+      // No Updates from Previous Route
+      // Do Not Publish Route
     } else {
-      // Path planning failed
-      // Stop path following action
+      // Route Planning Failed
+      // Stop Route Following Action
       CancelFollowAction_();
     }
-    // Reflect the result in feedback and determine whether to continue
+    // Reflect Results in Feedback and Determine Continuation Feasibility
     if (CheckErrorCodeAndAssignActionStatus_(error_code, feedback, result)) {
-      // Issue feedback if continuation is possible
+      // Issue Feedback if Continuation is Feasible
       action_server_->publish_feedback(feedback);
     } else {
-      // Abort and terminate if continuation is not possible
+      // Abort and Exit if Continuation is Not Feasible
       action_server_->terminate_current(result);
       return;
     }
@@ -191,16 +191,16 @@ void BasePathPlannerNode::PathPlanActionCallback_() {
   }
 }
 
-/// Static Map callback
+/// Static Map Callback
 void BasePathPlannerNode::StaticMapCallback_(const nav_msgs::msg::OccupancyGrid::SharedPtr msg) {
   const CostMapPtr static_map(new CostMap(RosMsg2DistanceMap(*msg)));
-  // Expand the obstacle area from where there is a wall
+  // Expand Obstacle Area from Wall Locations
   static_map->InflateMap(param_.static_map_potential_width);
-  // Generate planner when the static Map is subscribed
+  // Generate Planner After Subscribing to Static Map
   base_path_planner_ = BasePathPlannerFactory::Create(shared_from_this(),
       static_map, param_.static_map_potential_width);
 
-  // Start action server
+  // Start Action Server
   if (!action_server_) {
     action_server_ = std::make_shared<SimpleActionServer<BasePathPlanActionServer>>(
         shared_from_this(),
@@ -212,14 +212,14 @@ void BasePathPlannerNode::StaticMapCallback_(const nav_msgs::msg::OccupancyGrid:
   return;
 }
 
-/// Dynamic Map callback
+/// Dynamic Map Callback
 void BasePathPlannerNode::DynamicMapCallback_(const nav_msgs::msg::OccupancyGrid::SharedPtr msg) {
   current_dynamic_map_ = *msg;
   return;
 }
-/// Self-position callback
+/// Self-Position Callback
 void BasePathPlannerNode::GlobalPoseCallback_(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
-  // Do not update the internal self-position of the planner if the frame ID of the self-position is different from the specified one
+  // Do Not Update Self-Position in Planner if Frame ID Differs from Specified One
   if (msg->header.frame_id != kMapFrameName) {
     auto clock = rclcpp::Clock(RCL_ROS_TIME);
     RCLCPP_ERROR_STREAM_THROTTLE(this->get_logger(), clock, 5000,
@@ -231,7 +231,7 @@ void BasePathPlannerNode::GlobalPoseCallback_(const geometry_msgs::msg::PoseStam
   return;
 }
 
-/// Read parameters
+/// Read Parameters
 void BasePathPlannerNode::LoadParameter_() {
   std::map<std::string, rclcpp::Parameter> node_params;
   GetGroupParam(shared_from_this(), kBasePathPlannerNodeSpace, node_params);
@@ -251,7 +251,7 @@ void BasePathPlannerNode::LoadParameter_() {
   param_ = BasePathPlannerNode::Parameter(rate, global_pose_timeout, dynamic_map_timeout, static_map_potential_width);
 }
 
-/// Send path following action
+/// Send Route Following Action
 void BasePathPlannerNode::SendFollowAction_(const nav_msgs::msg::Path& path) {
   auto send_goal_options = rclcpp_action::Client<PathFollowActionClient>::SendGoalOptions();
   send_goal_options.goal_response_callback =
@@ -265,11 +265,11 @@ void BasePathPlannerNode::SendFollowAction_(const nav_msgs::msg::Path& path) {
   auto follower_goal = PathFollowActionClient::Goal();
   follower_goal.path = path;
 
-  // Path following request
+  // Route Following Request
   auto goal_handle_future = path_follow_action_client_->async_send_goal(follower_goal, send_goal_options);
   is_follower_goal_active_ = true;
   follower_goal_handle_ = goal_handle_future.get();
-  // Display path
+  // Display Route
   pub_base_path_->publish(path);
 }
 
@@ -287,14 +287,14 @@ void BasePathPlannerNode::result_callback(const PathFollowGoalHandle::WrappedRes
   // do nothing
 }
 
-/// Cancel path following action
+/// Cancel Route Following Action
 void BasePathPlannerNode::CancelFollowAction_() {
   if (is_follower_goal_active_ && follower_goal_handle_) {
-    // Cancel path following
+    // Cancel Route Following
     path_follow_action_client_->async_cancel_goal(follower_goal_handle_);
     is_follower_goal_active_ = false;
     follower_goal_handle_ = nullptr;
-    // Display empty path
+    // Display Empty Route
     nav_msgs::msg::Path path;
     path.header.stamp = this->get_clock()->now();
     path.header.frame_id = kMapFrameName;
@@ -302,14 +302,14 @@ void BasePathPlannerNode::CancelFollowAction_() {
   }
 }
 
-/// Check for Topic timeout, perform necessary termination processing if timed out, and return true
+/// Check Topic Timeout; Perform Necessary Termination if Timed Out and Return True
 bool BasePathPlannerNode::CheckTopicTimeoutAndTerminate_() {
   auto result = std::make_shared<BasePathPlanActionServer::Result>();
   const rclcpp::Time current_time = this->get_clock()->now();
   const double dynamic_map_timeout = param_.dynamic_map_timeout;
   const double global_pose_timeout = param_.global_pose_timeout;
   if ((current_time - current_dynamic_map_.header.stamp) > rclcpp::Duration::from_seconds(dynamic_map_timeout)) {
-    // Dynamic map timeout
+    // Dynamic Map Timeout
     RCLCPP_ERROR(this->get_logger(), "dynamic map has not been updated for %lf seconds.", dynamic_map_timeout);
     result->reason = BasePathPlanActionServer::Result::DYNAMIC_MAP_IS_NOT_UPDATED;
     CancelFollowAction_();
@@ -317,7 +317,7 @@ bool BasePathPlannerNode::CheckTopicTimeoutAndTerminate_() {
     return true;
   } else if ((current_time - current_global_pose_.header.stamp) >
              rclcpp::Duration::from_seconds(global_pose_timeout)) {
-    // Self-position timeout
+    // Self-Position Timeout
     RCLCPP_ERROR(this->get_logger(), "global_pose has not been updated for %lf seconds.", global_pose_timeout);
     result->reason = BasePathPlanActionServer::Result::ROBOT_POSE_IS_NOT_UPDATED;
     CancelFollowAction_();
@@ -327,18 +327,18 @@ bool BasePathPlannerNode::CheckTopicTimeoutAndTerminate_() {
   return false;
 }
 
-/// Check for cancel request, perform necessary termination processing if canceled, and return true
+/// Check Cancel Request; Perform Necessary Termination if Canceled and Return True
 bool BasePathPlannerNode::CheckCancelAndTerminate_() {
   auto result = std::make_shared<BasePathPlanActionServer::Result>();
-  // Check for cancel request
+  // Check Cancel Request
   if (action_server_->is_preempt_requested()) {
-    // In case of goal overwrite, terminate without stopping the path_follow action to seamlessly transition to the new goal
+    // For Goal Overwrite, Seamlessly Transition to New Goal Without Stopping path_follow Action
     result->reason = BasePathPlanActionServer::Result::PREEMPTED;
     action_server_->terminate_current(result);
     return true;
   }
   if (action_server_->is_cancel_requested() || !action_server_->is_server_active()) {
-    // Stop path_follow action
+    // Stop path_follow Action
     CancelFollowAction_();
     result->reason = BasePathPlanActionServer::Result::CANCELED;
     action_server_->terminate_current(result);
@@ -348,7 +348,7 @@ bool BasePathPlannerNode::CheckCancelAndTerminate_() {
 }
 
 
-/// Check Follower's Action completion, perform necessary termination processing if completed, and return true
+/// Check Follower Action Completion; Perform Necessary Termination if Completed and Return True
 bool BasePathPlannerNode::CheckFollowActionCompleteAndTerminate_() {
   if (!is_follower_goal_active_ || follower_goal_handle_ == nullptr) {
     return false;
@@ -360,16 +360,16 @@ bool BasePathPlannerNode::CheckFollowActionCompleteAndTerminate_() {
     // Continuing
     return false;
   } else if (state == rclcpp_action::GoalStatus::STATUS_SUCCEEDED) {
-    // Normal termination
+    // Normal Termination
     result->reason = BasePathPlanActionServer::Result::REACHED;
     action_server_->succeeded_current(result);
   } else if (state == rclcpp_action::GoalStatus::STATUS_CANCELED ||
              state == rclcpp_action::GoalStatus::STATUS_CANCELING) {
-    // Follower was interrupted by another node
+    // Follower Interrupted by Another Node
     result->reason = BasePathPlanActionServer::Result::PREEMPTED;
     action_server_->terminate_current(result);
   } else {
-    // Abnormal termination
+    // Abnormal Termination
     RCLCPP_ERROR(this->get_logger(), "%s action from %s return unknown result code",
         kPathFollowAction, kPathPlanAction);
     result->reason = BasePathPlanActionServer::Result::FOLLOWER_ABORTED;
@@ -380,9 +380,9 @@ bool BasePathPlannerNode::CheckFollowActionCompleteAndTerminate_() {
   return true;
 }
 
-/// Check error code, output action status, and return whether path planning can continue
-/// Output action feedback and return true if continuation is possible
-/// Output action result and return false if continuation is not possible
+/// Check Error Code, Output Action Status, and Return Whether Route Planning Can Continue
+/// Output Action Feedback and Return True if Continuation is Possible
+/// Output Action Result and Return False if Continuation is Not Possible
 bool BasePathPlannerNode::CheckErrorCodeAndAssignActionStatus_(const BasePathPlannerErrorCode& code,
     std::shared_ptr<BasePathPlanActionServer::Feedback>& feedback,
     std::shared_ptr<BasePathPlanActionServer::Result>& result) {

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -88,7 +88,7 @@ class DiffDriveVelocityCalculator : public IVelocityCalculator {
         CONSOLE_BRIDGE_logWarn("Value of 'velocity_margin' is invalid. Use default value.");
         if (max_linear_velocity <= velocity_margin) {
           // When the maximum translational velocity parameter is smaller than the velocity margin
-          // Set default value for maximum translational velocity parameter
+          // Set the default value for the maximum translational velocity parameter
           CONSOLE_BRIDGE_logWarn(
               "Value of 'max_linear_velocity' must greater than 'velocity_margin'. Use default value.");
           max_linear_velocity = kMaxLinearVelocityDefault;
@@ -141,16 +141,16 @@ class DiffDriveVelocityCalculator : public IVelocityCalculator {
     double linear_alpha_gain;
     double linear_beta_gain;
 
-    // Ratio of turning speed to angle error
+    // Ratio of turning speed to angular error
     double angle_error_angular_velocity_rate;
 
-    // Angle error to start in-place rotation
+    // Angular error to start in-place turning
     double spin_start_error_angle;
-    // Angle error to end in-place rotation
+    // Angular error to end in-place turning
     double spin_end_error_angle;
-    // Maximum turning speed for in-place rotation
+    // Maximum turning speed for in-place turning
     double spin_max_angular_velocity;
-    // Minimum turning speed for in-place rotation
+    // Minimum turning speed for in-place turning
     double spin_min_angular_velocity;
   };
   /// Constructor
@@ -163,11 +163,11 @@ class DiffDriveVelocityCalculator : public IVelocityCalculator {
   /// @param[I] global_pose Self-position
   /// @param[I] current_path_index Index on the path
   /// @param[I] last_velocity Previous velocity
-  /// @param[I] time_interval Time interval since last velocity calculation
-  /// @param[I] is_arrived_goal_area Whether arrived at the goal area
+  /// @param[I] time_interval Time interval since the last velocity calculation
+  /// @param[I] is_arrived_goal_area Whether it has entered the goal area
   /// @param[I] transit_velocity Transit velocity
   /// @param[O] output_velocity Output velocity
-  /// @return Velocity calculation success or failure
+  /// @return Success or failure of velocity calculation
   bool CalculateVelocity(const PathInfo& path_info, const Pose2d& global_pose, const uint32_t current_path_index,
                          const Vector3d& last_velocity, const double time_interval,
                          const bool is_arrived_goal_area, const std::optional<double>& transit_velocity,
@@ -179,12 +179,12 @@ class DiffDriveVelocityCalculator : public IVelocityCalculator {
       const PathInfo& path_info, const Pose2d& global_pose, const uint32_t current_path_index,
       const std::optional<double>& transit_velocity, const double angular_error);
 
-  /// In-place rotation speed calculation
+  /// In-place turning velocity calculation
   Vector3d CalculateSpinVelocity(const double angular_error);
 
   // Parameters
   Parameter param_;
-  // Whether turning towards the path direction
+  // Whether it is turning toward the path direction
   bool is_spinning_to_path_angle_;
 };
 

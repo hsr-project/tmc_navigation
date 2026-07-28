@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file logger-test.cpp
-/// @brief Test of the log recording class
+/// @brief Test for the log recording class
 #include <string>
 #include <vector>
 
@@ -48,7 +48,7 @@ class LoggerTest : public ::testing::Test {
     ros::NodeHandle private_nh("~");
     std::string service_name;
     private_nh.getParam("navigation_log_record_service_name", service_name);
-    // Wait for the service to start
+    // Wait until the service starts
     if (!ros::service::waitForService(service_name, ros::Duration(5.0))) {
       const std::string error_msg = service_name + " service not exist.";
       throw std::runtime_error(error_msg);
@@ -69,9 +69,9 @@ class LoggerTest : public ::testing::Test {
   }
 
  protected:
-  /// Check if a file exists in the directory
-  /// Since the name is checked with find, the file name will hit with partial match
-  /// @param [I] directory_path Path of the directory
+  /// Check if files exist in the directory
+  /// Since the name is checked with find, the file name will match partially
+  /// @param [I] directory_path Path to the directory
   /// @param [I] file_name File name
   bool FindFileInDirectory(const std::string& directory_path, const std::string& file_name) {
     for (const fs::directory_entry& files : fs::directory_iterator(directory_path)) {
@@ -83,12 +83,12 @@ class LoggerTest : public ::testing::Test {
   }
 
   /// Format the file name according to the Logger's rules
-  /// Although it is pointless as a test because it only writes the same process as Logger,
-  /// it is done because it may fail depending on the namespace or parameters of the test node
+  /// Although it is redundant as a test since it just replicates the Logger's process,
+  /// it is necessary to avoid failures due to the test node's namespace or parameters
   /// @param [I] file_name File name
   std::string FormatFileNames(const std::string& file_name) {
     std::string format_file_name = file_name;
-    // Delete if the beginning is '/'
+    // Remove the leading '/' if present
     if (format_file_name[0] == '/') {
       format_file_name.erase(0, 1);
     }
@@ -103,15 +103,15 @@ class LoggerTest : public ::testing::Test {
   std::string output_log_directory_;
 };
 
-/// Normal test of RecordLog
-/// Confirm that the log file that should be recorded is output
-/// The contents of the log file are not checked because they depend on XmlRpcValue or external services
+/// Normal test for RecordLog
+/// Verify that the expected log files are output
+/// The contents of the log files are not verified as they depend on XmlRpcValue or external services
 TEST_F(LoggerTest, RecordLog) {
   ros::NodeHandle private_nh("~");
   Logger logger(output_log_directory_);
   logger.RecordLog();
 
-  // Confirm that each node and its parameter file are output
+  // Verify that each node and its parameter file are output
   std::vector<std::string> node_names;
   private_nh.getParam("record_parameter_node_names", node_names);
   node_names.push_back(private_nh.getNamespace());
@@ -121,25 +121,25 @@ TEST_F(LoggerTest, RecordLog) {
     EXPECT_TRUE(tmc_rostest_utils::WaitUntil([&](){
         return FindFileInDirectory(output_log_directory_, file_name); }, 1.0));
   }
-  // Confirm that the bag file is output
-  // Specify a longer wait time because the output of the bag file takes time
+  // Verify that the bag file is output
+  // Specify a longer wait time as bag file output takes time
   EXPECT_TRUE(tmc_rostest_utils::WaitUntil([&](){
       return FindFileInDirectory(output_log_directory_, "navigation_log_recorder-service_trigger"); }, 5.0));
 }
 
 /// Test that logs are not recorded if parameters are not specified
-/// If the Log recording service name is not registered in the parameters, logs are not recorded
+/// If the log recording service name is not registered in the parameters, logs are not recorded
 TEST_F(LoggerTest, LogRecordServiceIsNotSpecified) {
   ros::NodeHandle private_nh("~");
   std::string default_service_name;
-  // Keep the original parameters to restore later
+  // Save the original parameters to restore them later
   private_nh.getParam("navigation_log_record_service_name", default_service_name);
   // Delete the service name parameter
   private_nh.deleteParam("navigation_log_record_service_name");
   Logger logger(output_log_directory_);
   logger.RecordLog();
 
-  // Confirm that each node and its parameter file are not output
+  // Verify that each node and its parameter file are not output
   std::vector<std::string> node_names;
   private_nh.getParam("record_parameter_node_names", node_names);
   node_names.push_back(private_nh.getNamespace());
@@ -149,42 +149,42 @@ TEST_F(LoggerTest, LogRecordServiceIsNotSpecified) {
     EXPECT_FALSE(tmc_rostest_utils::WaitUntil([&](){
         return FindFileInDirectory(output_log_directory_, file_name); }, 1.0));
   }
-  // Confirm that the bag file is not output
-  // Specify a longer wait time because the output of the bag file takes time
+  // Verify that the bag file is not output
+  // Specify a longer wait time as bag file output takes time
   EXPECT_FALSE(tmc_rostest_utils::WaitUntil([&](){
       return FindFileInDirectory(output_log_directory_, "navigation_log_recorder-service_trigger"); }, 5.0));
-  // Restore deleted parameters to avoid affecting the next test
+  // Restore the deleted parameters to avoid affecting subsequent tests
   private_nh.setParam("navigation_log_record_service_name", default_service_name);
 }
 
-/// Test to confirm the existence of the output destination directory
-/// If the output destination directory does not exist, the constructor throws an exception
+/// Test for verifying the existence of the output directory
+/// If the output directory does not exist, the constructor throws an exception
 TEST_F(LoggerTest, OutputDirectoryIsNotExist) {
   EXPECT_THROW(Logger logger(output_log_directory_ + "_hoge"), std::runtime_error);
 }
 
-/// Test to check permissions of the output destination directory
-/// If there are no write permissions in the output destination directory, the constructor throws an exception
-/// If there is either owner_write, others_write, or group_write permission, no exception is thrown
+/// Test for checking permissions of the output directory
+/// If the output directory lacks write permissions, the constructor throws an exception
+/// No exception is thrown if any of owner_write, others_write, or group_write permissions are present
 TEST_F(LoggerTest, OutputDirectoryPermission) {
-  // Get permissions of the output destination directory
+  // Retrieve permissions of the output directory
   fs::perms perm = fs::status(output_log_directory_).permissions();
-  // It becomes an exception if there are no write permissions
+  // Verify that an exception is thrown if write permissions are absent
   fs::perms no_write_perm = perm & ~(fs::perms::owner_write | fs::perms::group_write | fs::perms::others_write);
   fs::permissions(output_log_directory_, no_write_perm);
   EXPECT_THROW(Logger logger(output_log_directory_), std::runtime_error);
 
-  // No exception if others_write is present
+  // Verify that no exception is thrown if others_write is present
   fs::perms others_write_perm = no_write_perm | fs::perms::others_write;
   fs::permissions(output_log_directory_, others_write_perm);
   EXPECT_NO_THROW(Logger logger(output_log_directory_));
 
-  // No exception if group_write is present
+  // Verify that no exception is thrown if group_write is present
   fs::perms group_write_perm = no_write_perm | fs::perms::group_write;
   fs::permissions(output_log_directory_, group_write_perm);
   EXPECT_NO_THROW(Logger logger(output_log_directory_));
 
-  // No exception if owner_write is present
+  // Verify that no exception is thrown if owner_write is present
   fs::perms owner_write_perm = no_write_perm | fs::perms::owner_write;
   fs::permissions(output_log_directory_, owner_write_perm);
   EXPECT_NO_THROW(Logger logger(output_log_directory_));

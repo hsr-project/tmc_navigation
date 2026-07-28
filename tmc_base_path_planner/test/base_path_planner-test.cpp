@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -56,7 +56,7 @@ struct BasePathPlanerTestParameter {
                               const BasePathPlannerErrorCode in_expected_error_code)
     : skip_none_update(in_skip_none_update),
       mock_return(in_mock_return), expected_error_code(in_expected_error_code) {}
-  // Setting whether to skip if there is no update
+  // Setting whether to skip if there are no updates
   bool skip_none_update;
   // Results of each mock function
   MockModulesReturn mock_return;
@@ -64,8 +64,8 @@ struct BasePathPlanerTestParameter {
   BasePathPlannerErrorCode expected_error_code;
 };
 
-/// Test of BasePathPlanner class
-/// Test the result of PlanPath against the results of each mocked lower module
+/// Test of the BasePathPlanner class
+/// Test the results of PlanPath against the results of each mocked lower module
 class BasePathPlanerTest : public ::testing::TestWithParam<BasePathPlanerTestParameter> {
  public:
   BasePathPlanerTest()
@@ -93,7 +93,7 @@ class BasePathPlanerTest : public ::testing::TestWithParam<BasePathPlanerTestPar
     using ::testing::SetArgReferee;
     using ::testing::Return;
     const MockModulesReturn mock_return = ((BasePathPlanerTestParameter)GetParam()).mock_return;
-    // ClearPrevPath is called once during Initialize
+    // ClearPrevPath is always called once during initialization
     // If CheckCondition, PlanPath, or SmoothingPath fails, it is called an additional time
     if (mock_return.ret_check_condition == BasePathPlannerErrorCode::kSuccess &&
         mock_return.ret_plan_grid_path &&
@@ -106,7 +106,7 @@ class BasePathPlanerTest : public ::testing::TestWithParam<BasePathPlanerTestPar
                   ClearPrevPath())
                   .Times(2);
     }
-    // Set the behavior of each mock according to the parameters
+    // Configure the behavior of each mock according to the parameters
     // Set the return value of CheckCondition
     ON_CALL(*mock_condition_checker_,
             CheckCondition(_, _, _, _, _, _, _))
@@ -154,7 +154,7 @@ INSTANTIATE_TEST_CASE_P(
         BasePathPlanerTestParameter(true,
             MockModulesReturn(BasePathPlannerErrorCode::kRobotIsOutOfMap, true, true, true),
             BasePathPlannerErrorCode::kRobotIsOutOfMap),
-        // If PlanPath returns failure, kPlanningFail is returned
+        // If PlanPath returns a failure, kPlanningFail is returned
         BasePathPlanerTestParameter(true,
             MockModulesReturn(BasePathPlannerErrorCode::kSuccess, false, true, true),
             BasePathPlannerErrorCode::kPlanningFail),
@@ -166,7 +166,7 @@ INSTANTIATE_TEST_CASE_P(
         BasePathPlanerTestParameter(false,
             MockModulesReturn(BasePathPlannerErrorCode::kSuccess, true, false, true),
             BasePathPlannerErrorCode::kSuccess),
-        // If SmoothingPath returns failure, kSmoothingFail is returned
+        // If SmoothingPath returns a failure, kSmoothingFail is returned
         BasePathPlanerTestParameter(true,
             MockModulesReturn(BasePathPlannerErrorCode::kSuccess, true, true, false),
             BasePathPlannerErrorCode::kSmoothingFail)
@@ -193,10 +193,10 @@ TEST_P(BasePathPlanerTest, PlanPathTest) {
 
   // verify
   const BasePathPlannerErrorCode expected_error_code = test_param.expected_error_code;
-  // The return value of PlanPath should be as expected
+  // The return value of PlanPath matches the expected value
   EXPECT_EQ(expected_error_code, error_code);
 
-  // The output path when route planning is successful should match the output path of SmoothingPath
+  // The output path in case of successful route planning matches the output path of SmoothingPath
   if (error_code == BasePathPlannerErrorCode::kSuccess) {
     EXPECT_TRUE(IsMatchPaths(smoothed_path_, out_path));
   }

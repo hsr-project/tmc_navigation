@@ -45,9 +45,6 @@ target_link_libraries(${PROJECT_NAME}_lib
   ${SDL_LIBRARY} ${SDL_IMAGE_LIBRARIES}
 )
 
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 
@@ -120,6 +117,7 @@ install(DIRECTORY launch
 
 if (BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_index_cpp REQUIRED)
   find_package(Boost REQUIRED)
 
   install(DIRECTORY test/maps
@@ -136,6 +134,7 @@ if (BUILD_TESTING)
   )
   target_link_libraries(grid_map_server_square_test ${PROJECT_NAME}_lib)
   target_include_directories(grid_map_server_square_test PUBLIC ${Boost_INCLUDE_DIRS})
+  ament_target_dependencies(grid_map_server_square_test ament_index_cpp)
 
   ament_add_gtest(
     grid_map_server_vertical_test
@@ -144,6 +143,7 @@ if (BUILD_TESTING)
   )
   target_link_libraries(grid_map_server_vertical_test ${PROJECT_NAME}_lib)
   target_include_directories(grid_map_server_vertical_test PUBLIC ${Boost_INCLUDE_DIRS})
+  ament_target_dependencies(grid_map_server_vertical_test ament_index_cpp)
 
   ament_add_gtest(
     grid_map_server_horizontal_test
@@ -152,6 +152,7 @@ if (BUILD_TESTING)
   )
   target_link_libraries(grid_map_server_horizontal_test ${PROJECT_NAME}_lib)
   target_include_directories(grid_map_server_horizontal_test PUBLIC ${Boost_INCLUDE_DIRS})
+  ament_target_dependencies(grid_map_server_horizontal_test ament_index_cpp)
 endif()
 
 ament_package()

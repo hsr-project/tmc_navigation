@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -40,16 +40,16 @@ DAMAGE.
 namespace {
 // node name
 const char* const kNodeName = "velocity_switcher";
-// output Topic name
+// output topic name
 const char* const kTopicNameOutputVelocity = "output_velocity";
 // parameter server name
 const char* const kParamNameVelocityTimeout = "timeout";            // Timeout duration for input velocity [sec]
-const char* const kParamNameSwichingPeriod = "switching_period";    // Switching time when switching input velocity [sec]
+const char* const kParamNameSwichingPeriod = "switching_period";    // Switching duration when changing input velocity [sec]
 const char* const kParamNameInputVelocities = "input_velocities";   // Input velocity parameter group
-const char* const kParamNamePriority = "priority";                  // Input velocity priority, lower values have higher priority
-// parameter default value
-const double kTimeoutInputVelocity = 1.00;  // Default timeout duration for input velocity command [sec]
-const double kSwitchingPeriod = 0.50;       // Default switching time for input velocity command values [sec]
+const char* const kParamNamePriority = "priority";                  // Input velocity priority; lower values indicate higher priority
+// parameter default values
+const double kTimeoutInputVelocity = 1.00;  // Default timeout duration for input velocity commands [sec]
+const double kSwitchingPeriod = 0.50;       // Default switching duration for input velocity commands [sec]
 // operation cycle [Hz]
 const double kControlCycle = 200.0;
 }  // anonymous namespace
@@ -61,7 +61,7 @@ VelocitySwitcher::VelocitySwitcher(const rclcpp::NodeOptions& options)
     : Node("velocity_switcher", options), has_input_velocity_(false) {}
 
 void VelocitySwitcher::Init() {
-  // retrieve ros parameter
+  // retrieve ros parameters
   UpdateParameters();
   // register publisher
   pub_velocity_ = this->create_publisher<geometry_msgs::msg::Twist>(kTopicNameOutputVelocity, 100);
@@ -70,7 +70,7 @@ void VelocitySwitcher::Init() {
       std::bind(&VelocitySwitcher::NodeActionTimerCallback, this));
 }
 
-// update velocity ratio for each axis
+// update velocity multiplier for each axis
 void VelocitySwitcher::UpdateAxisRatio(const uint32_t axis) {
   double now = rclcpp::Clock(RCL_ROS_TIME).now().seconds();
   int32_t current_priority = std::numeric_limits<int32_t>::max();
@@ -86,24 +86,24 @@ void VelocitySwitcher::UpdateAxisRatio(const uint32_t axis) {
       high_priority_index = i;
     }
   }
-  // update weight
+  // update weights
   for (uint32_t i = 0; i < input_velocities_.size(); ++i) {
     if (i == high_priority_index) {
       /// slightly increase the weight of the highest priority valid velocity input
-      /// the increase amount switches from 0 to 1 over switching_period_ seconds
+      /// the increase amount transitions from 0 to 1 over switching_period_ seconds
       ratio_[axis][i] += 1.0 / (switching_period_ * kControlCycle);
 
       if (ratio_[axis][i] > 1.0) {
-        // if the weight exceeds 1, constrain it to 1
+        // cap the weight at 1 if it exceeds 1
         ratio_[axis][i] = 1.0;
       }
     } else {
-      /// decrease the weight of all velocity inputs except the highest priority valid one
-      /// the decrease amount switches from 1 to 0 over switching_period_ seconds
+      /// decrease the weight of all other valid velocity inputs
+      /// the decrease amount transitions from 1 to 0 over switching_period_ seconds
       if (input_velocities_[i].second->as_control_target(axis)) {
         ratio_[axis][i] -= 1.0 / (switching_period_ * kControlCycle);
         if (ratio_[axis][i] < 0.0) {
-          // if the weight falls below 0, constrain it to 0
+          // cap the weight at 0 if it falls below 0
           ratio_[axis][i] = 0.0;
         }
       }
@@ -111,7 +111,7 @@ void VelocitySwitcher::UpdateAxisRatio(const uint32_t axis) {
   }
 }
 
-// update velocity ratio
+// update velocity multiplier
 void VelocitySwitcher::UpdateRatio() {
   UpdateAxisRatio(kAxisX);
   UpdateAxisRatio(kAxisY);
@@ -141,8 +141,8 @@ void VelocitySwitcher::OutputVelocity() {
     }
   }
 
-  /// if there is no input velocity (all weights become 0), do not output velocity
-  /// only output velocity on the first change from having input to none
+  /// if there is no input velocity (all weights are 0), do not output velocity
+  /// only output velocity on the first occurrence of transitioning from having input to no input
   if (weight[kAxisX] == 0.0 && weight[kAxisY] == 0.0 && weight[kAxisTheta] == 0.0) {
     if (!has_input_velocity_) {
       return;
@@ -155,43 +155,43 @@ void VelocitySwitcher::OutputVelocity() {
   geometry_msgs::msg::Twist output_velocity;
   // control x
   if (weight[kAxisX] < 0.001) {
-    // to prevent division by zero, set velocity to 0 when weight is small
+    // to prevent division by zero, set velocity to 0 when weights are small
     output_velocity.linear.x = 0.0;
   } else if (weight[kAxisX] > 1.0) {
-    // normalize to 1 when weight is 1 or more
+    // normalize weights to 1 when they exceed 1
     output_velocity.linear.x = velocity[kAxisX] / weight[kAxisX];
   } else {
-    // output as is when weight is between 0 and 1
+    // output weights as-is when they are between 0 and 1
     output_velocity.linear.x = velocity[kAxisX];
   }
 
   // control y
   if (weight[kAxisY] < 0.001) {
-    // to prevent division by zero, set velocity to 0 when weight is small
+    // to prevent division by zero, set velocity to 0 when weights are small
     output_velocity.linear.y = 0.0;
   } else if (weight[kAxisY] > 1.0) {
-    // normalize to 1 when weight is 1 or more
+    // normalize weights to 1 when they exceed 1
     output_velocity.linear.y = velocity[kAxisY] / weight[kAxisY];
   } else {
-    // output as is when weight is between 0 and 1
+    // output weights as-is when they are between 0 and 1
     output_velocity.linear.y = velocity[kAxisY];
   }
 
   // control t
   if (weight[kAxisTheta] < 0.001) {
-    // to prevent division by zero, set velocity to 0 when weight is small
+    // to prevent division by zero, set velocity to 0 when weights are small
     output_velocity.angular.z = 0.0;
   } else if (weight[kAxisTheta] > 1.0) {
-    // normalize to 1 when weight is 1 or more
+    // normalize weights to 1 when they exceed 1
     output_velocity.angular.z = velocity[kAxisTheta] / weight[kAxisTheta];
   } else {
-    // output as is when weight is between 0 and 1
+    // output weights as-is when they are between 0 and 1
     output_velocity.angular.z = velocity[kAxisTheta];
   }
   pub_velocity_->publish(output_velocity);
 }
 
-// retrieve parameter
+// retrieve parameters
 void VelocitySwitcher::UpdateParameters() {
   GetOptionalParam(shared_from_this(), kParamNameVelocityTimeout, velocity_timeout_, kTimeoutInputVelocity);
   if (velocity_timeout_ <= 0.0) {

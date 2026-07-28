@@ -1,0 +1,22 @@
+<package format="3">
+  <name>tmc_velocity_acceleration_limiter</name>
+  <version>3.0.0</version>
+  <description>Limit acceleration of 2D base velocity.</description>
+
+  <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
+
+  <license>BSD 3-clause Clear License</license>
+
+  <author>Kazuhito Tanaka</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>eigen</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rclcpp</depend>
+  <depend>std_srvs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

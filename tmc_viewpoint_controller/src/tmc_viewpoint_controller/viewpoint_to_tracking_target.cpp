@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -37,7 +37,7 @@ DAMAGE.
 #include <tmc_viewpoint_controller/param.hpp>
 
 namespace {
-/// Path topic name
+/// Topic name of the path
 const char* const kTargetPathTopicName = "target_path";
 }  // end anonymous namespace
 
@@ -45,7 +45,7 @@ namespace tmc_viewpoint_controller {
 using std::placeholders::_1;
 /// Constructor
 ViewpointToTrackingTarget::ViewpointToTrackingTarget(const rclcpp::Node::SharedPtr node) {
-  // Target trajectory Subscriber setup
+  // Set up the target trajectory Subscriber
   target_path_sub_ = node->create_subscription<nav_msgs::msg::Path>(
       kTargetPathTopicName, 1, std::bind(&ViewpointToTrackingTarget::TargetPathCallback, this, _1));
 }

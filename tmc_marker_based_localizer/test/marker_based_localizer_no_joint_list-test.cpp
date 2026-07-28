@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -32,9 +32,9 @@ DAMAGE.
 #include "marker_based_localizer-test_node.hpp"
 
 namespace tmc_marker_based_localizer {
-/// Quasi-normal system
-/// If the axis is not set in joints_list, output a warning and perform self-position correction
-/// Evaluate using a config file that does not set joints_list
+/// Semi-normal case
+/// If axes are not set in joints_list, output a warning and perform self-position correction
+/// Evaluate using a config file without setting joints_list
 TEST_F(MarkerBasedLocalizerNodeTest, NotSettingJointList) {
   // parameter
   const int object_id = 508;
@@ -52,7 +52,7 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotSettingJointList) {
   // exercise
   // Initial odometry transmission
   test_node_->PublishOdometry(odom_x_init, odom_y_init);
-  // Wait for the completion of the above transmission
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish joint_state
   test_node_->PublishJointState(joint_state_name, joint_state_velocity);
@@ -60,9 +60,9 @@ TEST_F(MarkerBasedLocalizerNodeTest, NotSettingJointList) {
   test_node_->PublishOdometry(odom_x, odom_y);
   // Publish tf
   test_node_->SendTransformStatic(robot_pose, kDefaultBaseTfName, kCameraTfName, transform_stamped);
-  // Generate expected value
+  // Generate expected values
   test_node_->CreateExpectMarkerPose(object_id, camera_marker_object_pose, transform_stamped, localized_pose);
-  // Wait for the completion of the above transmission
+  // Wait for the above transmission to complete
   rclcpp::sleep_for(std::chrono::milliseconds(static_cast<int>(kReceiveWaitTime * 1000)));
   // Publish marker
   test_node_->PublishMarker(object_id, camera_marker_object_pose);
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
   tmc_marker_based_localizer::LoadParameterFromYaml(marker_based_localizer_node,
                                                     yaml_directory, "marker_based_localizer_no_joint_list-test.yaml");
 
-  // Since the marker_based_localizer node waits to receive the "joint_state" topic in Init, create a node to publish "joint_state"
+  // Since the marker_based_localizer node waits to receive the "joint_state" topic during Init, create a node to publish "joint_state"
   auto pub_joint_state_test_node_ = std::make_shared<tmc_marker_based_localizer::PubJointStateTestNode>(option);
   pub_joint_state_test_node_->Init();
   // Start a thread to publish "joint_state"
@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
     try {
       rclcpp::spin(marker_based_localizer_node);
     } catch (const std::exception& e) {
-      // There is a possibility of exceptions occurring during termination processing
+      // Exceptions may occur during shutdown processing
       std::cout << "marker_based_localizer_node : " << e.what() << std::endl;
     }
   });

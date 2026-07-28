@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -38,14 +38,14 @@ namespace tmc_astar_lib {
 const int32_t kOccupancyThreshold = static_cast<int32_t>(
     (1.0 - kExclusiveSizeDefault / kWallThresholdDefault) * kWallValue);
 
-/// DirectionCostCorrector test fixture
+/// Test fixture for DirectionCostCorrector
 class DirectionCostCorrectorTest : public ::testing::Test {
  public:
   DirectionCostCorrectorTest() {}
 
  protected:
   virtual void SetUp() {
-    // This CostCorrector does not depend on setup parameters, so call the initialization method with arbitrary values
+    // Since this CostCorrector does not depend on setup parameters, call the initialization method with arbitrary values
     nodes_ = std::make_shared<AstarNodeManager>(AstarNodeManager(100, 100));
     std::vector<MapIndex> preferred_path_indexes;
     ICostCorrector::SetupParams setup_param(50, 50, preferred_path_indexes);
@@ -57,14 +57,14 @@ class DirectionCostCorrectorTest : public ::testing::Test {
   AstarNodeManager::Ptr nodes_;
 };
 
-// Try all combinations for one direction and test representative patterns for each direction
+// Test all combinations for one direction and try representative patterns for each direction
 
 /// DirectionCostCorrector test
-/// Not corrected if the number of steps from the start is less than 3
+/// No correction if the number of steps from the start is less than 3
 TEST_F(DirectionCostCorrectorTest, RightAfterStart) {
   // exercise
   // Start
-  // Set arbitrarily as parent, total_steps, and in_direction are not referenced
+  // Arbitrarily set values for parameters other than parent, total_steps, and in_direction as they are not referenced
   nodes_->GetNode(MapIndex(0, 0))->Update(nullptr, 0, 0, false, static_cast<int32_t>(NodeDirection::DIR_None));
   // First step
   nodes_->GetNode(MapIndex(1, 0))->Update(nodes_->GetNode(MapIndex(0, 0)), 0, 1, false,
@@ -81,7 +81,7 @@ TEST_F(DirectionCostCorrectorTest, RightAfterStart) {
 }
 
 /// DirectionCostCorrector test
-/// Pattern 0°→0°→0°: Not corrected
+/// Pattern 0°→0°→0°: No correction
 TEST_F(DirectionCostCorrectorTest, DIR_0_0_0) {
   // exercise
   int32_t total_steps = 0;
@@ -190,7 +190,7 @@ TEST_F(DirectionCostCorrectorTest, DIR_45_0_45) {
 }
 
 /// DirectionCostCorrector test
-/// Pattern 45°→45°→45°: Not corrected
+/// Pattern 45°→45°→45°: No correction
 TEST_F(DirectionCostCorrectorTest, DIR_45_45_45) {
   // exercise
   nodes_->GetNode(MapIndex(0, 0))->Update(nullptr, 0, 0, false, static_cast<int32_t>(NodeDirection::DIR_None));

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -31,7 +31,7 @@ DAMAGE.
 #include <tmc_astar_lib/node_direction.hpp>
 
 namespace {
-// Test values AstarNode only holds values and does not process them, so the values themselves can be anything
+// Test values: AstarNode only holds values without processing, so the actual values can be arbitrary
 constexpr int32_t kGridX = 1;
 constexpr int32_t kGridY = 2;
 constexpr int32_t kTotalCost = 100;
@@ -40,7 +40,7 @@ constexpr int32_t kTotalStep = 200;
 
 namespace tmc_astar_lib {
 
-/// AstarNode test fixture
+/// Test fixture for AstarNode
 class AstarNodeTest : public ::testing::Test {
  public:
   AstarNodeTest() : node_(MapIndex(kGridX, kGridY)) {}
@@ -51,7 +51,7 @@ class AstarNodeTest : public ::testing::Test {
 };
 
 /// AstarNode test
-/// Verify values initialized in the constructor
+/// Verification of values initialized by the constructor
 TEST_F(AstarNodeTest, Constructor) {
   // verify
   EXPECT_EQ(kGridX, node_.index().x);
@@ -67,7 +67,7 @@ TEST_F(AstarNodeTest, Constructor) {
 }
 
 /// AstarNode test
-/// Ensure it becomes closed state with Close
+/// Ensuring the state becomes closed with Close
 TEST_F(AstarNodeTest, Close) {
   // exercise
   node_.Close();
@@ -77,7 +77,7 @@ TEST_F(AstarNodeTest, Close) {
 }
 
 /// AstarNode test
-/// Verify value update with Update
+/// Verification of value updates with Update
 TEST_F(AstarNodeTest, Update) {
   // exercise
   AstarNode dummy_parent(MapIndex(0, 0));
@@ -91,7 +91,7 @@ TEST_F(AstarNodeTest, Update) {
 }
 
 /// AstarNode test
-/// After closing, ensure it becomes open state with Update(open=true)
+/// After closing, Update(open=true) transitions to Open state
 TEST_F(AstarNodeTest, ReOpen) {
   // exercise
   node_.Close();
@@ -102,7 +102,7 @@ TEST_F(AstarNodeTest, ReOpen) {
 }
 
 /// AstarNode test
-/// After closing, ensure it remains closed state with Update(open=false)
+/// After closing, Update(open=false) maintains the Closed state
 TEST_F(AstarNodeTest, StayInClose) {
   // exersise
   node_.Close();
@@ -113,7 +113,7 @@ TEST_F(AstarNodeTest, StayInClose) {
 }
 
 /// AstarNode test
-/// Ensure it does not become closed state with Update(open=false) when in open state
+/// For Open state, Update(open=false) does not transition to Closed state
 TEST_F(AstarNodeTest, NotClosedByUpdate) {
   // exersise
   node_.Update(nullptr, kTotalCost, kTotalStep, false, static_cast<int32_t>(NodeDirection::DIR_180));
@@ -122,7 +122,7 @@ TEST_F(AstarNodeTest, NotClosedByUpdate) {
   EXPECT_FALSE(node_.is_closed());
 }
 
-// List operation related tests are covered by AstarQueue's automated tests
+// List operation-related tests are ensured by AstarQueue's automated tests
 
 }  // namespace tmc_astar_lib
 

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file ellipse_bumper.cpp
-/// @brief Elliptical virtual bumper
+/// @brief Elliptical Virtual Bumper
 #include "ellipse_bumper.hpp"
 #include <limits>
 #include "obstacle.hpp"
@@ -37,11 +37,11 @@ namespace {
 // ROS parameter name
 const char* kRadiusX = "radius_x";                   // Radius in the x-axis direction of the restricted area [m]
 const char* kRadiusY = "radius_y";                   // Radius in the y-axis direction of the restricted area [m]
-const char* kCenterPositionX = "center_position_x";  // x-coordinate of the center of the restricted area [m]
-// ROS parameter default value
+const char* kCenterPositionX = "center_position_x";  // Center x-coordinate of the restricted area [m]
+// ROS parameter default values
 const double kRadiusXDef = 2.4;          // Radius in the x-axis direction of the restricted area [m]
 const double kRadiusYDef = 1.2;          // Radius in the y-axis direction of the restricted area [m]
-const double kCenterPositionXDef = 1.9;  // x-coordinate of the center of the restricted area [m]
+const double kCenterPositionXDef = 1.9;  // Center x-coordinate of the restricted area [m]
 }  // anonymous namespace
 
 namespace tmc_safety_velocity_limiter {
@@ -56,32 +56,32 @@ EllipseBumper::EllipseBumper(std::map<std::string, rclcpp::Parameter>& parameter
   obstacle_search_distance_ = SearchLongestDistance();
 }
 
-/// Return the speed limit ratio according to the distance to the nearest point within the range
-/// Output the coordinates of the obstacle that caused the restriction when restricted
+/// Return the velocity restriction ratio based on the distance to the nearest point within the range
+/// If restricted, output the coordinates of the obstacle that caused the restriction
 /// @param input_velocity [I] Input velocity
 /// @param obstacle_pose [O] Obstacle coordinates
-/// @return Speed limit ratio (0.0 to 1.0)
+/// @return Velocity restriction ratio (0.0 to 1.0)
 double EllipseBumper::LimitVelocityRatio(const Twist& input_velocity,
     geometry_msgs::msg::PoseStamped& obstacle_pose) {
   PointCloudPtr obstacle_cloud = Obstacle::GetInstance()->ObstacleCloud();
-  double velocity_ratio = 1.0;  // Speed limit ratio
+  double velocity_ratio = 1.0;  // Velocity restriction ratio
   double distance_ratio = 1.0;  // Ratio of obstacle distance to search distance
-  // Get the point with the shortest distance within the range
+  // Get the nearest point within the range
   if (FindNearestPoseInRange(obstacle_cloud, input_velocity, obstacle_pose, distance_ratio)) {
-    // Calculate the speed ratio from the ratio of obstacle distance to search distance
+    // Calculate the velocity ratio based on the ratio of obstacle distance to search distance
     velocity_ratio = velocity_slope_->CalcRatio(distance_ratio);
   }
   return velocity_ratio;
 }
 
-/// Find the point with the shortest distance within the range
+/// Find the nearest point within the range
 /// @param input_cloud [I] Point cloud
-/// @param input_velocity [I] Moving speed
-/// @param nearest_pose [O] Point with the shortest distance
-/// @return Whether found or not true found false not found
+/// @param input_velocity [I] Moving velocity
+/// @param nearest_pose [O] Nearest point
+/// @return Whether found or not: true if found, false if not found
 bool EllipseBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, const Twist& input_velocity,
                                            geometry_msgs::msg::PoseStamped& nearest_pose, double& distance_ratio) {
-  // Determine the bumper size ratio according to the input speed
+  // Determine the bumper size ratio based on the input velocity
   const double bumper_scale = CalcBumperScale(input_velocity);
   if (bumper_scale < std::numeric_limits<double>::epsilon()) {
     return false;
@@ -90,7 +90,7 @@ bool EllipseBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, con
   const double obstacle_search_distance = obstacle_search_distance_ * bumper_scale;
   double min_distance_square = pow(obstacle_search_distance, 2.0);
   const double velocity_angle = atan2(input_velocity.linear.y, input_velocity.linear.x);
-  // Rotate the obstacle coordinates by -velocity_angle to make the orientation of the search range ellipse based on the direction of travel
+  // Rotate the obstacle coordinates by -velocity_angle to align the orientation of the elliptical search range with the direction of travel
   const double rotate_sin = sin(-velocity_angle);
   const double rotate_cos = cos(-velocity_angle);
   for (PointCloud::iterator it = input_cloud->points.begin(); it != input_cloud->points.end(); ++it) {
@@ -99,9 +99,9 @@ bool EllipseBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, con
     const double clue_for_ellipse_range = pow((x - center_position_x_ * bumper_scale), 2.0) /
                                           pow((radius_x_ * bumper_scale), 2.0) +
                                           pow(y, 2.0) / pow((radius_y_ * bumper_scale), 2.0);
-    // Calculate whether the object exists within the elliptical speed limit range
+    // Calculate whether the object exists within the elliptical velocity restriction range
     if (clue_for_ellipse_range < 1) {
-      // Calculate the distance from self-position
+      // Calculate the distance from the self-position
       const double point_distance_square = it->x * it->x + it->y * it->y;
       // Determine if it is the nearest point within the search range
       if (point_distance_square < min_distance_square) {
@@ -116,14 +116,14 @@ bool EllipseBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, con
   return ret;
 }
 
-/// Find the distance from self-position to the farthest point within the elliptical range
+/// Calculate the distance from the self-position to the farthest point within the elliptical range
 double EllipseBumper::SearchLongestDistance() {
   double longest_distance = DBL_MAX;
-  // Calculate the distance from the origin (self-position) to the front, side, and rear ends of the ellipse
+  // Calculate the distances from the origin (self-position) to the front, side, and rear ends of the ellipse
   double ellipse_top = fabs(radius_x_ + center_position_x_);
   double ellipse_side = sqrt(center_position_x_ * center_position_x_ + radius_y_ * radius_y_);
   double ellipse_bottom = fabs(radius_x_ - center_position_x_);
-  // Choose the farthest one among the three points found
+  // Select the farthest of the three calculated points
   if (ellipse_top > ellipse_side && ellipse_top > ellipse_bottom) {
     longest_distance = ellipse_top;
   } else if (ellipse_side > ellipse_top && ellipse_side > ellipse_bottom) {
@@ -134,7 +134,7 @@ double EllipseBumper::SearchLongestDistance() {
   return longest_distance;
 }
 
-/// Get ROS PRAM
+/// Retrieve ROS parameters
 void EllipseBumper::UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters) {
   GetOptionalParam(parameters, kRadiusX, radius_x_, kRadiusXDef);
   if (radius_x_ <= 0.0) {

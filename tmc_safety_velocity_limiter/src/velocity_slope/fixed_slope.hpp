@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file fixed_slope.hpp
-/// @brief Fixed value output speed gradient class
+/// @brief Fixed value output velocity gradient class
 #ifndef TMC_SAFETY_VELOCITY_LIMITER_FIXED_SLOPE_HPP_
 #define TMC_SAFETY_VELOCITY_LIMITER_FIXED_SLOPE_HPP_
 #include <map>

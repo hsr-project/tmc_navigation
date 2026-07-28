@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -45,7 +45,7 @@ MapMerger::Ptr MapMergerFactory::Create(const std::map<std::string, rclcpp::Para
   GetRequiredParam(parameters, "width", map_width, Greater<double>(0.0));
   GetRequiredParam(parameters, "height", map_height, Greater<double>(0.0));
 
-  // Convert to grid count
+  // Reduce to grid count
   uint32_t width = static_cast<uint32_t>(std::ceil(map_width / resolution));
   uint32_t height = static_cast<uint32_t>(std::ceil(map_height / resolution));
 
