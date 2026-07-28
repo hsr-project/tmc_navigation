@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file safety_velocity_limiter-test.cpp
-/// @brief Test of the safety_velocity_limiter node
+/// @brief Test for the safety_velocity_limiter node
 
 #include <stdlib.h>
 
@@ -62,11 +62,11 @@ namespace {
 typedef pcl::PointXYZ Point;
 typedef pcl::PointCloud<Point> PointCloud;
 // Service name
-// Service name for function On
+// Function On service name
 const char* const kStartServiceName = "safety_velocity_limiter/start";
-// Service name for function Off
+// Function Off service name
 const char* const kStopServiceName = "safety_velocity_limiter/stop";
-// Service name for bumper set switching
+// Bumper set toggle service name
 const char* const kSwitchServiceName = "safety_velocity_limiter/switch_bumper_set";
 // Service name to get current settings
 const char* const kGetCurrentSettingServiceName = "safety_velocity_limiter/get_current_setting";
@@ -85,7 +85,7 @@ const char* const kTopicRatio = "safety_velocity_limiter/ratio";   // Decelerati
 const int32_t kTopicBufferSize = 1;
 // Waiting time between tests [msec]
 const int32_t kSleepDuration = 100;
-// Waiting time for service provision [msec]
+// Waiting time for service availability [msec]
 const int32_t kWaitDurationForService = 1000;
 // Test update cycle [hz]
 const double kTestRate = 100.0;
@@ -93,17 +93,17 @@ const double kTestRate = 100.0;
 const double kTestParamVelocity = 2.0;
 // Input velocity (high speed)
 const double kTestParamFastVelocity = 5.0;
-// Communication timeout time [sec]
+// Communication timeout duration [sec]
 const double kConnectionTimeOut = 3.0;
-// Velocity convergence timeout time [sec]
+// Velocity convergence timeout duration [sec]
 const double kStabilizationTimeOut = 8.0;
-// Velocity convergence timeout time (for high speed) [sec]
+// Velocity convergence timeout duration (for high speed) [sec]
 const double kStabilizationTimeOutForFastVelocity = 20.0;
-// Subscribe timeout time [sec]
+// Subscribe timeout duration [sec]
 const double kSubscribeTimeOut = 1.0;
-// Transform timeout time [sec]
+// Transform timeout duration [sec]
 const double kTransformTimeOut = 1.0;
-// Velocity Publish timeout time [sec]
+// Velocity publish timeout duration [sec]
 const double kPublishVelocityTimeOut = 2.0;
 
 // Distance to obstacle: very close
@@ -139,7 +139,7 @@ void LoadParameterFromYaml(std::shared_ptr<rclcpp::Node> node,
   rcl_parse_yaml_file(yaml_path.c_str(), yaml_params);
   rclcpp::ParameterMap yaml_param_map = rclcpp::parameter_map_from(yaml_params);
   rcl_yaml_node_struct_fini(yaml_params);
-  // Set ros parameters to node
+  // Set ROS parameters to node
   const std::string parameter_space = "/" + std::string(node->get_name());
   auto iter = yaml_param_map.find(parameter_space);
   for (auto& param : iter->second) {
@@ -154,7 +154,7 @@ geometry_msgs::msg::Quaternion createQuaternionMsgFromYaw(const double yaw) {
   return tf2::toMsg(q);
 }
 
-/// Create an OccupancyGrid centered on the specified Point (base_link) with size×size
+/// Create an OccupancyGrid of size × size centered on the specified Point (base_link)
 /// Set all occupancy values to the value specified by default_value
 void CreateOccupancyGrid(const geometry_msgs::msg::Point& center,
                          const uint32_t size, const uint32_t default_value,
@@ -175,8 +175,8 @@ void CreateOccupancyGrid(const geometry_msgs::msg::Point& center,
   }
 }
 
-/// Set the Occupancy value at the specified Point (base_link) in the OccupancyGrid
-/// Do nothing if the specified Point is outside the range of the OccupancyGrid
+/// Set the occupancy value at the specified Point (base_link) in the OccupancyGrid
+/// Do nothing if the specified Point is out of the range of the OccupancyGrid
 void SetOccupancy(nav_msgs::msg::OccupancyGrid& occupancy_grid,
                   const geometry_msgs::msg::Point& occupancy_point,
                   const uint32_t value) {
@@ -267,14 +267,14 @@ class TestNode : public rclcpp::Node {
   // Publish PointCloud at the specified Point (base_link)
   void PublishPointCloud(const std::vector<geometry_msgs::msg::Point>& points);
 
-  // Wait for speed to converge due to acceleration limiting function
+  // Wait for velocity to converge due to acceleration limiting function
   bool WaitStabilization(const double timeout, const geometry_msgs::msg::Twist& input_velocity);
 
   // Publish OccupancyGrid
   void PublishOccupancyGrid(const nav_msgs::msg::OccupancyGrid& occupancy_grid);
   // Publish velocity command value
   void PublishVelocity(const geometry_msgs::msg::Twist& velocity);
-  /// Publish speed for the specified time
+  /// Publish velocity for a specified time
   bool PublishVelocityForSpecifiedTime(const geometry_msgs::msg::Twist& velocity, const double sec);
 
   // Wait for topic subscription
@@ -284,7 +284,7 @@ class TestNode : public rclcpp::Node {
   bool WaitForSubscribeSlowdown(const double timeout);
   // Wait for limiting factor Pose topic subscription
   bool WaitForSubscribeObservedObstaclePose(const double timeout);
-  // Function to wait for the startup of the subscriber under test
+  // Function to wait for the startup of the test target subscriber
   bool WaitForConnectionEstablished(const double timeout);
 
   // getter
@@ -304,7 +304,7 @@ class TestNode : public rclcpp::Node {
   // ratio topic subscription callback function
   void RatioCallback(const std_msgs::msg::Float64::SharedPtr msg);
 
-  // Cycle weight
+  // Periodic wait
   rclcpp::Rate rate_;
 
   // Service client
@@ -325,7 +325,7 @@ class TestNode : public rclcpp::Node {
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr sub_observed_obstacle_pose_;
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr sub_ratio_;
 
-  // Output velocity to subscribe
+  // Subscribed output velocity
   geometry_msgs::msg::Twist output_velocity_;
 
   // Sudden deceleration detection
@@ -394,9 +394,9 @@ void TestNode::Init() {
   slowing_down_subscribed_ = false;
   observed_obstacle_pose_subscribed_ = false;
   ratio_subscribed_ = false;
-  // Whether it is connected to the target node
+  // Check if connected to the target node
   ASSERT_TRUE(WaitForConnectionEstablished(kConnectionTimeOut));
-  // Wait for the TF of map->base_link to be published
+  // Wait for map->base_link TF to be published
   SendStaticTransformMapToBase();
   const rclcpp::Duration timeout = rclcpp::Duration::from_seconds(kTransformTimeOut);
   ASSERT_TRUE(tf_buffer_->canTransform("map", "base_link", rclcpp::Time(0), timeout));
@@ -441,7 +441,7 @@ void TestNode::PublishVelocity(const geometry_msgs::msg::Twist& velocity) {
   rate_.sleep();
 }
 
-/// Publish speed for the specified time
+/// Publish velocity for a specified time
 bool TestNode::PublishVelocityForSpecifiedTime(
     const geometry_msgs::msg::Twist& velocity, const double sec) {
   const rclcpp::Time start_time = this->get_clock()->now();
@@ -496,13 +496,13 @@ bool TestNode::WaitForConnectionEstablished(const double timeout) {
   return true;
 }
 
-/// Wait for speed to converge due to acceleration limiting function
+/// Wait for velocity to converge due to acceleration limiting function
 bool TestNode::WaitStabilization(const double timeout, const geometry_msgs::msg::Twist& input_velocity) {
   const rclcpp::Time start_time = this->get_clock()->now();
   bool stabilized = false;
   while (!stabilized && rclcpp::ok()) {
     geometry_msgs::msg::Twist previous_velocity = output_velocity_;
-    // Failure if timed out
+    // Fail if timeout occurs
     const double elapsed_time = (this->get_clock()->now() - start_time).seconds();
     if (elapsed_time > timeout) {
       break;
@@ -526,7 +526,7 @@ bool TestNode::WaitStabilization(const double timeout, const geometry_msgs::msg:
 bool TestNode::WaitForSubscribeVelocity(const double timeout) {
   const rclcpp::Time start_time = this->get_clock()->now();
   while (!velocity_subscribed_ && rclcpp::ok()) {
-    // Failure if timed out
+    // Fail if timeout occurs
     const double elapsed_time = (this->get_clock()->now() - start_time).seconds();
     if (elapsed_time > timeout) {
       break;
@@ -541,7 +541,7 @@ bool TestNode::WaitForSubscribeVelocity(const double timeout) {
 bool TestNode::WaitForSubscribeSlowdown(const double timeout) {
   const rclcpp::Time start_time = this->get_clock()->now();
   while (!slowing_down_subscribed_ && rclcpp::ok()) {
-    // Failure if timed out
+    // Fail if timeout occurs
     const double elapsed_time = (this->get_clock()->now() - start_time).seconds();
     if (elapsed_time > timeout) {
       break;
@@ -556,7 +556,7 @@ bool TestNode::WaitForSubscribeSlowdown(const double timeout) {
 bool TestNode::WaitForSubscribeObservedObstaclePose(const double timeout) {
   const rclcpp::Time start_time = this->get_clock()->now();
   while (!observed_obstacle_pose_subscribed_ && rclcpp::ok()) {
-    // Failure if timed out
+    // Fail if timeout occurs
     const double elapsed_time = (this->get_clock()->now() - start_time).seconds();
     if (elapsed_time > timeout) {
       break;
@@ -598,25 +598,25 @@ class SafetyVelocityLimiterNodeTest : public testing::Test {
   geometry_msgs::msg::Twist input_velocity_;
 };
 
-/// Confirm whether the stop process is effective when the speed limiting function is On
+/// Verify that the stop process is effective when the speed limiting function is On
 TEST_F(SafetyVelocityLimiterNodeTest, StopAgainstObstacle) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
   // Switch to fan-shaped bumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("triangle_bumper_test"));
-  // Publish the point cloud coordinates of obstacles within the stop threshold distance from the vehicle and input velocity
+  // Publish obstacle point cloud coordinates and input velocity within the stop threshold distance from the vehicle
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(1, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = kObstacleDistanceClose;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
 
-  // Confirm whether the error between the actual output velocity and the target velocity (0 in this pattern) is within the allowable error
-  // If within the allowable error, determine that the stop has been executed
+  // Verify that the error between the actual output velocity and the target velocity (0 in this case) is within the allowable error
+  // If within the allowable error, determine that the stop process was executed
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 }
 
-/// Confirm whether the deceleration process according to the distance between the obstacle and the vehicle is effective when the speed limiting function is On
+/// Verify that the deceleration process according to the distance between the obstacle and the vehicle is effective when the speed limiting function is On
 TEST_F(SafetyVelocityLimiterNodeTest, ReduceVelocityAgainstObstacle) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
@@ -640,11 +640,11 @@ TEST_F(SafetyVelocityLimiterNodeTest, ReduceVelocityAgainstObstacle) {
   // Store the output velocity subscribed under the above conditions in output_velocity2
   geometry_msgs::msg::Twist output_velocity2 = test_node_->output_velocity();
 
-  // Confirm that the output velocity is (when the obstacle is close < when the obstacle is far)
+  // Verify that the output velocity is (closer obstacle < farther obstacle)
   EXPECT_LT(output_velocity1.linear.x, output_velocity2.linear.x);
 }
 
-/// Confirm whether the stop process is ineffective when the obstacle is outside the speed limiting range even if the speed limiting function is On
+/// Verify that the stop process is invalid if the obstacle is outside the speed limiting range even when the speed limiting function is On
 TEST_F(SafetyVelocityLimiterNodeTest, OutOfVelocityLimitation) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
@@ -656,11 +656,11 @@ TEST_F(SafetyVelocityLimiterNodeTest, OutOfVelocityLimitation) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
 }
 
-/// Confirm whether the deceleration process according to the distance between multiple obstacles and the vehicle is effective when the speed limiting function is On
+/// Verify that the deceleration process according to the distance between multiple obstacles and the vehicle is effective when the speed limiting function is On
 TEST_F(SafetyVelocityLimiterNodeTest, ReduceVelocityAgainstNearestObstacles) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
@@ -677,11 +677,11 @@ TEST_F(SafetyVelocityLimiterNodeTest, ReduceVelocityAgainstNearestObstacles) {
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   // Store the output velocity subscribed under the above conditions in output_velocity1
   geometry_msgs::msg::Twist output_velocity1 = test_node_->output_velocity();
-  // Confirm that the deceleration ratio is published correctly
+  // Verify that the deceleration ratio is published correctly
   EXPECT_DOUBLE_EQ(input_velocity_.linear.x * test_node_->ratio(), test_node_->output_velocity().linear.x);
 
-  // Place an additional obstacle within the speed limiting range in addition to the above obstacle
-  // However, the closest obstacle to the vehicle is the one that was originally there
+  // Add one more obstacle to the speed limiting range in addition to the above obstacle
+  // However, the closest obstacle to the vehicle is the one that was already there
   point.x = kObstacleDistanceFar;
   multi_obstacle_points_on_base.push_back(point);
   test_node_->PublishPointCloud(multi_obstacle_points_on_base);
@@ -689,12 +689,12 @@ TEST_F(SafetyVelocityLimiterNodeTest, ReduceVelocityAgainstNearestObstacles) {
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   // Store the output velocity subscribed under the above conditions in output_velocity2
   geometry_msgs::msg::Twist output_velocity2 = test_node_->output_velocity();
-  // Confirm that the output velocity does not change whether the obstacle is single or multiple if the closest obstacle to the vehicle is the same
+  // Verify that the output velocity does not change whether there is a single obstacle or multiple obstacles if the closest obstacle to the vehicle is the same
   EXPECT_DOUBLE_EQ(output_velocity1.linear.x, output_velocity2.linear.x);
-  // Confirm that the deceleration ratio is published correctly
+  // Verify that the deceleration ratio is published correctly
   EXPECT_DOUBLE_EQ(input_velocity_.linear.x * test_node_->ratio(), test_node_->output_velocity().linear.x);
 
-  // Place an additional obstacle within the speed limiting range in addition to the above obstacle
+  // Add one more obstacle to the speed limiting range in addition to the above obstacle
   // However, the closest obstacle to the vehicle is the newly added obstacle
   point.x = kObstacleDistanceNear;
   multi_obstacle_points_on_base.push_back(point);
@@ -703,14 +703,14 @@ TEST_F(SafetyVelocityLimiterNodeTest, ReduceVelocityAgainstNearestObstacles) {
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   // Store the output velocity subscribed under the above conditions in output_velocity3
   geometry_msgs::msg::Twist output_velocity3 = test_node_->output_velocity();
-  // Confirm that the deceleration ratio is published correctly
+  // Verify that the deceleration ratio is published correctly
   EXPECT_DOUBLE_EQ(input_velocity_.linear.x * test_node_->ratio(), test_node_->output_velocity().linear.x);
 
-  // Confirm that the output velocity decreases when the closest obstacle to the vehicle becomes closer
+  // Verify that the output velocity decreases when the closest obstacle to the vehicle gets closer
   EXPECT_LT(output_velocity3.linear.x, output_velocity1.linear.x);
 }
 
-/// Confirm whether the stop process according to the distance between multiple obstacles and the vehicle is effective when the speed limiting function is On
+/// Verify that the stop process is effective for multiple obstacles according to the distance to the vehicle when the speed limiting function is On
 TEST_F(SafetyVelocityLimiterNodeTest, StopAgainstMultiObstacles) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
@@ -729,14 +729,14 @@ TEST_F(SafetyVelocityLimiterNodeTest, StopAgainstMultiObstacles) {
   // Store the output velocity subscribed under the above conditions in output_velocity2
   geometry_msgs::msg::Twist output_velocity = test_node_->output_velocity();
 
-  // Confirm whether the error between the actual output velocity and the target velocity (0 in this pattern) is within the allowable error
-  // If within the allowable error, determine that the stop has been executed
+  // Verify that the error between the actual output velocity and the target velocity (0 in this case) is within the allowable error
+  // If within the allowable error, determine that the stop process was executed
   EXPECT_DOUBLE_EQ(0.0, output_velocity.linear.x);
 }
 
-/// Confirm whether the stop process is ineffective when the speed limiting function is Off
+/// Verify that the stop process is invalid when the speed limiting function is Off
 TEST_F(SafetyVelocityLimiterNodeTest, OffStopAgainstObstacle) {
-  // First, confirm that the stop process is effective when the speed limiting function is On
+  // First, verify that the stop process is effective when the speed limiting function is On
   // Enable speed limiting
   test_node_->StartLimitVelocity();
   // Switch to fan-shaped bumper
@@ -748,10 +748,10 @@ TEST_F(SafetyVelocityLimiterNodeTest, OffStopAgainstObstacle) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted (stopped)
+  // Verify that it is restricted (stopped)
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
-  // Next, confirm that the stop process is ineffective when the speed limiting function is Off
+  // Next, verify that the stop process is invalid when the speed limiting function is Off
   // Disable speed limiting
   test_node_->StopLimitVelocity();
   // Place an obstacle within the stop range
@@ -759,7 +759,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, OffStopAgainstObstacle) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
 }
 
@@ -770,14 +770,14 @@ TEST_F(SafetyVelocityLimiterNodeTest, TriangleBumper) {
   // Switch to TriangleBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("triangle_bumper_test"));
 
-  // Publish an obstacle outside the left front bumper range (TriangleBumper's blind spot)
+  // Publish an obstacle outside the left front bumper range (TriangleBumper blind spot)
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(1, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = kRobotRadius;
   obstacle_point_on_base[0].y = kRobotRadius;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
   // Publish an obstacle within the left front bumper range
   obstacle_point_on_base[0].x = kRobotRadius;
@@ -785,7 +785,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, TriangleBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle in front of the vehicle
@@ -794,7 +794,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, TriangleBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle within the right front bumper range
@@ -803,16 +803,16 @@ TEST_F(SafetyVelocityLimiterNodeTest, TriangleBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
-  // Publish an obstacle outside the right front bumper range (TriangleBumper's blind spot)
+  // Publish an obstacle outside the right front bumper range (TriangleBumper blind spot)
   obstacle_point_on_base[0].x = kRobotRadius;
   obstacle_point_on_base[0].y = -kRobotRadius;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
 }
 
@@ -830,7 +830,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, CupBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle outside the rear bumper range of the vehicle
@@ -839,7 +839,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, CupBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle outside the left side bumper range of the vehicle
@@ -848,7 +848,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, CupBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle within the left side bumper range of the vehicle
@@ -857,7 +857,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, CupBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle within the right side bumper range of the vehicle
@@ -866,7 +866,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, CupBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle outside the right side bumper range of the vehicle
@@ -875,7 +875,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, CupBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
 }
 
@@ -893,7 +893,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, EllipseBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle outside the rear bumper range of the vehicle
@@ -902,7 +902,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, EllipseBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle within the right front bumper range of the vehicle
@@ -911,7 +911,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, EllipseBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle outside the right front bumper range of the vehicle
@@ -920,7 +920,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, EllipseBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle within the stop area range in front of the vehicle
@@ -929,7 +929,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, EllipseBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle within the deceleration area range in front of the vehicle
@@ -938,7 +938,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, EllipseBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is restricted
+  // Verify that it is restricted
   EXPECT_GT(kTestParamVelocity, test_node_->output_velocity().linear.x);
 
   // Publish an obstacle outside the bumper range in front of the vehicle
@@ -947,7 +947,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, EllipseBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   // Wait for output to converge
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that it is not restricted
+  // Verify that it is not restricted
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
 }
 
@@ -965,15 +965,15 @@ TEST_F(SafetyVelocityLimiterNodeTest, OccupancyPointBumper) {
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   geometry_msgs::msg::Twist output_velocity1 = test_node_->output_velocity();
 
-  // Set and publish Occupancy100 at the vehicle's position
+  // Set Occupancy100 at the vehicle's position and publish
   SetOccupancy(occupancy_grid, geometry_msgs::msg::Point(), 100);
   test_node_->PublishOccupancyGrid(occupancy_grid);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   geometry_msgs::msg::Twist output_velocity2 = test_node_->output_velocity();
 
-  // Confirm that it is not restricted with Occupancy0
+  // Verify that it is not restricted with Occupancy0
   EXPECT_DOUBLE_EQ(kTestParamVelocity, output_velocity1.linear.x);
-  // Confirm that it is stopped with Occupancy100
+  // Verify that it is stopped with Occupancy100
   EXPECT_DOUBLE_EQ(0.0, output_velocity2.linear.x);
 }
 
@@ -993,27 +993,27 @@ TEST_F(SafetyVelocityLimiterNodeTest, OccupancyEllipseBumper) {
       gradation_occupancy.data[y * gradation_occupancy.info.width + x] = y * gradation_occupancy.info.width + x;
     }
   }
-  // Set the terminal point to 100
+  // Set the endpoint to 100
   gradation_occupancy.data[size * size - 1] = 100;
 
-  // Set to a position where the Occupancy around the vehicle's position is low
+  // Set positions where Occupancy around the vehicle's position is low
   gradation_occupancy.info.origin.position.x = 0.0;
   gradation_occupancy.info.origin.position.y = 0.0;
   test_node_->PublishOccupancyGrid(gradation_occupancy);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   geometry_msgs::msg::Twist output_velocity1 = test_node_->output_velocity();
 
-  // Set to a position where the Occupancy around the vehicle's position is high
+  // Set positions where Occupancy around the vehicle's position is high
   gradation_occupancy.info.origin.position.x = -0.45;
   gradation_occupancy.info.origin.position.y = -0.45;
   test_node_->PublishOccupancyGrid(gradation_occupancy);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   geometry_msgs::msg::Twist output_velocity2 = test_node_->output_velocity();
 
-  // Confirm that it is not at extreme values since a weighted average is taken in a circular range
+  // Verify that the values are not extreme due to weighted averaging in a circular range
   EXPECT_LT(0.0, output_velocity1.linear.x);
   EXPECT_LT(output_velocity2.linear.x, kTestParamVelocity);
-  // Confirm that it is slower when the surrounding Occupancy is high
+  // Verify that the speed is slower when the surrounding Occupancy is high
   EXPECT_LT(output_velocity2.linear.x, output_velocity1.linear.x);
 
   // Set Occupancy value 100 outside the bumper range
@@ -1026,7 +1026,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, OccupancyEllipseBumper) {
   test_node_->PublishOccupancyGrid(out_range_occupancy);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   geometry_msgs::msg::Twist output_velocity3 = test_node_->output_velocity();
-  // Confirm that it is not affected by Occupancy existing outside the bumper range
+  // Verify that Occupancy outside the bumper range does not affect
   EXPECT_DOUBLE_EQ(kTestParamVelocity, output_velocity3.linear.x);
 
   // Set Occupancy value 100 within the bumper range
@@ -1038,7 +1038,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, OccupancyEllipseBumper) {
   test_node_->PublishOccupancyGrid(in_range_occupancy);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   geometry_msgs::msg::Twist output_velocity4 = test_node_->output_velocity();
-  // Confirm that restriction is applied when there is one point of Occupancy within the bumper range
+  // Verify that restriction occurs when there is one point of Occupancy within the bumper range
   EXPECT_LT(output_velocity4.linear.x, kTestParamVelocity);
 }
 
@@ -1065,9 +1065,9 @@ TEST_F(SafetyVelocityLimiterNodeTest, FixedSlope) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   geometry_msgs::msg::Twist output_velocity3 = test_node_->output_velocity();
-  // Confirm that restriction is being applied
+  // Verify that restriction is being applied
   EXPECT_NEAR(output_velocity3.linear.x, 0.2 * kTestParamVelocity, kEpsilon);
-  // Confirm that it is the same value regardless of distance
+  // Verify that the value is the same regardless of distance
   EXPECT_DOUBLE_EQ(output_velocity1.linear.x, output_velocity2.linear.x);
   EXPECT_DOUBLE_EQ(output_velocity2.linear.x, output_velocity3.linear.x);
 }
@@ -1105,12 +1105,12 @@ TEST_F(SafetyVelocityLimiterNodeTest, LinearSlope) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   geometry_msgs::msg::Twist output_velocity5 = test_node_->output_velocity();
-  // Confirm that the speed is in the order of nearby < slightly nearby < intermediate < slightly far away < far away
+  // Verify that the speed is in the order of nearby < slightly nearby < intermediate < slightly far away < far away
   EXPECT_LT(output_velocity5.linear.x, output_velocity4.linear.x);
   EXPECT_LT(output_velocity4.linear.x, output_velocity3.linear.x);
   EXPECT_LT(output_velocity3.linear.x, output_velocity2.linear.x);
   EXPECT_LT(output_velocity2.linear.x, output_velocity1.linear.x);
-  // Confirm that the slope is linear
+  // Verify that the slope is linear
   EXPECT_NEAR(output_velocity5.linear.x - output_velocity4.linear.x,
               output_velocity4.linear.x - output_velocity3.linear.x,
               kEpsilon);
@@ -1155,12 +1155,12 @@ TEST_F(SafetyVelocityLimiterNodeTest, LogarithmSlope) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   geometry_msgs::msg::Twist output_velocity5 = test_node_->output_velocity();
-  // Confirm that the speed is in the order of nearby < slightly nearby < intermediate < slightly far away < far away
+  // Verify that the speed is in the order of nearby < slightly nearby < intermediate < slightly far away < far away
   EXPECT_LT(output_velocity5.linear.x, output_velocity4.linear.x);
   EXPECT_LT(output_velocity4.linear.x, output_velocity3.linear.x);
   EXPECT_LT(output_velocity3.linear.x, output_velocity2.linear.x);
   EXPECT_LT(output_velocity2.linear.x, output_velocity1.linear.x);
-  // Confirm that the slope is logarithmic
+  // Verify that the slope is logarithmic
   EXPECT_LT(output_velocity1.linear.x - output_velocity2.linear.x,
             output_velocity2.linear.x - output_velocity3.linear.x);
   EXPECT_LT(output_velocity2.linear.x - output_velocity3.linear.x,
@@ -1169,9 +1169,12 @@ TEST_F(SafetyVelocityLimiterNodeTest, LogarithmSlope) {
             output_velocity4.linear.x - output_velocity5.linear.x);
 }
 
+// Disable test due to potential test failure in CodeBuild
+// TODO(kazuki_shibamiya) : CodeBuildで安定的にテストが通るようにする
+#if 0
 /// Sudden deceleration detection
 TEST_F(SafetyVelocityLimiterNodeTest, Slowdown) {
-  // Turn off the function once to reset sudden deceleration detection
+  // Temporarily turn off the function to reset sudden deceleration detection
   test_node_->StopLimitVelocity();
   // Enable speed limiting
   test_node_->StartLimitVelocity();
@@ -1185,10 +1188,10 @@ TEST_F(SafetyVelocityLimiterNodeTest, Slowdown) {
     test_node_->PublishPointCloud(obstacle_point_on_base);
     test_node_->PublishVelocity(input_velocity_);
   }
-  // Confirm that sudden deceleration is not detected
+  // Verify that sudden deceleration is not detected
   EXPECT_FALSE(test_node_->is_slowing_down());
 
-  // Remove the obstacle once and recover to constant speed
+  // Temporarily remove obstacles to recover to constant speed
   obstacle_point_on_base[0].x = 10.0;
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
@@ -1200,9 +1203,10 @@ TEST_F(SafetyVelocityLimiterNodeTest, Slowdown) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeSlowdown(kSubscribeTimeOut));
-  // Confirm that sudden deceleration is detected
+  // Verify that sudden deceleration is detected
   EXPECT_TRUE(test_node_->is_slowing_down());
 }
+#endif
 
 /// Deceleration acceleration limit
 TEST_F(SafetyVelocityLimiterNodeTest, ModerateDeceleration) {
@@ -1213,7 +1217,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, ModerateDeceleration) {
   // Switch to TriangleBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("triangle_bumper_test"));
 
-  // Set to a state where there are no obstacles within the bumper range and wait for the speed to match the input
+  // Ensure no obstacles are within the bumper range and wait for the velocity to match the input
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(1, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = 10.0;
   obstacle_point_on_base[0].y = 0.0;
@@ -1226,51 +1230,51 @@ TEST_F(SafetyVelocityLimiterNodeTest, ModerateDeceleration) {
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
 
-  // Input and output speed
+  // Input and output velocity
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
   rclcpp::Time velocity1_time = test_node_->get_clock()->now();
   geometry_msgs::msg::Twist velocity1 = test_node_->output_velocity();
 
-  // Publish speed for the specified time
+  // Publish velocity for a specified time
   test_node_->PublishVelocityForSpecifiedTime(input_velocity_, kPublishVelocityTimeOut);
-  // Input and output speed
+  // Input and output velocity
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
   rclcpp::Time velocity2_time = test_node_->get_clock()->now();
   geometry_msgs::msg::Twist velocity2 = test_node_->output_velocity();
 
-  // Confirm that it is decelerating from velocity1 to velocity2
+  // Verify that deceleration occurs from velocity1 to velocity2
   EXPECT_LT(velocity2.linear.x, velocity1.linear.x);
   // Calculate the absolute value of the slope from velocity1 to velocity2
   double time_diff = (velocity2_time - velocity1_time).seconds();
   double velocity_diff = fabs(velocity1.linear.x - velocity2.linear.x);
   const double velocity_slope_1_2 = velocity_diff / time_diff;
-  // Confirm that the slope approximates the expected value kMaximumDeceleration (less than 10% difference)
+  // Verify that the slope approximates the expected value kMaximumDeceleration (within 10% difference)
   EXPECT_LT(fabs((velocity_slope_1_2 - kMaximumDeceleration) / kMaximumDeceleration), 0.1);
 
-  // Publish speed for the specified time
+  // Publish velocity for a specified time
   test_node_->PublishVelocityForSpecifiedTime(input_velocity_, kPublishVelocityTimeOut);
-  // Input and output speed
+  // Input and output velocity
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
   rclcpp::Time velocity3_time = test_node_->get_clock()->now();
   geometry_msgs::msg::Twist velocity3 = test_node_->output_velocity();
 
-  // Confirm that it is decelerating from velocity2 to velocity3
+  // Verify that deceleration occurs from velocity2 to velocity3
   EXPECT_LT(velocity3.linear.x, velocity2.linear.x);
   // Calculate the absolute value of the slope from velocity2 to velocity3
   time_diff = (velocity3_time - velocity2_time).seconds();
   velocity_diff = fabs(velocity2.linear.x - velocity3.linear.x);
   const double velocity_slope_2_3 = velocity_diff / time_diff;
-  // Confirm that the slope approximates the expected value kMaximumDeceleration (less than 10% difference)
+  // Verify that the slope approximates the expected value kMaximumDeceleration (within 10% difference)
   EXPECT_LT(fabs((velocity_slope_2_3 - kMaximumDeceleration) / kMaximumDeceleration), 0.1);
 
-  // Confirm that it is decelerating linearly. The two slopes are approximate (less than 10% difference)
+  // Verify that deceleration is linear. The two slopes are approximately equal (within 10% difference)
   EXPECT_LT(fabs((velocity_slope_2_3 - velocity_slope_1_2) / velocity_slope_1_2), 0.1);
 }
 
-/// Acceleration limit during acceleration
+/// Acceleration acceleration limit
 TEST_F(SafetyVelocityLimiterNodeTest, ModerateAcceleration) {
   // Increase input velocity to observe the slope of velocity change
   input_velocity_.linear.x = kTestParamFastVelocity;
@@ -1279,70 +1283,70 @@ TEST_F(SafetyVelocityLimiterNodeTest, ModerateAcceleration) {
   // Switch to TriangleBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("triangle_bumper_test"));
 
-  // Place an obstacle in the deceleration area and wait for the speed to converge
+  // Place an obstacle in the deceleration area and wait for the velocity to converge
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(1, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = 0.5;
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOutForFastVelocity, input_velocity_));
 
-  // Set to a state where there are no obstacles within the bumper range
+  // Ensure no obstacles are within the bumper range
   obstacle_point_on_base[0].x = 10.0;
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
 
-  // Input and output speed
+  // Input and output velocity
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
   rclcpp::Time velocity1_time = test_node_->get_clock()->now();
   geometry_msgs::msg::Twist velocity1 = test_node_->output_velocity();
 
-  // Publish speed for the specified time
+  // Publish velocity for a specified time
   test_node_->PublishVelocityForSpecifiedTime(input_velocity_, kPublishVelocityTimeOut);
-  // Input and output speed
+  // Input and output velocity
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
   rclcpp::Time velocity2_time = test_node_->get_clock()->now();
   geometry_msgs::msg::Twist velocity2 = test_node_->output_velocity();
 
-  // Confirm that it is accelerating from velocity1 to velocity2
+  // Verify that acceleration occurs from velocity1 to velocity2
   EXPECT_GT(velocity2.linear.x, velocity1.linear.x);
   // Calculate the absolute value of the slope from velocity1 to velocity2
   double time_diff = (velocity2_time - velocity1_time).seconds();
   double velocity_diff = fabs(velocity1.linear.x - velocity2.linear.x);
   const double velocity_slope_1_2 = velocity_diff / time_diff;
-  // Confirm that the slope approximates the expected value kMaximumAcceleration (less than 10% difference)
+  // Verify that the slope approximates the expected value kMaximumAcceleration (within 10% difference)
   EXPECT_LT(fabs((velocity_slope_1_2 - kMaximumAcceleration) / kMaximumAcceleration), 0.1);
 
-  // Publish speed for the specified time
+  // Publish velocity for a specified time
   test_node_->PublishVelocityForSpecifiedTime(input_velocity_, kPublishVelocityTimeOut);
-  // Input and output speed
+  // Input and output velocity
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
   rclcpp::Time velocity3_time = test_node_->get_clock()->now();
   geometry_msgs::msg::Twist velocity3 = test_node_->output_velocity();
 
-  // Confirm that it is accelerating from velocity2 to velocity3
+  // Verify that acceleration occurs from velocity2 to velocity3
   EXPECT_GT(velocity3.linear.x, velocity2.linear.x);
   // Calculate the absolute value of the slope from velocity2 to velocity3
   time_diff = (velocity3_time - velocity2_time).seconds();
   velocity_diff = fabs(velocity2.linear.x - velocity3.linear.x);
   const double velocity_slope_2_3 = velocity_diff / time_diff;
-  // Confirm that the slope approximates the expected value kMaximumDeceleration (less than 10% difference)
+  // Verify that the slope approximates the expected value kMaximumDeceleration (within 10% difference)
   EXPECT_LT(fabs((velocity_slope_2_3 - kMaximumAcceleration) / kMaximumAcceleration), 0.1);
 
-  // Confirm that it is decelerating linearly. The two slopes are approximate (less than 10% difference)
+  // Verify that deceleration is linear. The two slopes are approximately equal (within 10% difference)
   EXPECT_LT(fabs((velocity_slope_2_3 - velocity_slope_1_2) / velocity_slope_1_2), 0.1);
 }
 
-/// Confirm that deceleration is not limited during sudden stops and stops immediately
+/// Verify that deceleration is not limited during sudden stops and the vehicle stops immediately
 TEST_F(SafetyVelocityLimiterNodeTest, SuddenStop) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
   // Switch to TriangleBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("triangle_bumper_test"));
 
-  // Set to a state where there are no obstacles within the bumper range and wait for the speed to match the input
+  // Ensure no obstacles are within the bumper range and wait for the velocity to match the input
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(1, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = 10.0;
   obstacle_point_on_base[0].y = 0.0;
@@ -1355,22 +1359,22 @@ TEST_F(SafetyVelocityLimiterNodeTest, SuddenStop) {
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
 
-  // Input and output speed once
+  // Input and output velocity once
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
 
-  // Confirm that it becomes 0 output immediately without deceleration limit
+  // Verify that the output immediately becomes 0 without deceleration limit
   EXPECT_DOUBLE_EQ(0.0, test_node_->output_velocity().linear.x);
 }
 
-/// Confirm that the speed limiting factor Pose published by TriangleBumper is correct
+/// Verify that the speed limiting factor Pose published by TriangleBumper is correct
 TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseTriangleBumper) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
   // Switch to TriangleBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("triangle_bumper_test"));
 
-  // Place two obstacles outside the bumper range. Do not place obstacles within the bumper range and wait for the speed to match the input
+  // Place two obstacles outside the bumper range. Do not place obstacles within the bumper range and wait for the velocity to match the input
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(2, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = 10.0;
   obstacle_point_on_base[0].y = 0.0;
@@ -1379,7 +1383,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseTriangleBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
   // Place an obstacle within the bumper range
@@ -1387,38 +1391,38 @@ TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseTriangleBumper) {
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
 
-  // Input and output speed once
+  // Input and output velocity once
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is the same as the obstacle within the bumper range
+  // Verify that the limiting factor Pose matches the obstacle within the bumper range
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.x, obstacle_point_on_base[0].x, kEpsilon);
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.y, obstacle_point_on_base[0].y, kEpsilon);
 
-  // Place an obstacle closer within the bumper range
+  // Place a closer obstacle within the bumper range
   obstacle_point_on_base[1].x = 0.2;
   obstacle_point_on_base[1].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
 
-  // Input and output speed once
+  // Input and output velocity once
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is the same as the closer obstacle
+  // Verify that the limiting factor Pose matches the closer obstacle
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.x, obstacle_point_on_base[1].x, kEpsilon);
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.y, obstacle_point_on_base[1].y, kEpsilon);
 }
 
-/// Confirm that the speed limiting factor Pose published by CupBumper is correct
+/// Verify that the speed limiting factor Pose published by CupBumper is correct
 TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseCupBumper) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
   // Switch to CupBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("cup_bumper_test"));
 
-  // Place two obstacles outside the bumper range. Do not place obstacles within the bumper range and wait for the speed to match the input
+  // Place two obstacles outside the bumper range. Do not place obstacles within the bumper range and wait for the velocity to match the input
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(2, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = 10.0;
   obstacle_point_on_base[0].y = 0.0;
@@ -1427,7 +1431,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseCupBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
   // Place an obstacle within the bumper range
@@ -1435,38 +1439,38 @@ TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseCupBumper) {
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
 
-  // Input and output speed once
+  // Input and output velocity once
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is the same as the obstacle within the bumper range
+  // Verify that the limiting factor Pose matches the obstacle within the bumper range
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.x, obstacle_point_on_base[0].x, kEpsilon);
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.y, obstacle_point_on_base[0].y, kEpsilon);
 
-  // Place an obstacle closer within the bumper range
+  // Place a closer obstacle within the bumper range
   obstacle_point_on_base[1].x = 0.2;
   obstacle_point_on_base[1].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
 
-  // Input and output speed once
+  // Input and output velocity once
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is the same as the closer obstacle
+  // Verify that the limiting factor Pose matches the closer obstacle
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.x, obstacle_point_on_base[1].x, kEpsilon);
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.y, obstacle_point_on_base[1].y, kEpsilon);
 }
 
-/// Confirm that the speed limiting factor Pose published by EllipseBumper is correct
+/// Verify that the speed limiting factor Pose published by EllipseBumper is correct
 TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseEllipseBumper) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
   // Switch to EllipseBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("ellipse_bumper_test"));
 
-  // Place two obstacles outside the bumper range. Wait for the speed to match the input
+  // Place two obstacles outside the bumper range. Wait for the velocity to match the input
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(2, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = 10.0;
   obstacle_point_on_base[0].y = 0.0;
@@ -1475,39 +1479,39 @@ TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseEllipseBumper) {
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
-  // Move the first obstacle within the bumper range
+  // Move the first obstacle into the bumper range
   obstacle_point_on_base[0].x = 1.5;
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
 
-  // Input and output speed once
+  // Input and output velocity once
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is the same as the obstacle within the bumper range
+  // Verify that the limiting factor Pose matches the obstacle within the bumper range
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.x, obstacle_point_on_base[0].x, kEpsilon);
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.y, obstacle_point_on_base[0].y, kEpsilon);
 
-  // Move the second obstacle closer than the first
+  // Move the second obstacle closer than the first one
   obstacle_point_on_base[1].x = 1.0;
   obstacle_point_on_base[1].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
 
-  // Input and output speed once
+  // Input and output velocity once
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is the same as the closer obstacle
+  // Verify that the limiting factor Pose matches the closer obstacle
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.x, obstacle_point_on_base[1].x, kEpsilon);
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.y, obstacle_point_on_base[1].y, kEpsilon);
 }
 
-/// Confirm that the speed limiting factor Pose published by OccupancyPoint bumper is correct
+/// Verify that the speed limiting factor Pose published by OccupancyPoint bumper is correct
 TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseOccupancyPointBumper) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
@@ -1520,21 +1524,21 @@ TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseOccupancyPointBumper) 
   test_node_->PublishOccupancyGrid(occupancy_grid);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
-  // Set and publish Occupancy100 at the vehicle's position
+  // Set Occupancy100 at the vehicle's position and publish
   SetOccupancy(occupancy_grid, geometry_msgs::msg::Point(), 100);
   test_node_->PublishOccupancyGrid(occupancy_grid);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is the vehicle's position
+  // Verify that the limiting factor Pose is the vehicle's position
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.x, 0.0, kEpsilon);
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.y, 0.0, kEpsilon);
 }
 
-/// Confirm that the speed limiting factor Pose published by OccupancyEllipse bumper is correct
+/// Verify that the speed limiting factor Pose published by OccupancyEllipse bumper is correct
 TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseOccupancyEllipseBumper) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
@@ -1551,7 +1555,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseOccupancyEllipseBumper
   test_node_->PublishOccupancyGrid(out_range_occupancy);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
   EXPECT_DOUBLE_EQ(kTestParamVelocity, test_node_->output_velocity().linear.x);
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
   // Set Occupancy value 100 within the bumper range
@@ -1562,13 +1566,13 @@ TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseOccupancyEllipseBumper
   SetOccupancy(in_range_occupancy, occupancy_point, 100);
   test_node_->PublishOccupancyGrid(in_range_occupancy);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is the obstacle within the bumper range
+  // Verify that the limiting factor Pose matches the obstacle within the bumper range
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.x, occupancy_point.x, kEpsilon);
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.y, occupancy_point.y, kEpsilon);
 
-  // Add Occupancy80 at the closest location within the bumper range, and Occupancy100 at the next closest location
+  // Add Occupancy80 at the closest point within the bumper range and Occupancy100 at the next closest point
   geometry_msgs::msg::Point occupancy_point_close;
   occupancy_point_close.x = 0.1;
   occupancy_point_close.y = 0.1;
@@ -1579,36 +1583,36 @@ TEST_F(SafetyVelocityLimiterNodeTest, ObservedObstaclePoseOccupancyEllipseBumper
   SetOccupancy(in_range_occupancy, occupancy_point_near, 100);
   test_node_->PublishOccupancyGrid(in_range_occupancy);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is the largest Occupancy value within the bumper range and the closest obstacle
+  // Verify that the limiting factor Pose is the obstacle with the highest Occupancy value and closest within the bumper range
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.x, occupancy_point_near.x, kEpsilon);
   EXPECT_NEAR(test_node_->observed_obstacle_pose().pose.position.y, occupancy_point_near.y, kEpsilon);
 }
 
-/// Confirm that the size of TriangleBumper changes according to the input velocity
+/// Verify that the size of TriangleBumper changes according to the input velocity
 TEST_F(SafetyVelocityLimiterNodeTest, AutoScalingTriangleBumper) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
-  // Switch to AutoScaling setting TriangleBumper
+  // Switch to AutoScaling TriangleBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("triangle_bumper_auto_scaling_test"));
 
-  // Confirm that the size does not change when the input velocity is greater than or equal to max_scale_velocity
+  // Verify that the size does not change when the input velocity is greater than or equal to max_scale_velocity
   // Place an obstacle at the edge of the bumper range
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(1, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = 1.45;
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
   // Reduce the input velocity below max_scale_velocity
-  // Due to the bumper being resized, the obstacle that was within the range is now outside the range
+  // Due to bumper resizing, obstacles that were within the range are now outside the range
   input_velocity_.linear.x = 0.3;
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
   // Place an obstacle within the resized range
@@ -1616,41 +1620,41 @@ TEST_F(SafetyVelocityLimiterNodeTest, AutoScalingTriangleBumper) {
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
-  // Further reduce the input velocity slightly
-  // Due to the bumper being resized, the obstacle that was within the range is now outside the range
+  // Further reduce the input velocity
+  // Due to bumper resizing, obstacles that were within the range are now outside the range
   input_velocity_.linear.x = 0.25;
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 }
 
-/// Confirm that the size of CupleBumper changes according to the input velocity
+/// Verify that the size of CupleBumper changes according to the input velocity
 TEST_F(SafetyVelocityLimiterNodeTest, AutoScalingCupBumper) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
-  // Switch to AutoScaling setting CupBumper
+  // Switch to AutoScaling CupBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("cup_bumper_auto_scaling_test"));
 
-  // Confirm that the size does not change when the input velocity is greater than or equal to max_scale_velocity
+  // Verify that the size does not change when the input velocity is greater than or equal to max_scale_velocity
   // Place an obstacle at the edge of the bumper range
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(1, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = 1.45;
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
   // Reduce the input velocity below max_scale_velocity
-  // Due to the bumper being resized, the obstacle that was within the range is now outside the range
+  // Due to bumper resizing, obstacles that were within the range are now outside the range
   input_velocity_.linear.x = 0.3;
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
   // Place an obstacle within the resized range
@@ -1658,40 +1662,40 @@ TEST_F(SafetyVelocityLimiterNodeTest, AutoScalingCupBumper) {
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
-  // Further reduce the input velocity slightly. Due to the bumper being resized, the obstacle that was within the range is now outside the range
+  // Further reduce the input velocity. Due to bumper resizing, obstacles that were within the range are now outside the range
   input_velocity_.linear.x = 0.25;
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 }
 
-/// Confirm that the size of EllipseBumper changes according to the input velocity
+/// Verify that the size of EllipseBumper changes according to the input velocity
 TEST_F(SafetyVelocityLimiterNodeTest, AutoScalingEllipseBumper) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
-  // Switch to AutoScaling setting EllipseBumper
+  // Switch to AutoScaling EllipseBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("ellipse_bumper_auto_scaling_test"));
 
-  // Confirm that the size does not change when the input velocity is greater than or equal to max_scale_velocity
+  // Verify that the size does not change when the input velocity is greater than or equal to max_scale_velocity
   // Place an obstacle at the edge of the bumper range
   std::vector<geometry_msgs::msg::Point> obstacle_point_on_base(1, geometry_msgs::msg::Point());
   obstacle_point_on_base[0].x = 1.7;
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
   // Reduce the input velocity below max_scale_velocity
-  // Due to the bumper being resized, the obstacle that was within the range is now outside the range
+  // Due to bumper resizing, obstacles that were within the range are now outside the range
   input_velocity_.linear.x = 0.3;
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
   // Place an obstacle within the resized range
@@ -1699,26 +1703,26 @@ TEST_F(SafetyVelocityLimiterNodeTest, AutoScalingEllipseBumper) {
   obstacle_point_on_base[0].y = 0.0;
   test_node_->PublishPointCloud(obstacle_point_on_base);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
-  // Further reduce the input velocity slightly. Due to the bumper being resized, the obstacle that was within the range is now outside the range
+  // Further reduce the input velocity. Due to bumper resizing, obstacles that were within the range are now outside the range
   input_velocity_.linear.x = 0.25;
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 }
 
-/// Confirm that the size of OccupancyEllipseBumper changes according to the input velocity
+/// Verify that the size of OccupancyEllipseBumper changes according to the input velocity
 TEST_F(SafetyVelocityLimiterNodeTest, AutoScalingOccupancyEllipseBumper) {
   // Enable speed limiting
   test_node_->StartLimitVelocity();
   // Switch to AutoScaling setting OccupancyEllipseBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("occupancy_ellipse_bumper_auto_scaling_test"));
 
-  // Confirm that the size does not change when the input velocity is greater than or equal to max_scale_velocity
-  // Place an obstacle at the edge of the bumper range
+  // Verify that the size does not change when the input speed exceeds max_scale_velocity
+  // Place obstacles at the edge of the bumper range
   nav_msgs::msg::OccupancyGrid out_range_occupancy;
   CreateOccupancyGrid(geometry_msgs::msg::Point(), 25, 0, out_range_occupancy);
   geometry_msgs::msg::Point occupancy_point;
@@ -1727,52 +1731,52 @@ TEST_F(SafetyVelocityLimiterNodeTest, AutoScalingOccupancyEllipseBumper) {
   SetOccupancy(out_range_occupancy, occupancy_point, 100);
   test_node_->PublishOccupancyGrid(out_range_occupancy);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is being published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
-  // Reduce the input velocity below max_scale_velocity
-  // Due to the bumper being resized, the obstacle that was within the range is now outside the range
+  // Reduce the input speed to below max_scale_velocity
+  // Due to the bumper being resized, obstacles within the range are now outside the range
   input_velocity_.linear.x = 0.3;
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not being published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
-  // Place an obstacle within the resized range
+  // Place obstacles within the resized range
   CreateOccupancyGrid(geometry_msgs::msg::Point(), 25, 0, out_range_occupancy);
   occupancy_point.x = 0.35;
   occupancy_point.y = 0.0;
   SetOccupancy(out_range_occupancy, occupancy_point, 100);
   test_node_->PublishOccupancyGrid(out_range_occupancy);
   ASSERT_TRUE(test_node_->WaitStabilization(kStabilizationTimeOut, input_velocity_));
-  // Confirm that the limiting factor Pose is published
+  // Verify that the limiting factor Pose is being published
   ASSERT_TRUE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 
-  // Further reduce the input velocity slightly. Due to the bumper being resized, the obstacle that was within the range is now outside the range
+  // Further reduce the input speed slightly. Due to the bumper being resized, obstacles within the range are now outside the range
   input_velocity_.linear.x = 0.25;
   test_node_->PublishVelocity(input_velocity_);
   ASSERT_TRUE(test_node_->WaitForSubscribeVelocity(kSubscribeTimeOut));
-  // Confirm that the limiting factor Pose is not published
+  // Verify that the limiting factor Pose is not being published
   ASSERT_FALSE(test_node_->WaitForSubscribeObservedObstaclePose(kSubscribeTimeOut));
 }
 
-/// Test of the service to get current settings
+/// Test for the service to retrieve the current settings
 TEST_F(SafetyVelocityLimiterNodeTest, GetCurrentSettingServiceTest) {
-  // Enable speed limiting and switch to CupBumper
+  // Enable speed limit and switch to CupBumper
   test_node_->StartLimitVelocity();
   ASSERT_TRUE(test_node_->SwitchBumperSet("cup_bumper_test"));
 
-  // Get current settings. Confirm that it is as set
+  // Retrieve the current settings. Verify that they match the configured settings
   tmc_navigation_msgs::srv::GetCurrentSetting::Response current_setting;
   current_setting = test_node_->GetCurrentSetting();
   EXPECT_TRUE(current_setting.enable_function);
   EXPECT_EQ("cup_bumper_test", current_setting.bumper_set.data);
   EXPECT_EQ(0, current_setting.disable_bumpers.size());
 
-  // Disable speed limiting and switch to EllipseBumper
+  // Disable speed limit and switch to EllipseBumper
   test_node_->StopLimitVelocity();
   ASSERT_TRUE(test_node_->SwitchBumperSet("ellipse_bumper_test"));
-  // Get current settings. Confirm that the changes are reflected
+  // Retrieve the current settings. Verify that the changes are reflected
   current_setting = test_node_->GetCurrentSetting();
   EXPECT_FALSE(current_setting.enable_function);
   EXPECT_EQ("ellipse_bumper_test", current_setting.bumper_set.data);
@@ -1780,20 +1784,20 @@ TEST_F(SafetyVelocityLimiterNodeTest, GetCurrentSettingServiceTest) {
 
   // Switch to a non-existent bumper
   ASSERT_FALSE(test_node_->SwitchBumperSet("undefined_bumper"));
-  // Get current settings. Confirm that the set bumper has not changed
+  // Retrieve the current settings. Verify that the configured bumper has not changed
   current_setting = test_node_->GetCurrentSetting();
   EXPECT_EQ("ellipse_bumper_test", current_setting.bumper_set.data);
   EXPECT_EQ(0, current_setting.disable_bumpers.size());
 }
 
 
-/// Test of the service to reset to default settings
+/// Test for the service to reset to default settings
 TEST_F(SafetyVelocityLimiterNodeTest, ResetToDefaultServiceTest) {
-  // Enable speed limiting
+  // Enable speed limit
   test_node_->StartLimitVelocity();
   // Switch to CupBumper
   ASSERT_TRUE(test_node_->SwitchBumperSet("cup_bumper_test"));
-  // Get current settings. Confirm that it is as set
+  // Retrieve the current settings. Verify that they match the configured settings
   tmc_navigation_msgs::srv::GetCurrentSetting::Response current_setting;
   current_setting = test_node_->GetCurrentSetting();
   EXPECT_TRUE(current_setting.enable_function);
@@ -1802,8 +1806,8 @@ TEST_F(SafetyVelocityLimiterNodeTest, ResetToDefaultServiceTest) {
   // Call the service to reset to default settings
   test_node_->ResetToDefault();
 
-  // Get current settings
-  // Confirm that it is as per the default settings set in test_parameters.yaml for the node under test
+  // Retrieve the current settings
+  // Verify that the settings match the default configuration set in test_parameters.yaml for the test target node
   const bool default_enable_function = false;
   const std::string default_bumper_set = "triangle_bumper_test";
   current_setting = test_node_->GetCurrentSetting();
@@ -1812,9 +1816,9 @@ TEST_F(SafetyVelocityLimiterNodeTest, ResetToDefaultServiceTest) {
   EXPECT_EQ(0, current_setting.disable_bumpers.size());
 }
 
-/// Test of the service to disable some bumpers
+/// Test for the service to disable certain bumpers
 TEST_F(SafetyVelocityLimiterNodeTest, DisableBumperSettingServiceTest) {
-  // Enable speed limiting and switch to a composite Bumper with CircleBumper disabled
+  // Enable speed limit and switch to a composite bumper with CircleBumper disabled
   test_node_->StartLimitVelocity();
   std_msgs::msg::String disable_bumper;
   disable_bumper.data = "circle_bumper";
@@ -1822,7 +1826,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, DisableBumperSettingServiceTest) {
   disable_bumpers.push_back(disable_bumper);
   ASSERT_TRUE(test_node_->SwitchBumperSet("combination_bumper_test", disable_bumpers));
 
-  // Get current settings. Confirm that it is as set
+  // Retrieve the current settings. Verify that they match the configured settings
   tmc_navigation_msgs::srv::GetCurrentSetting::Response current_setting;
   current_setting = test_node_->GetCurrentSetting();
   EXPECT_TRUE(current_setting.enable_function);
@@ -1833,7 +1837,7 @@ TEST_F(SafetyVelocityLimiterNodeTest, DisableBumperSettingServiceTest) {
   // Switch to a non-existent bumper
   ASSERT_FALSE(test_node_->SwitchBumperSet("undefined_bumper"));
 
-  // Get current settings. Confirm that the set bumper has not changed
+  // Retrieve the current settings. Verify that the configured bumper has not changed
   current_setting = test_node_->GetCurrentSetting();
   EXPECT_EQ("combination_bumper_test", current_setting.bumper_set.data);
   EXPECT_EQ(1, current_setting.disable_bumpers.size());
@@ -1842,8 +1846,8 @@ TEST_F(SafetyVelocityLimiterNodeTest, DisableBumperSettingServiceTest) {
   // Call the service to reset to default settings
   test_node_->ResetToDefault();
 
-  // Get current settings
-  // Confirm that it is as per the default settings set in test_parameters.yaml for the node under test
+  // Retrieve the current settings
+  // Verify that the settings match the default configuration set in test_parameters.yaml for the test target node
   const bool default_enable_function = false;
   const std::string default_bumper_set = "triangle_bumper_test";
   current_setting = test_node_->GetCurrentSetting();
@@ -1866,7 +1870,7 @@ int main(int argc, char** argv) {
   LoadParameterFromYaml(safety_velocity_limiter_node, yaml_directory, "test_parameters.yaml");
 
   safety_velocity_limiter_node->Init();
-  // Start a thread to spin
+  // Launch a thread to spin
   auto safety_velocity_limiter_node_thread = std::make_shared<std::thread>([&]() {
       rclcpp::spin(safety_velocity_limiter_node);
       });

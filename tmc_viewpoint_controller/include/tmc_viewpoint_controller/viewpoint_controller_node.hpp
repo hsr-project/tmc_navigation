@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -68,10 +68,10 @@ class ViewpointControllerNode : public rclcpp::Node {
   /// Viewpoint control function On service
   void StopServiceCallback(std_srvs::srv::Empty::Request::SharedPtr req,
       std_srvs::srv::Empty::Response::SharedPtr res);
-  /// Set control mode to Path (orient viewpoint towards own path)
+  /// Set control mode to Path (orient viewpoint to own path)
   void SetViewpointModePathServiceCallback(std_srvs::srv::Empty::Request::SharedPtr req,
       std_srvs::srv::Empty::Response::SharedPtr res);
-  /// Set control mode to Tracking (orient viewpoint towards target)
+  /// Set control mode to Tracking (orient viewpoint to target)
   void SetViewpointModeTrackingServiceCallback(std_srvs::srv::Empty::Request::SharedPtr req,
       std_srvs::srv::Empty::Response::SharedPtr res);
 
@@ -98,13 +98,15 @@ class ViewpointControllerNode : public rclcpp::Node {
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr set_viewpoint_mode_tracking_service_;
   /// Current pan axis information
   double current_neck_pan_angle_;
-  /// On/Off flag for function
+  /// Current tilt axis information
+  double current_neck_tilt_angle_;
+  /// Function On/Off flag
   bool enable_view_ctrl_;
   /// Maximum rotation amount per cycle
   double max_rotation_once_;
-  /// Right turn mechanical limit
+  /// Right rotation mechanical limit
   double head_pan_min_;
-  /// Left turn mechanical limit
+  /// Left rotation mechanical limit
   double head_pan_max_;
   /// Neck pan axis name
   std::string neck_pan_name_;

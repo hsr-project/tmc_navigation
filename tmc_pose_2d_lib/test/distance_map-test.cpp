@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -35,7 +35,7 @@ namespace tmc_pose_2d_lib {
 
 
 TEST(DistanceMapTest, DispanceMapClassTest) {
-  // Bottom left is map(1,2)
+  // The bottom left is map(1,2)
   // 0     0 0
   // 0   255 0
   // 50  100 0
@@ -106,7 +106,7 @@ TEST(DistanceMapTest, DispanceMapClassTest) {
   ASSERT_TRUE(type == DistanceMap::CellType::kOutside);
 }
 
-// Test that potential can be expanded within a specified distance range from the wall
+// Test to ensure that the potential can expand within a specified distance range from the wall
 TEST(DistanceMapTest, DispanceMapInflateMapTest) {
   DistanceMap map(
     Pose2d(0.0, 0.0, 0.0),
@@ -121,7 +121,7 @@ TEST(DistanceMapTest, DispanceMapInflateMapTest) {
     0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0});
-  // Map with a wall in the center
+  // Map with a wall in the center of the map
   const int32_t wall_u = 4;
   const int32_t wall_v = 4;
   map.SetValueAt(wall_u, wall_v, 255);
@@ -134,7 +134,7 @@ TEST(DistanceMapTest, DispanceMapInflateMapTest) {
       const double distance_to_wall = sqrt(pow(map.resolution() * (wall_u - static_cast<int32_t>(u)), 2) +
                                            pow(map.resolution() * (wall_v - static_cast<int32_t>(v)), 2));
       if (distance_to_wall < inflate_width) {
-        // Within the expanded range, the potential is based on the distance from the wall
+        // Within the expanded range, the potential corresponds to the distance from the wall
         const unsigned char expect_value = 255 - static_cast<unsigned char>(254 * (distance_to_wall / inflate_width));
         ASSERT_EQ(expect_value, map.data().at(current));
       } else {
@@ -145,7 +145,7 @@ TEST(DistanceMapTest, DispanceMapInflateMapTest) {
   }
 }
 
-// When expanding potential, the grid between two walls is influenced by the closer wall
+// When expanding the potential, grids between two walls are influenced by the closer wall
 TEST(DistanceMapTest, DispanceMapInflateMapByNearestWallTest) {
   DistanceMap map(
     Pose2d(0.0, 0.0, 0.0),
@@ -160,7 +160,7 @@ TEST(DistanceMapTest, DispanceMapInflateMapByNearestWallTest) {
     0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0});
-  // Map with walls at the center and origin
+  // Map with walls at the center and the origin
   const int32_t wall1_u = 4;
   const int32_t wall1_v = 4;
   const int32_t wall2_u = 0;
@@ -178,7 +178,7 @@ TEST(DistanceMapTest, DispanceMapInflateMapByNearestWallTest) {
       const double distance_to_wall2 = sqrt(pow(map.resolution() * (wall2_u - static_cast<int32_t>(u)), 2) +
                                             pow(map.resolution() * (wall2_v - static_cast<int32_t>(v)), 2));
       if (distance_to_wall1 < inflate_width || distance_to_wall2 < inflate_width) {
-        // Potential is based on the distance from the closer wall
+        // The potential corresponds to the distance from the closer wall
         const double distance_to_wall = std::min(distance_to_wall1, distance_to_wall2);
         const unsigned char expect_value = 255 - static_cast<unsigned char>(254 * (distance_to_wall / inflate_width));
         ASSERT_EQ(expect_value, map.data().at(current));

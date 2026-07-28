@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -51,33 +51,33 @@ TriangleBumper::TriangleBumper(std::map<std::string, rclcpp::Parameter>& paramet
   UpdateParameters(parameters);
 }
 
-/// Returns the speed limit ratio based on the distance to the nearest point within range
-/// Outputs the coordinates of the point that caused the limitation if limited
+/// Returns the velocity restriction ratio based on the distance to the nearest point within the range
+/// Outputs the coordinates of the point that caused the restriction if restricted
 /// @param input_velocity [I] Input velocity
-/// @param obstacle_pose [O] Outputs the coordinates of the obstacle that caused the limitation
-/// @return Limitation ratio (0.0 to 1.0)
+/// @param obstacle_pose [O] Outputs the coordinates of the obstacle that caused the restriction
+/// @return Restriction ratio (0.0 to 1.0)
 double TriangleBumper::LimitVelocityRatio(const Twist& input_velocity,
                                           geometry_msgs::msg::PoseStamped& obstacle_pose) {
   PointCloudPtr obstacle_cloud = Obstacle::GetInstance()->ObstacleCloud();
-  double velocity_ratio = 1.0;  // Speed limit ratio
+  double velocity_ratio = 1.0;  // Velocity restriction ratio
   double distance_ratio = 1.0;  // Ratio of obstacle distance to search distance
-  // Get the minimum distance to obstacles within range
+  // Obtain the minimum distance to obstacles within the range
   if (FindNearestPoseInRange(obstacle_cloud, input_velocity, obstacle_pose, distance_ratio)) {
-    // Calculate speed ratio from the distance to the nearest point
+    // Calculate the velocity ratio based on the distance to the nearest point
     velocity_ratio = velocity_slope_->CalcRatio(distance_ratio);
   }
   return velocity_ratio;
 }
 
-/// Find the point with the shortest distance within range
+/// Find the point with the shortest distance within the range
 /// @param input_cloud [I] Point cloud
-/// @param input_velocity [I] Movement speed
+/// @param input_velocity [I] Movement velocity
 /// @param nearest_pose [O] Point with the shortest distance
 /// @param distance_ratio [O] Ratio of obstacle distance to search distance
-/// @return Whether found or not true if found, false if not found
+/// @return Whether found or not: true if found, false if not found
 bool TriangleBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, const Twist& input_velocity,
                                             geometry_msgs::msg::PoseStamped& nearest_pose, double& distance_ratio) {
-  // Determine bumper size ratio based on input speed
+  // Determine the bumper size ratio based on the input velocity
   const double bumper_scale = CalcBumperScale(input_velocity);
   if (bumper_scale < std::numeric_limits<double>::epsilon()) {
     return false;
@@ -87,7 +87,7 @@ bool TriangleBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, co
   const double obstacle_search_distance = obstacle_search_distance_ * bumper_scale;
   double min_distance_square = pow(obstacle_search_distance, 2.0);
   for (PointCloud::iterator it = input_cloud->points.begin(); it != input_cloud->points.end(); ++it) {
-    // Calculate distance from the center point
+    // Calculate the distance from the center point
     double point_distance_square = (it->x * it->x) + (it->y * it->y);
     if (point_distance_square > min_distance_square) {
       continue;
@@ -107,7 +107,7 @@ bool TriangleBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, co
   return ret;
 }
 
-/// Get ROS PRAM
+/// Retrieve ROS Parameter
 void TriangleBumper::UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters) {
   GetOptionalParam(parameters, kObstacleSearchDistance, obstacle_search_distance_,
                                  kObstacleSearchDistanceDef);

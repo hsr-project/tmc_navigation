@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -43,7 +43,7 @@ class IPathPlannerCore {
   /// @param [I] start Start coordinates (relative to static map)
   /// @param [I] goal Goal coordinates (relative to static map)
   /// @param [I] dynamic_map Dynamic map
-  /// @param [I] dynamic_map_origin Origin of the dynamic map (relative to static map)
+  /// @param [I] dynamic_map_origin Dynamic map origin (relative to static map)
   /// @param [I] enable_adaptive_start_positioning Enable/disable adaptive start positioning
   /// @param [I] preferred_path Preferred path
   /// @param [O] output_path Generated path

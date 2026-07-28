@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,7 +36,7 @@ DAMAGE.
 
 namespace tmc_base_path_follower {
 
-/// Omni-directional model velocity calculation class
+/// Class for calculating the speed of an omnidirectional model
 class OmniVelocityCalculator : public IVelocityCalculator {
  public:
   using Ptr = std::shared_ptr<OmniVelocityCalculator>;
@@ -81,8 +81,8 @@ class OmniVelocityCalculator : public IVelocityCalculator {
         velocity_margin = kVelocityMarginDefault;
         CONSOLE_BRIDGE_logWarn("Value of 'velocity_margin' is invalid. Use default value.");
         if (max_linear_velocity <= velocity_margin) {
-          // When the maximum translational velocity parameter is smaller than the velocity margin
-          // Set default values for the maximum translational velocity parameter
+          // When the maximum translational speed parameter is smaller than the speed margin
+          // Set the default value for the maximum translational speed parameter
           CONSOLE_BRIDGE_logWarn(
               "Value of 'max_linear_velocity' must greater than 'velocity_margin'. Use default value.");
           max_linear_velocity = kMaxLinearVelocityDefault;
@@ -105,7 +105,7 @@ class OmniVelocityCalculator : public IVelocityCalculator {
         goal_angle_gain = kGoalAngleGainDefault;
       }
     }
-    // Maximum velocity
+    // Maximum speed
     double max_linear_velocity;
     double max_angular_velocity;
 
@@ -115,7 +115,7 @@ class OmniVelocityCalculator : public IVelocityCalculator {
 
     // Deceleration near the goal
     double goal_deceleration;
-    // Minimum velocity near the goal
+    // Minimum speed near the goal
     double velocity_margin;
     // Distance to change the orientation of the upper body
     double path_length_threshold;
@@ -131,7 +131,7 @@ class OmniVelocityCalculator : public IVelocityCalculator {
   explicit OmniVelocityCalculator(const Parameter& param) : param_(param) {}
 
 
-  /// Velocity calculation
+  /// Speed calculation
   /// @param[I] path_info Path information
   /// @param[I] global_pose Self-position
   /// @param[I] current_path_index Index on the path
@@ -140,18 +140,18 @@ class OmniVelocityCalculator : public IVelocityCalculator {
   /// @param[I] is_arrived_goal_area Whether it has entered the goal area
   /// @param[I] transit_velocity Transit velocity
   /// @param[O] output_velocity Output velocity
-  /// @return Velocity calculation success or failure
+  /// @return Success or failure of speed calculation
   bool CalculateVelocity(const PathInfo& path_info, const Pose2d& global_pose, const uint32_t current_path_index,
                          const Vector3d& last_velocity, const double time_interval,
                          const bool is_arrived_goal_area, const std::optional<double>& transit_velocity,
                          Vector3d& output_velocity);
 
  private:
-  /// Cart velocity calculation following the path
+  /// Cart speed calculation for following the path
   Vector3d CalculateFollowPathVelocity(
       const PathInfo& path_info, const Pose2d& global_pose, const uint32_t current_path_index,
       const std::optional<double>& transit_velocity);
-  /// Cart velocity calculation approaching the goal
+  /// Cart speed calculation for approaching the goal
   Vector3d CalculateApproachGoalVelocity(
       const PathInfo& path_info, const Pose2d& global_pose);
 

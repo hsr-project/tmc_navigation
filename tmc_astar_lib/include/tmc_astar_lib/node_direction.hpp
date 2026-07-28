@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -32,26 +32,26 @@ DAMAGE.
 
 namespace tmc_astar_lib {
 
-/// Definition of direction in grid map
+/// Definition of directions in the grid map
 enum class NodeDirection {
   DIR_None = 0,  // No direction defined (starting point)
-  DIR_0,         // 0 degrees direction based on X-axis
-  DIR_45,        // 45 degrees direction based on X-axis
-  DIR_90,        // 90 degrees direction based on X-axis
-  DIR_135,       // 135 degrees direction based on X-axis
-  DIR_180,       // 180 degrees direction based on X-axis
-  DIR_225,       // 225 degrees direction based on X-axis
-  DIR_270,       // 270 degrees direction based on X-axis
-  DIR_315,       // 315 degrees direction based on X-axis
+  DIR_0,         // 0-degree direction relative to the X-axis
+  DIR_45,        // 45-degree direction relative to the X-axis
+  DIR_90,        // 90-degree direction relative to the X-axis
+  DIR_135,       // 135-degree direction relative to the X-axis
+  DIR_180,       // 180-degree direction relative to the X-axis
+  DIR_225,       // 225-degree direction relative to the X-axis
+  DIR_270,       // 270-degree direction relative to the X-axis
+  DIR_315,       // 315-degree direction relative to the X-axis
   DIR_Max
 };
 }  // namespace tmc_astar_lib
 
 namespace { // NOLINT
-/// Get X, Y offset from NodeDirection
+/// Get X and Y offsets from NodeDirection
 /// @param [I] direction Direction constant
-/// @param [O] x Offset in X direction
-/// @param [O] y Offset in Y direction
+/// @param [O] x Offset in the X direction
+/// @param [O] y Offset in the Y direction
 /// @return None
 void GetOffsetFromDirection(const tmc_astar_lib::NodeDirection direction, int32_t& x, int32_t& y) {
   const int32_t direction_table[static_cast<int32_t>(tmc_astar_lib::NodeDirection::DIR_Max)][2] = {

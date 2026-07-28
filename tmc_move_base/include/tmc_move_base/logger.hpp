@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -46,12 +46,12 @@ class Logger {
 
   /// Record logs
   /// When called, request the rosbag recording service,
-  /// Dump the nodes specified by parameters and its own parameters
+  /// Dump the parameters of the specified nodes and its own parameters
   void RecordLog();
 
  private:
-  /// Dump parameters of the specified nodes
-  /// Output to the specified output directory with the file name '(node name)_params_(timestamp string).yaml'
+  /// Dump the parameters of the specified nodes
+  /// Output to the specified output directory with the file name '(node_name)_params_(timestamp_string).yaml'
   /// If the node name starts with '/', remove it from the file name. If '/' is included in the middle, replace it with '_'
   /// @param[I] output_directory Output destination directory
   /// @param[I] timestamp Timestamp string

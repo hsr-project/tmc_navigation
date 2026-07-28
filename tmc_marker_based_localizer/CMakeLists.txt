@@ -52,9 +52,6 @@ target_link_libraries(${PROJECT_NAME}_lib
   yaml-cpp
 )
 
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 add_executable(marker_based_localizer
@@ -101,6 +98,7 @@ install(DIRECTORY config
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_index_cpp REQUIRED)
   install(DIRECTORY test/parameter
     DESTINATION share/${PROJECT_NAME}/test
   )
@@ -111,6 +109,7 @@ if(BUILD_TESTING)
     test/marker_based_localizer-test.cpp
   )
   target_link_libraries(marker_based_localizer_test ${PROJECT_NAME}_lib)
+  ament_target_dependencies(marker_based_localizer_test ament_index_cpp)
 
   ament_add_gtest(marker_based_localizer_no_joint_list_test
     test/marker_based_localizer-test_common.cpp
@@ -118,6 +117,7 @@ if(BUILD_TESTING)
     test/marker_based_localizer_no_joint_list-test.cpp
   )
   target_link_libraries(marker_based_localizer_no_joint_list_test ${PROJECT_NAME}_lib)
+  ament_target_dependencies(marker_based_localizer_no_joint_list_test ament_index_cpp)
 
 endif()
 ament_package()

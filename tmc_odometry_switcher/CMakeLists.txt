@@ -34,9 +34,6 @@ target_include_directories(${PROJECT_NAME}_lib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 add_executable(odometry_switcher
@@ -105,10 +102,11 @@ if(BUILD_TESTING)
   )
 
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_index_cpp REQUIRED)
   find_package(angles REQUIRED)
 
   ament_add_gtest(odometry_switcher-test test/odometry_switcher-test.cpp)
   target_link_libraries(odometry_switcher-test ${PROJECT_NAME}_lib)
-  ament_target_dependencies(odometry_switcher-test angles)
+  ament_target_dependencies(odometry_switcher-test ament_index_cpp angles)
 endif()
 ament_package()

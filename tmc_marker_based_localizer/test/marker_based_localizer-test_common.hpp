@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -44,7 +44,7 @@ constexpr const char* kCameraTfName = "head_l_stereo_camera_frame";
 constexpr const char* kDefaultBaseTfName = "base_footprint";
 // Response waiting time [s]
 constexpr double kNoResultTimeout = 1.0;
-// Waiting time [s] for the target node to receive data sent by the test node
+// Waiting time [s] for the evaluation target node to receive data sent by the test node
 constexpr double kReceiveWaitTime = 0.1;
 // Cycle [Hz]
 constexpr double kRate = 10.0;

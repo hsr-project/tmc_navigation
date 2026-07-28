@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -154,16 +154,16 @@ TEST_F(GridCellsPublisherTest, PublishGridCells) {
   target_node_->PublishGridCells(map, visualization_threshold);
 
   // verify
-  // GridCells are expected to be published
+  // GridCells are published
   ASSERT_TRUE(WaitUntil([&]() {
       return (test_node_->grid_cells() != nullptr);
     }, kTimeout));
-  // Is the number of Grids registered in the published GridCells as expected?
-  // Grids larger than visualization_threshold and less than kWallValue are expected to be registered
+  // Check if the number of Grids registered in the published GridCells matches the expected value
+  // Grids with values greater than visualization_threshold and less than kWallValue are expected to be registered
   const uint32_t expect_num = kWallValue - visualization_threshold - 1;
   const uint32_t grid_num = test_node_->grid_cells()->cells.size();
   EXPECT_EQ(expect_num, grid_num);
-  // Are only the locations on the map with values set larger than visualization_threshold and less than kWallValue registered?
+  // Are only the areas on the map with values greater than visualization_threshold and less than kWallValue registered?
   for (uint32_t i = 0; i < grid_num; ++i) {
     const geometry_msgs::msg::Point grid = test_node_->grid_cells()->cells[i];
     const uint32_t grid_x = static_cast<uint32_t>(grid.x / map_resolution);

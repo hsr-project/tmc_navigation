@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -77,7 +77,7 @@ void Logger::RecordLog() {
     std_srvs::Empty srv_empty;
     record_rosbag_client_.call(srv_empty);
     // Dump parameters
-    // Since rosbag and parameters are a set, if the rosbag recording service does not exist, do not dump parameters
+    // Since rosbag and parameters are a set, if the rosbag recording service does not exist, do not dump parameters either
     boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
     std::string now_as_iso = boost::posix_time::to_iso_string(now);
     DumpRosparam(output_log_directory_, now_as_iso, record_parameter_node_names_);
@@ -85,11 +85,11 @@ void Logger::RecordLog() {
 }
 
 // Dump parameters of the specified node
-// Output to the specified output directory with the file name '(node name)_params_(timestamp string).yaml'
+// Output to the specified output directory with the file name '(node_name)_params_(timestamp_string).yaml'
 // If the node name starts with '/', remove it from the file name. If '/' is included in the middle, replace it with '_'
-// @param[I] output_directory Output destination directory
+// @param[I] output_directory Output directory
 // @param[I] timestamp Timestamp string
-// @param[I] node_names Node name list
+// @param[I] node_names List of node names
 void Logger::DumpRosparam(const std::string& output_directory, const std::string& timestamp,
                           const std::vector<std::string>& node_names) {
   ros::NodeHandle nh;

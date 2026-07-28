@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file bumper_set.cpp
-/// @brief Class that manages multiple virtual bumpers
+/// @brief A class that manages multiple virtual bumpers
 #include "bumper_set.hpp"
 #include <map>
 #include <string>
@@ -62,7 +62,7 @@ BumperSet::BumperSet(std::map<std::string, rclcpp::Parameter>& parameters) {
     throw std::runtime_error("Mandatory parameter is not set:" + std::string(kBumpers));
     return;
   }
-  // Interpret the bumper definitions defined under bumpers in sequence and create instances of the corresponding virtual bumpers
+  // Interprets the bumper definitions defined under "bumpers" in sequence and creates instances of the corresponding virtual bumpers
   for (auto it = bumpers.begin(); it != bumpers.end(); ++it) {
     const size_t sbstr_index = it->first.find(".");
     if (sbstr_index == std::string::npos) {
@@ -84,7 +84,7 @@ bool BumperSet::LimitVelocity(const Twist& input_velocity,
                               geometry_msgs::msg::PoseStamped& observed_obstacle_pose, double& minimum_ratio) {
   bool ret = false;
   minimum_ratio = 1.0;
-  // Execute the registered virtual bumpers in sequence and adopt the one that returns the smallest speed limit rate
+  // Executes the registered virtual bumpers in sequence and adopts the smallest speed limit ratio returned
   for (std::map<std::string, VirtualBumper::Ptr>::iterator it = bumper_list_.begin();
        it != bumper_list_.end(); ++it) {
     if (std::find(disable_bumpers.begin(),
@@ -100,7 +100,7 @@ bool BumperSet::LimitVelocity(const Twist& input_velocity,
       }
     }
   }
-  // Multiply the input speed by a factor to determine the output speed
+  // Multiplies the input speed by a factor to determine the output speed
   output_velocity = input_velocity;
   output_velocity.linear.x = output_velocity.linear.x * minimum_ratio;
   output_velocity.linear.y = output_velocity.linear.y * minimum_ratio;
@@ -108,7 +108,7 @@ bool BumperSet::LimitVelocity(const Twist& input_velocity,
   return ret;
 }
 
-/// Create an instance of a virtual bumper
+/// Creates an instance of a virtual bumper
 VirtualBumper::Ptr BumperSet::CreateVirtualBumper(std::map<std::string, rclcpp::Parameter>& parameters) {
   std::string type_name;
   if (!GetParam(parameters, kTypeName, type_name)) {
@@ -136,7 +136,7 @@ VirtualBumper::Ptr BumperSet::CreateVirtualBumper(std::map<std::string, rclcpp::
   }
 }
 
-/// Create an instance of a speed gradient
+/// Creates an instance of a speed gradient
 VelocitySlope::Ptr BumperSet::CreateVelocitySlope(std::map<std::string, rclcpp::Parameter>& parameters) {
   std::string type_name;
   if (!GetParam(parameters, kTypeName, type_name)) {

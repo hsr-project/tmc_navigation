@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -69,7 +69,7 @@ void GetOptionalParam(const rclcpp::Node::SharedPtr& node, const std::string& pa
   }
 }
 
-// Retrieve parameter group
+// Retrieve parameter groups
 inline bool GetGroupParam(const rclcpp::Node::SharedPtr& node, const std::string& group_name,
                           std::map<std::string, rclcpp::Parameter>& group) {
   const bool has_parameters = node->get_parameters(group_name, group);

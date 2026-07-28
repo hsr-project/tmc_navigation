@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -49,15 +49,15 @@ namespace tmc_odometry_switcher {
 using OdometryList = std::map<std::string, Eigen::Affine3d, std::less<std::string>,
                      Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > >;
 /// Odometry Switching Class
-/// Ensure that the output odometry does not jump before and after switching
-/// Calculate the odometry by adding the difference from the position at the time of odometry switching
+/// Ensures that the output odometry does not jump before and after switching.
+/// Calculates odometry by adding the difference from the position at the time of odometry switching.
 class OdometrySwitcher {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   using Ptr = std::shared_ptr<OdometrySwitcher>;
   /// Constructor
-  /// @param init_odom_type [I] Type of odometry to use initially
-  /// @param odom_list [I] Odometry list
+  /// @param init_odom_type [I] The type of odometry to use initially
+  /// @param odom_list [I] List of odometries
   OdometrySwitcher(const std::string& init_odom_type, const OdometryList& odom_list)
       : source_odom_type_(init_odom_type),
         odom_list_(odom_list),
@@ -85,7 +85,7 @@ class OdometrySwitcher {
 
   // Type of source odometry to use
   std::string source_odom_type_;
-  // Odometry list
+  // List of odometries
   OdometryList odom_list_;
   // Reference transformation at the time of odometry switching
   Eigen::Affine3d base_transform_;
@@ -130,7 +130,7 @@ class OdometrySwitcherNode : public rclcpp::Node {
   void Init();
 
  private:
-  // Odometry switching service callback
+  // Callback for odometry switching service
   bool SwitchServiceCallback(
       tmc_navigation_msgs::srv::OdometrySwitch::Request::SharedPtr req,
       tmc_navigation_msgs::srv::OdometrySwitch::Response::SharedPtr res);

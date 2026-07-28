@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -35,15 +35,15 @@ DAMAGE.
 
 namespace tmc_base_path_planner {
 
-/// GridCells issuing class
+/// GridCells publishing class
 class GridCellsPublisher {
  public:
   /// Constructor
   explicit GridCellsPublisher(rclcpp::Node::SharedPtr node);
 
-  /// GridCells issuance
-  /// Issue GridCell where the occupancy rate of the map is greater than the threshold as a wall
-  /// Exclude parts of the map that were originally walls
+  /// GridCells publishing
+  /// Publish GridCells where the map occupancy rate exceeds the threshold as walls
+  /// Exclude areas of the map that are originally walls
   /// @param[I] map Map
   /// @param[I] visualization_threshold Threshold
   void PublishGridCells(const CostMapPtr& map, const unsigned char visualization_threshold);
@@ -51,7 +51,7 @@ class GridCellsPublisher {
  private:
   /// Publisher
   rclcpp::Publisher<nav_msgs::msg::GridCells>::SharedPtr pub_grid_cells_;
-  /// Get time
+  /// Time acquisition
   rclcpp::Clock::SharedPtr clock_;
 };
 }  // namespace tmc_base_path_planner

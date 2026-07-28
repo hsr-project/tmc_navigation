@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -47,11 +47,11 @@ MapMergerNode::MapMergerNode(const rclcpp::NodeOptions& options = rclcpp::NodeOp
 // Initialization
 void MapMergerNode::Init() {
   double publish_rate;
-  // Reference frame. All frames are processed after being converted to this fixed coordinate system
+  // Reference frame. All frames are converted to this fixed coordinate system before processing
   GetRequiredParam(shared_from_this(), "fixed_frame", fixed_frame_);
-  // Center frame (position) for map publication
+  // Center frame (position) for map publishing
   GetRequiredParam(shared_from_this(), "origin_frame", origin_frame_);
-  // Publication cycle [Hz]
+  // Publishing frequency [Hz]
   GetOptionalParam(shared_from_this(), "publish_rate", publish_rate, 1.0, Greater<double>(0.1));
 
   // Create map input port

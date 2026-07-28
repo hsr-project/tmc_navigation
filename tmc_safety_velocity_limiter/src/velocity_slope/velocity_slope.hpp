@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file velocity_slope.hpp
-/// @brief Base class for speed gradient
+/// @brief Base class for velocity gradient
 #ifndef TMC_SAFETY_VELOCITY_LIMITER_VELOCITY_SLOPE_HPP_
 #define TMC_SAFETY_VELOCITY_LIMITER_VELOCITY_SLOPE_HPP_
 #include <memory>
@@ -38,7 +38,7 @@ namespace tmc_safety_velocity_limiter {
 class VelocitySlope {
  public:
   typedef std::shared_ptr<VelocitySlope> Ptr;
-  /// Input the evaluated value of the obstacle distance from 0.0 to 1.0, and output the ratio to the speed
+  /// Input the value evaluating the distance to obstacles from 0.0 to 1.0, and output the ratio for velocity
   virtual double CalcRatio(const double distance_ratio) = 0;
 };
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -29,12 +29,12 @@ DAMAGE.
 
 namespace tmc_astar_lib {
 
-/// Close the node
+/// Set the node to CLOSE
 void AstarNode::Close() {
   is_closed_ = true;
 }
 
-/// Update the node's status and open it if specified
+/// Update the node's state and set it to OPEN if specified
 void AstarNode::Update(AstarNode* const parent, const int32_t total_cost, const int32_t total_step,
     const bool open, const int32_t additional_info) {
   parent_ = parent;

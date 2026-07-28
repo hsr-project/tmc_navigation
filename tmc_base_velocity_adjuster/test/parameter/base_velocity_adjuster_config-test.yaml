@@ -1,0 +1,13 @@
+base_velocity_adjuster:
+  ros__parameters:
+    base_velocity_optimizer:
+      collision_score_threshold: 0.0
+      search_direction_range: 1.57
+      avoidance_direction_offset: 0.0
+    collision_estimator:
+      collision_area_radius: 0.25
+      collision_area_increase_rate: 0.45
+      estimation_time: 1.0
+    obstacle_converter:
+      filter_leaf_size: 0.02
+      filter_area_radius: 1.5

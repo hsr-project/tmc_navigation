@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -107,7 +107,7 @@ struct MapPlotter {
   const MapOp op;
 };
 
-// Clip the line within the region using the Cohen-Sutherland algorithm
+// Use the Cohen-Sutherland algorithm to clip a line within a region
 // see https://en.wikipedia.org/wiki/Cohen-Sutherland_algorithm
 typedef int OutCode;
 const OutCode kInside = 0;  // 0000
@@ -140,20 +140,20 @@ bool Clip(T& x0, T& y0, T& x1, T& y1, T width, T height) {
   bool is_inside = false;
   while (true) {
     if (!(outcode0 | outcode1)) {
-      // If OR is 0, both endpoints are inside
+      // If OR results in 0, both endpoints are inside
       is_inside = true;
       break;
     } else if (outcode0 & outcode1) {
-      // If AND is non-zero, both endpoints are in the outside region
-      // (Both have the same region attribute of kLeft, kRight, kBottom, kTop)
+      // If AND results in non-zero, both endpoints are outside the region
+      // (Both retain the same region attributes: kLeft, kRight, kBottom, kTop)
       break;
     } else {
       T x;
       T y;
-      // Select the one outside the region
+      // Select the endpoint outside the region
       OutCode outcodeOut = outcode0 ? outcode0 : outcode1;
-      // Find the intersection with the region boundary and update
-      // Since it is guaranteed that the two endpoints are in different regions
+      // Calculate the intersection with the region boundary and update
+      // It is guaranteed that the two endpoints are always in different regions
       // No need to check for division by zero
       if (outcodeOut & kTop) {
         x = x0 + (x1 - x0) * static_cast<double>(height - y0) / (y1 - y0);

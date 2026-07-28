@@ -29,9 +29,6 @@ target_include_directories(${PROJECT_NAME}_lib
     $<INSTALL_INTERFACE:include>
 )
 
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 add_executable(velocity_switcher
@@ -87,10 +84,12 @@ if(BUILD_TESTING)
   )
 
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_index_cpp REQUIRED)
 
   ament_add_gtest(velocity_switcher-test
     test/velocity_switcher-test.cpp
     TIMEOUT 120)
   target_link_libraries(velocity_switcher-test ${PROJECT_NAME}_lib)
+  ament_target_dependencies(velocity_switcher-test ament_index_cpp)
 endif()
 ament_package()

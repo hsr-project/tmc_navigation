@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -125,7 +125,7 @@ class TestNode : public rclcpp::Node {
     tf_static_broadcaster_->sendTransform(transform_stamped);
   }
 
-  // Check if TF is convertible
+  // Check if TF is transformable
   bool TFHasTree() {
     std::vector<std::pair<std::string, std::string> > tf_pairs;
     tf_pairs.push_back(std::make_pair(kFixedFrameId, kOriginFrameId));

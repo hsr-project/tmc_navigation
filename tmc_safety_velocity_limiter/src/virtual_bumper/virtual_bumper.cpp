@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -32,14 +32,14 @@ DAMAGE.
 
 namespace {
 // ROS parameter name
-const char* kMaxScaleVelocity = "max_scale_velocity";  // Velocity at which it becomes 100% size [m/s]
-const char* kMinScaleVelocity = "min_scale_velocity";  // Velocity at which it becomes the minimum size [m/s]
+const char* kMaxScaleVelocity = "max_scale_velocity";  // Velocity at 100% size [m/s]
+const char* kMinScaleVelocity = "min_scale_velocity";  // Velocity at minimum size [m/s]
 const char* kMinScale = "min_scale";                   // Minimum size scale [-]
 const char* kAutoScaling = "auto_scaling";             // Bumper auto-correction definition enumeration
 // ROS parameter default values
-const double kMaxScaleVelocityDef = 0.4;  // Default value for velocity at which it becomes 100% size [m/s]
-const double kMinScaleVelocityDef = 0.2;  // Default value for velocity at which it becomes the minimum size [m/s]
-const double kMinScaleDef = 1.0;          // Default value for minimum size scale [-]
+const double kMaxScaleVelocityDef = 0.4;  // Default velocity at 100% size [m/s]
+const double kMinScaleVelocityDef = 0.2;  // Default velocity at minimum size [m/s]
+const double kMinScaleDef = 1.0;          // Default minimum size scale [-]
 }  // anonymous namespace
 
 namespace tmc_safety_velocity_limiter {
@@ -51,31 +51,31 @@ VirtualBumper::VirtualBumper(
   GetCommonParameters(parameters);
 }
 
-/// Determine the bumper size scale from the magnitude of the moving velocity
+/// Calculate the bumper size scale based on the magnitude of the moving velocity
 /// @param input_velocity [I] Moving velocity
 /// @return Bumper size scale
 double VirtualBumper::CalcBumperScale(const Twist& input_velocity) {
   if (min_scale_ >= 1.0) {
-    // Setting without auto_scaling. Returns unity
+    // Setting without auto_scaling. Returns unity scale
     return 1.0;
   }
   const double composite_velocity = sqrt(pow(input_velocity.linear.x, 2.0) +
                                          pow(input_velocity.linear.y, 2.0));
   if (composite_velocity < min_scale_velocity_) {
-    // Returns the minimum scale if below min_scale_velocity_
+    // Returns minimum scale if below min_scale_velocity
     return min_scale_;
   } else if (composite_velocity < max_scale_velocity_) {
-    // Returns a scale according to the moving velocity if between parameters
+    // Returns scale based on velocity if between parameters
     const double bumper_scale = min_scale_ + (1.0 - min_scale_) *
         ((composite_velocity - min_scale_velocity_) / (max_scale_velocity_ - min_scale_velocity_));
     return bumper_scale;
   } else {
-    // Returns unity if above max_scale_velocity_
+    // Returns unity scale if above max_scale_velocity
     return 1.0;
   }
 }
 
-/// Retrieve common parameters not affected by derived classes
+/// Retrieve common parameters unaffected by derived classes
 void VirtualBumper::GetCommonParameters(std::map<std::string, rclcpp::Parameter>& parameters) {
   // Read parameters below auto_scaling
   std::map<std::string, rclcpp::Parameter> auto_scaling_param;
@@ -98,7 +98,7 @@ void VirtualBumper::GetCommonParameters(std::map<std::string, rclcpp::Parameter>
       min_scale_ = kMinScaleDef;
     }
   } else {
-    // If auto_scaling is not set, the bumper size remains constant
+    // Fixed bumper size if auto_scaling is not set
     min_scale_ = 1.0;
     max_scale_velocity_ = kMaxScaleVelocityDef;
     min_scale_velocity_ = kMinScaleVelocityDef;

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -53,7 +53,7 @@ std::vector<tmc_map_merger::PointCloudFilter::Ptr> CreateFilters(
       std::map<std::string, rclcpp::Parameter> filter_param;
       GetRequiredGroupParam(point_cloud_filter_params, filter_name, filter_param);
 
-      // Since the constraint of the parser from ROS2 prevents point_cloud_filters from being applied as an array, explicitly load the processing order
+      // Since it is no longer possible to apply point_cloud_filters as an array due to parser constraints in ROS2, the processing order is explicitly loaded
       int order;
       GetOptionalParam(filter_param, "order", order, 9999, NotLess<int>(0));
 

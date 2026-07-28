@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,7 +36,7 @@ DAMAGE.
 
 namespace tmc_base_path_planner {
 
-/// PathPlannerCore object creation
+/// Create PathPlannerCore object
 IPathPlannerCore::Ptr AstarPathPlannerFactory::Create(
     const std::map<std::string, rclcpp::Parameter> params,
     const CostMapPtr& static_map, const double static_map_potential_width) {
@@ -53,7 +53,7 @@ IPathPlannerCore::Ptr AstarPathPlannerFactory::Create(
       CreatePreferredPathCostCorrectorParameter(astar_path_planner_params);
   if (preferred_path_cost_corrector_param.cost_on_preferred_path != 0 ||
       preferred_path_cost_corrector_param.cost_around_preferred_path != 0) {
-    // If the correction value is 0, no processing is needed, so the instance itself is not created
+    // If the correction value is 0, no processing is required, so the instance itself is not created
     cost_correctors.push_back(std::make_shared<PreferredPathCostCorrector>(
       preferred_path_cost_corrector_param));
   }
@@ -68,7 +68,7 @@ IPathPlannerCore::Ptr AstarPathPlannerFactory::Create(
   return planner;
 }
 
-/// LayearedCostMap parameter creation
+/// Generate LayearedCostMap parameters
 LayeredCostMap::Parameter AstarPathPlannerFactory::CreateLayeredCostMapParameter(
     const std::map<std::string, rclcpp::Parameter> params, const double static_map_potential_width) {
 
@@ -88,7 +88,7 @@ LayeredCostMap::Parameter AstarPathPlannerFactory::CreateLayeredCostMapParameter
                                    cost_unknown, single_cost, diagonal_cost);
 }
 
-/// PreferredPathCostCorrector parameter creation
+/// Generate PreferredPathCostCorrector parameters
 PreferredPathCostCorrector::Parameter AstarPathPlannerFactory::CreatePreferredPathCostCorrectorParameter(
     const std::map<std::string, rclcpp::Parameter> params) {
   int32_t cost_on_preferred_path;

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -37,7 +37,7 @@ DAMAGE.
 #include "test_utils_ros.hpp"
 
 namespace {
-// Potential width of the static map [m]
+// Potential width of static map [m]
 constexpr double kStaticMapPotentialWidth = 3.0;
 }   // anonymous namespace
 
@@ -68,8 +68,8 @@ class AstarPathPlannerFactoryTest : public ::testing::Test {
 };
 
 /// AstarPathPlannerFactoryCreate test
-/// Can be created when all parameters are specified
-/// Whether it is generated according to the specified parameters is concealed and not visible from the outside, so it is not confirmed
+/// Able to create when all parameters are specified
+/// Whether it is generated according to the specified parameters is concealed and cannot be confirmed externally
 TEST_F(AstarPathPlannerFactoryTest, CreateWithAllParameterSpecified) {
   // setup
   std::map<std::string, rclcpp::Parameter> params;
@@ -84,8 +84,8 @@ TEST_F(AstarPathPlannerFactoryTest, CreateWithAllParameterSpecified) {
 
 
 /// AstarPathPlannerFactoryCreate test
-/// Can be created even if no parameters are specified
-/// Whether it is generated according to the default values is concealed and not visible from the outside, so it is not confirmed
+/// Able to create even if no parameters are specified
+/// Whether it is generated according to default values is concealed and cannot be confirmed externally
 TEST_F(AstarPathPlannerFactoryTest, CreateWithNoParameterSpecified) {
   // setup
   std::map<std::string, rclcpp::Parameter> params;

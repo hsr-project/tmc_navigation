@@ -41,9 +41,6 @@ target_include_directories(${PROJECT_NAME}_lib
     $<INSTALL_INTERFACE:include>
 )
 
-ament_environment_hooks(
-  "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 

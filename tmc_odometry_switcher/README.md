@@ -22,59 +22,43 @@ tmc_odometry_switcher
 - 田中　和仁(kazuhito_tanaka@mail.toyota.co.jp)
 
 
-動作確認済環境
-----------------------------
-
-- ROS kinetic + Ubuntu16.04
-
 
 使用方法
 ----------------------------
 
-1. 切り替え元となる複数のオドメトリソースノードを立ち上げる。各オドメトリソースノードは odom -> base_footprintを結ぶTFを吐かないように設定しておく。
+1. 切り替え元となる複数のオドメトリソースノードを立ち上げる。各オドメトリソースノードは <odom> -> <base_footprint> を結ぶTFを吐かないように設定しておく。
 
 2. launchファイルを立ち上げる。
-   引数で入力オドメトリのリスト({入力オドメトリの種類のキー : 入力オドメトリトピック名}の辞書形式で記載)と、最初に使用するオドメトリの種類を指定する。
-   roslaunchファイルでの立ち上げ例：
-
-   ```xml
-   <launch>
-     <include file="$(find tmc_odometry_switcher)/launch/odometry_switcher.launch">
-       <arg name="topic_lists" value="{'source1': 'odom_topic_name1', 'source2': 'odom_topic_name2'}" />
-       <arg name="initial_odom" value="source1"/>
-     </include>
-   </launch>
+   ```bash
+   $ ros2 launch tmc_odometry_switcher odometry_switcher.launch.py
    ```
+
+   パラメータで入力オドメトリのリスト({入力オドメトリの種類のキー : 入力オドメトリトピック名}の辞書形式で記載)と、最初に使用するオドメトリの種類を指定する。
+   指定例は、launch/odometry_switcher.launch.py, config/odometry_switcher.yamlを参照
 
 3. サービスでオドメトリの種類を切り替える
-   "source2"キーで指定されたオドメトリに切り替える時：
+   "wheel_odom"キーで指定されたオドメトリに切り替える時：
    ```bash
-   $ rosservice call /odometry_switch "odom_type: {data: 'source2'}"
+   $ ros2 service call /odometry_switch tmc_navigation_msgs/srv/OdometrySwitch "odom_type: {data: 'wheel_odom'}"
    ```
 
+インターフェース
+--------------------
 
-### ROSインターフェース
+#### 出版するトピック (トピック名 [型] : 説明)
+- "switched_odom" [geometry_msgs/msg/Odometry] : 出力オドメトリ
 
-#### 出版するトピック
-- switched_odom [geometry_msgs/Odometry] : 出力オドメトリ
+#### 購読するトピック (トピック名 [型] : 説明)
+- "xxx_odom" [geometry_msgs/msg/Odometry] : 入力オドメトリ.任意個数のトピックをパラメータで指定できる
 
+#### 提供するサービス (サービス名 [型] : 説明)
+- "odometry_switch" [tmc_navigation_msgs/srv/OdometrySwitch] : オドメトリ切り替えサービス.request.odom_typeに選択するオドメトリの種類を指定する
 
-#### 発行するtf
-- odom -> base_footprint
-　フレーム名はパラメータで指定できる
+#### 発行する tf (<親フレーム> -> <子フレーム> : 説明)
+- <odom> -> <base_footprint> : フレーム名はパラメータで指定できる
 
-
-#### 購読するトピック
-- xxx_odom [geometry_msgs/Odometry] : 入力オドメトリ
-　任意個数のトピックをパラメータで指定できる
-
-
-#### 提供するサービス
-- odometry_switch [tmc_odometry_switcher/OdometrySwitch] : オドメトリ切り替えサービス
-　request.odom_typeに選択するオドメトリの種類を指定する
-　
-#### パラメータ
-- ~odom_topics : {入力オドメトリの種類のキー : 入力オドメトリトピック名} の任意個の組み合わせを辞書型で入力
-- ~initial_odom (string) : 最初に選択する入力オドメトリの種類のキーを指定
-- ~odom_frame (string) : 発行するオドメトリのフレーム名
-- ~odom_child_frame (string) : 発行するオドメトリの子フレーム名
+#### パラメータ (パラメータ名 [型] [単位] : 説明 (default : XX))
+- odom_topics [string : string] : {入力オドメトリの種類のキー : 入力オドメトリトピック名} の任意個の組み合わせを辞書型で入力
+- initial_odom [string] : 最初に選択する入力オドメトリの種類のキーを指定 (必須パラメータ)
+- odom_frame [string] : 発行するオドメトリのフレーム名 (default : "odom")
+- odom_child_frame [string] : 発行するオドメトリの子フレーム名 (default : "base_footprint")

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -33,12 +33,12 @@ DAMAGE.
 #include "../src/map.hpp"
 
 namespace {
-const double kEpsilon = 1e-9;  // Precision not achievable with float
+const double kEpsilon = 1e-9;  // Precision that cannot be achieved with float
 }  // anonymous namespace
 
 namespace tmc_map_merger {
 
-/// Test of GetYawFromQuaternion function
+/// Test for GetYawFromQuaternion function
 TEST(MapUtilFunctionTest, GetYawFromQuaternion) {
   geometry_msgs::msg::Quaternion q;
   // Test with 0
@@ -50,7 +50,7 @@ TEST(MapUtilFunctionTest, GetYawFromQuaternion) {
   q.x = 0.0; q.y = 0.0; q.z = 1.0; q.w = 0.0;
   EXPECT_NEAR(::GetYawFromQuaternion(q), PI, kEpsilon);
 
-  // Test to ensure it falls between -PI and PI
+  // Test that it falls between -PI and PI
   // (TODO) nishino kEplisonよりepsのほうが精度が高いので期待値の比較が微妙
   const double eps = std::numeric_limits<double>::epsilon();
   q.x = 0.0; q.y = 0.0; q.z = 1.0 - eps; q.w = eps;
@@ -59,7 +59,7 @@ TEST(MapUtilFunctionTest, GetYawFromQuaternion) {
   EXPECT_NEAR(::GetYawFromQuaternion(q), -PI + eps, kEpsilon);
 }
 
-/// Test of round function
+/// Test for round function
 TEST(MapUtilFunctionTest, round) {
   EXPECT_NEAR(-2.0, ::round(-2.4999), kEpsilon);
   EXPECT_NEAR(-3.0, ::round(-2.5), kEpsilon);
@@ -67,21 +67,21 @@ TEST(MapUtilFunctionTest, round) {
   EXPECT_NEAR(3.0, ::round(2.5), kEpsilon);
 }
 
-/// Test of SimpleMapOperator(Map/BasicAdapter)
+/// Test for SimpleMapOperator(Map/BasicAdapter)
 TEST(MapOperatorTest, SimpleMapOperator) {
   Map map;
   map.info.width = 10;
   map.info.height = 10;
   SimpleMapOperator op(map);
 
-  // Test of Reset()
+  // Test for Reset()
   // Size and contents are reset
   op.Reset();
   ASSERT_EQ(100, map.data.size());
   for (size_t i = 0; i < 100; ++i) {
     EXPECT_EQ(kUnknown, map.data[i]);
   }
-  // Change the value, reset again, and verify
+  // Modify the value, reset again, and verify
   for (size_t i = 0; i < 100; ++i) {
     map.data[i] = 10;
   }
@@ -91,35 +91,35 @@ TEST(MapOperatorTest, SimpleMapOperator) {
     EXPECT_EQ(kUnknown, map.data[i]);
   }
 
-  // Test of Get()
+  // Test for Get()
   // 3 can be retrieved
   map.data[20] = 3;
   EXPECT_EQ(3, op.Get(20));
 
-  // Test of Update()
+  // Test for Update()
   // Updated with 20
   op.Update(50, 20);
   EXPECT_EQ(20, map.data[50]);
 
-  // Test of Reset(index)
+  // Test for Reset(index)
   // Reset with kUnknown
   op.Reset(50);
   EXPECT_EQ(kUnknown, map.data[50]);
 }
 
-/// Test of Map/UpdateIfGreaterMapAdapter
+/// Test for Map/UpdateIfGreaterMapAdapter
 TEST(MapOperatorTest, UpdateIfGreaterMapAdapter) {
   Map map;
   map.info.width = 10;
   map.info.height = 10;
   MapOperator<UpdateIfGreaterMapAdapter> op(map);
-  // Test of Reset()
+  // Test for Reset()
   op.Reset();
   ASSERT_EQ(100, map.data.size());
   for (size_t i = 0; i < 100; ++i) {
     EXPECT_EQ(kUnknown, map.data[i]);
   }
-  // Change the value, reset again, and verify
+  // Modify the value, reset again, and verify
   for (size_t i = 0; i < 100; ++i) {
     map.data[i] = 10;
   }
@@ -129,11 +129,11 @@ TEST(MapOperatorTest, UpdateIfGreaterMapAdapter) {
     EXPECT_EQ(kUnknown, map.data[i]);
   }
 
-  // Test of Get()
+  // Test for Get()
   map.data[20] = 3;
   EXPECT_EQ(3, op.Get(20));
 
-  // Test of Update()
+  // Test for Update()
   op.Update(50, 20);
   EXPECT_EQ(20, map.data[50]);
   op.Update(50, 30);
@@ -141,18 +141,18 @@ TEST(MapOperatorTest, UpdateIfGreaterMapAdapter) {
   op.Update(50, 20);
   EXPECT_EQ(30, map.data[50]);  // Not updated
 
-  // Test of Reset(index)
+  // Test for Reset(index)
   op.Reset(50);
   EXPECT_EQ(kUnknown, map.data[50]);
 }
 
 struct X {
-  X() : value(1000) {}  // Reset is 1000
+  X() : value(1000) {}  // Reset value is 1000
   explicit X(int v) : value(v) {}
   int value;
 };
 
-/// Test of AnyMap/BasicAdapter
+/// Test for AnyMap/BasicAdapter
 TEST(MapOperatorTest, AnyMapBasicAdapter) {
   MapInfo info;
   info.width = 10;
@@ -160,14 +160,14 @@ TEST(MapOperatorTest, AnyMapBasicAdapter) {
   AnyMap<X> map(info);
   MapOperator<BasicAdapter<X>, AnyMap<X> > op(map);
 
-  // Test of Reset()
+  // Test for Reset()
   // Size and contents are reset
   op.Reset();
   ASSERT_EQ(100, map.data.size());
   for (size_t i = 0; i < 100; ++i) {
     EXPECT_EQ(1000, map.data[i].value);
   }
-  // Change the value, reset again, and verify
+  // Modify the value, reset again, and verify
   for (size_t i = 0; i < 100; ++i) {
     map.data[i].value = 10;
   }
@@ -177,54 +177,54 @@ TEST(MapOperatorTest, AnyMapBasicAdapter) {
     EXPECT_EQ(1000, map.data[i].value);
   }
 
-  // Test of Get()
+  // Test for Get()
   map.data[20].value = 3;
   EXPECT_EQ(3, op.Get(20).value);
 
-  // Test of Update()
+  // Test for Update()
   op.Update(50, X(7));
   EXPECT_EQ(7, map.data[50].value);
 
-  // Test of Reset(index)
+  // Test for Reset(index)
   op.Reset(50);
   EXPECT_EQ(1000, map.data[50].value);
 }
 
 struct XAdapter {
   typedef int DataType;
-  // Return data doubled
+  // Returns data multiplied by 2
   void Get(int& dst, const struct X& src) const {
     dst = src.value * 2;
   }
-  // Return data doubled as a string
+  // Returns data multiplied by 2 as a string
   void Get(std::string& dst, const struct X& src) const {
     char buf[100];
     snprintf(buf, sizeof(buf), "%d", src.value * 2);
     dst = std::string(buf);
   }
-  // Store data divided by 2
+  // Stores data divided by 2
   void Update(struct X& dst, int src) const {
     dst.value = src / 2;
   }
-  // Receive and store as a string
+  // Receives and stores as a string
   void Update(struct X& dst, const char* src) const {
     int s = atoi(src);
     dst.value = s / 2;
   }
-  // Initial value set to -10
+  // Initial value is set to -10
   void Reset(struct X& dst) const {
     dst.value = -10;
   }
 };
 
-/// Test of AnyMap/Custom Adapter
+/// Test for AnyMap/Custom Adapter
 TEST(MapOperatorTest, AnyMapMyAdapter) {
   MapInfo info;
   info.width = 10;
   info.height = 10;
   AnyMap<X> map(info);
   MapOperator<XAdapter, AnyMap<X> > op(map);
-  // Test of Reset()
+  // Test for Reset()
   op.Reset();
   // Size and contents are reset
   // Reset value is -10
@@ -232,7 +232,7 @@ TEST(MapOperatorTest, AnyMapMyAdapter) {
   for (size_t i = 0; i < 100; ++i) {
     EXPECT_EQ(-10, map.data[i].value);
   }
-  // Change the value, reset again, and verify
+  // Modify the value, reset again, and verify
   for (size_t i = 0; i < 100; ++i) {
     map.data[i].value = 10;
   }
@@ -242,23 +242,23 @@ TEST(MapOperatorTest, AnyMapMyAdapter) {
     EXPECT_EQ(-10, map.data[i].value);
   }
 
-  // Test of Get()
+  // Test for Get()
   // 30 can be retrieved as 60
   map.data[20].value = 30;
   EXPECT_EQ(60, op.Get(20));
-  // Can also be retrieved as "60" with type specification
+  // Can also be retrieved as "60" if type is specified
   EXPECT_EQ("60", op.Get<std::string>(20));
 
-  // Test of Update()
-  // When 20 is input, it is stored as 10
+  // Test for Update()
+  // Storing 20 results in 10 being stored
   op.Update(50, 20);
   EXPECT_EQ(10, map.data[50].value);
 
-  // When "40" is input, it is stored as 20
+  // Storing "40" results in 20 being stored
   op.Update(50, "40");
   EXPECT_EQ(20, map.data[50].value);
 
-  // Test of Reset(index)
+  // Test for Reset(index)
   op.Reset(50);
   EXPECT_EQ(-10, map.data[50].value);
 }

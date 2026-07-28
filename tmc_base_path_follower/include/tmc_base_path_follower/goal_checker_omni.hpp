@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,7 +36,7 @@ DAMAGE.
 
 namespace tmc_base_path_follower {
 
-/// Omnidirectional Model Goal Judgment Class
+/// Goal judgment class for omnidirectional model
 class OmniGoalChecker : public IGoalChecker {
  public:
   /// Parameters
@@ -70,9 +70,9 @@ class OmniGoalChecker : public IGoalChecker {
     double goal_area_length;
     // Distance from the goal to the goal area arrival judgment line
     double goal_line_length;
-    // Position error threshold considered as a goal
+    // Position error threshold considered as goal
     double goal_stop_error_length;
-    // Angle error threshold considered as a goal
+    // Angle error threshold considered as goal
     double goal_stop_error_angle;
   };
 
@@ -83,11 +83,11 @@ class OmniGoalChecker : public IGoalChecker {
   /// Initialization
   void Initialize() {}
 
-  /// Goal judgment execution
+  /// Execute goal judgment
   /// @param[I] path Path
   /// @param[I] global_pose Self-position
   /// @param[O] is_arrived_goal_area Goal area arrival judgment
-  /// @param[O] is_arrived_goal Goal arrival judgment. It will always be false if the goal area was not reached at the time of the previous judgment.
+  /// @param[O] is_arrived_goal Goal arrival judgment. If the goal area was not reached during the previous judgment, it will always be false.
   void CheckGoal(const PoseSeq& path, const Pose2d& global_pose, bool& is_arrived_goal_area, bool& is_arrived_goal);
 
  private:

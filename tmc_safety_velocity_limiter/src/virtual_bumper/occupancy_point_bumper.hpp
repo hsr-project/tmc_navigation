@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file occupancy_point_bumper.hpp
-/// @brief Single point reference occupancy bumper
+/// @brief Single-point reference occupancy bumper
 #ifndef TMC_SAFETY_VELOCITY_LIMITER_OCCUPANCY_POINT_BUMPER_HPP_
 #define TMC_SAFETY_VELOCITY_LIMITER_OCCUPANCY_POINT_BUMPER_HPP_
 #include <map>
@@ -37,7 +37,7 @@ DAMAGE.
 #include "virtual_bumper.hpp"
 
 namespace tmc_safety_velocity_limiter {
-/// Single point reference occupancy bumper
+/// Single-point reference occupancy bumper
 class OccupancyPointBumper : public VirtualBumper {
  public:
   typedef std::shared_ptr<OccupancyPointBumper> Ptr;

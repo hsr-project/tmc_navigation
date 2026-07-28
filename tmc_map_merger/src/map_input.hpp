@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -79,7 +79,7 @@ class MapInput {
           result.successful = false;
         }
       } else {
-        // Since params include parameter settings for other classes, do nothing in else
+        // params also include parameter settings for other classes, so do nothing in else
       }
     }
     return result;
@@ -98,7 +98,7 @@ class Subscriber : public MapInput {
              MapMerger::Ptr merger)
       : MapInput(node, input_name, merger), node_(node), converter_(converter), step_(0, 0) {
     const rclcpp::QoS qos = rclcpp::QoS(1).best_effort().durability_volatile();
-    // Manage with shared_ptr to ensure that the 'this' registered in subscriber does not change
+    // Manage with shared_ptr to ensure that the this registered in the subscriber does not change
     subscriber_ = node_->create_subscription<RosMsg>(
         topic_name, qos, std::bind(&Subscriber::Callback, this, _1));
     if (rate > 0.0) {
@@ -115,7 +115,7 @@ class Subscriber : public MapInput {
     geometry_msgs::msg::PoseStamped origin;
     origin = converter_.GetOrigin(*msg);
     if (origin.header.stamp.sec == 0 && origin.header.stamp.nanosec == 0) {
-      // Assign the current time of the node as a substitute
+      // Substitute the current time of the node as an alternative
       RCLCPP_WARN_THROTTLE(
           node_->get_logger(),
           *node_->get_clock(),
@@ -134,8 +134,8 @@ class Subscriber : public MapInput {
         converter_.Convert(new_origin.pose, *msg,
                            MapOperator<UpdateIfGreaterMapAdapter>(map));
         merger_->Merge(map);
-        // If the next publishing cycle has also passed, the next publishing time is from the current step
-        // Set the ideal time if it hasn't passed
+        // If the next publishing cycle has also passed, step_ from now is the next publishing time
+        // Set the ideal time if it has not passed
         if (rclcpp::Time(origin.header.stamp) > next_time_ + step_) {
           next_time_ = rclcpp::Time(origin.header.stamp) + step_;
         } else {

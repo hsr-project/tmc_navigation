@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -62,7 +62,7 @@ struct Rect {
   Pos<T> max;
 };
 
-/// @brief WeightStrategy that passes the input side cost as is
+/// @brief WeightStrategy that directly passes the input-side cost
 struct WeightFixed {
   int8_t Weight(const int8_t value, const Size<>& src, const Size<>& dst) {
     return value;
@@ -70,8 +70,8 @@ struct WeightFixed {
 };
 
 /// @breif Class for calculating the position and overlap of the input map relative to the output map
-// Normalize the size of the output grid to 1 to simplify calculations
-// Shift the input position so that the origin position of the output grid is (0, 0) and theta=0
+// To simplify calculations, normalize the size of the output grid to 1
+// Shift the input position so that the origin of the output grid is at (0, 0) and theta=0
 template<typename SrcMapOp, typename DstMapOp>
 struct GridMap {
   // Constructor
@@ -92,8 +92,8 @@ struct GridMap {
     // Size
     dst_size.width = dstOp.GetInfo().width;
     dst_size.height = dstOp.GetInfo().height;
-    // Boundary position of one grid of the input map (use this to limit the overlapping range of the output)
-    // Hold the minimum and maximum of each of the following four point coordinates
+    // Boundary position of one grid of the input map (used to limit the overlapping range of the output)
+    // Maintain the minimum and maximum of the following four coordinates
     // (0, 0), (cos, sin), (cos - sin, cos + sin), (-sin, cos)
     area.min.x = std::min(std::min(0.0, cos), std::min(cos - sin, -sin));
     area.max.x = std::max(std::max(0.0, cos), std::max(cos - sin, -sin));
@@ -103,13 +103,13 @@ struct GridMap {
 
   // @brief Given the grid position (x, y) of the input, return the range of overlapping grid indices on the output side
   // Saturate the output from 0 to the maximum value
-  // (If it was out of range, min=max=0 or min=max=maximum value)
+  // (If out of range, min=max=0 or min=max=maximum value)
   Rect<uint32_t> GetOverlappedRange(uint32_t src_x, uint32_t src_y) {
     Rect<uint32_t> range;
-    // Find the origin of the input grid
+    // Determine the origin of the input grid
     double x = origin.x + src_x * cos - src_y * sin;
     double y = origin.y + src_x * sin + src_y * cos;
-    // Find the overlapping output grid from the origin
+    // Determine the overlapping output grid from the origin
     range.min.x = std::min(static_cast<size_t>(std::max(0, static_cast<int>(x + area.min.x))), dst_size.width);
     range.max.x = std::min(static_cast<size_t>(std::max(0, static_cast<int>(x + area.max.x) + 1)), dst_size.width);
     range.min.y = std::min(static_cast<size_t>(std::max(0, static_cast<int>(y + area.min.y))), dst_size.height);
@@ -117,20 +117,20 @@ struct GridMap {
     return range;
   }
 
-  /// @brief Obtain the width and height that overlap when projecting the input grid onto the output grid
+  /// @brief Obtain the width and height of the overlap when projecting the input grid onto the output grid
   Size<> GetOverlappedGridSize(uint32_t src_x, uint32_t src_y, uint32_t dst_x, uint32_t dst_y) {
     Size<> size;
-    // Find the origin of the input grid
+    // Determine the origin of the input grid
     double x = origin.x + src_x * cos - src_y * sin;
     double y = origin.y + src_x * sin + src_y * cos;
-    // First, obtain the overlapping length in the x direction
+    // First, obtain the overlapping length in the x-direction
     // The input grid range is (x-min, x+max), and the output grid range is (dst_x, dst_x+1)
     // The overlapping range is (max(x-min, dst_x), min(x+max, dst_x+1))
-    // If negative, it does not overlap, so set it to 0.0
+    // If negative, there is no overlap, so set it to 0.0
     size.width = std::max(0.0,
                           std::min(x + area.max.x, static_cast<double>(dst_x + 1)) -
                           std::max(x + area.min.x, static_cast<double>(dst_x)));
-    // Same for the y direction
+    // The same applies to the y-direction
     size.height = std::max(0.0,
                           std::min(y + area.max.y, static_cast<double>(dst_y + 1)) -
                           std::max(y + area.min.y, static_cast<double>(dst_y)));
@@ -144,8 +144,8 @@ struct GridMap {
   Size<size_t> dst_size;
 };
 
-/// @brief Perform parallel movement in units of Grid of the Map
-/// No pre-check
+/// @brief Perform parallel translation of the map in grid units
+/// No pre-checks are performed
 template<typename SrcMapOp, typename DstMapOp>
 void ProjectGrid(const SrcMapOp& srcOp, const DstMapOp& dstOp) {
   int32_t diff_x = (dstOp.GetInfo().origin.position.x -
@@ -202,21 +202,21 @@ struct Copy {
   }
 };
 
-/// @brief Perform projection of the Map
-/// SrcMapOp, DstMapOp are classes that realize memory
-/// For speedup (avoid calling via function pointers)
-/// Implement polymorphism with templates
+/// @brief Perform projection of the map
+/// SrcMapOp and DstMapOp are classes that implement memory
+/// For optimization (to avoid function pointer calls)
+/// Implement polymorphism using templates
 /// Implement the following methods
-///  int8_t Get(const ros::Time& time) const         : Retrieve current memory
-///  void Update(int8_t data, const ros::Time& time) : Update memory
-///  void Reset(const ros::Time& time)               : Reset memory
+///  int8_t Get(const ros::Time& time) const         : Retrieve the current memory
+///  void Update(int8_t data, const ros::Time& time) : Update the memory
+///  void Reset(const ros::Time& time)               : Reset the memory
 
 template<typename SrcMapOp, typename DstMapOp, typename WeightStrategy>
 void Project(const SrcMapOp& srcOp, const DstMapOp& dstOp,
              const WeightStrategy& weight_strategy) {
   // resolution matches
   if (srcOp.GetInfo().resolution == dstOp.GetInfo().resolution) {
-    // and x, y offset is an integer multiple of resolution
+    // and x, y offsets are integer multiples of the resolution
     double ix = std::fabs(srcOp.GetInfo().origin.position.x - dstOp.GetInfo().origin.position.x) /
         srcOp.GetInfo().resolution;
     double iy = std::fabs(srcOp.GetInfo().origin.position.y - dstOp.GetInfo().origin.position.y) /
@@ -225,9 +225,9 @@ void Project(const SrcMapOp& srcOp, const DstMapOp& dstOp,
         (std::fabs(std::floor(iy + 0.5) - iy) < kEpsilon)) {
       double src_theta = GetYawFromQuaternion(srcOp.GetInfo().origin.orientation);
       double dst_theta = GetYawFromQuaternion(dstOp.GetInfo().origin.orientation);
-      // and direction is the same
+      // and the direction is the same
       if (std::fabs(src_theta - dst_theta) < kEpsilon) {
-        // Perform projection in units of Grid
+        // Perform projection in grid units
         ProjectGrid(srcOp, dstOp);
         return;
       }
@@ -235,7 +235,7 @@ void Project(const SrcMapOp& srcOp, const DstMapOp& dstOp,
   }
   GridMap<SrcMapOp, DstMapOp> src_grid(srcOp, dstOp);
   GridMap<DstMapOp, SrcMapOp> dst_grid(dstOp, srcOp);
-  // Output side loop (scan all)
+  // Loop on the output side (scan all)
   size_t dst_index = 0;
   Pos<size_t> dst_pos;
   for (dst_pos.y = 0;
@@ -244,7 +244,7 @@ void Project(const SrcMapOp& srcOp, const DstMapOp& dstOp,
     for (dst_pos.x = 0;
          dst_pos.x < dstOp.GetInfo().width;
          ++dst_pos.x) {
-      // Obtain the range of overlapping indices in the input grid
+      // Get the range of overlapping indices in the input grid
       Rect<uint32_t> range = dst_grid.GetOverlappedRange(dst_pos.x, dst_pos.y);
       Pos<size_t> src_pos;
       if (range.min.x != range.max.x && range.min.y != range.max.y) {
@@ -255,13 +255,13 @@ void Project(const SrcMapOp& srcOp, const DstMapOp& dstOp,
                src_pos.x < range.max.x;
                ++src_pos.x) {
             // Check if grids overlap
-            // Project onto each other's edge direction and determine overlap if all overlap
-            // Algorithm is below
+            // Project onto each other's edge directions and determine overlap if all overlap
+            // Algorithm is as follows
             // https://www.codeproject.com/Articles/15573/2D-Polygon-Collision-Detection
 
-            // Overlap of output side relative to input
+            // Overlap of the output side relative to the input
             Size<> dst_overlapped = dst_grid.GetOverlappedGridSize(dst_pos.x, dst_pos.y, src_pos.x, src_pos.y);
-            // Overlap of input side relative to output
+            // Overlap of the input side relative to the output
             Size<> src_overlapped = src_grid.GetOverlappedGridSize(src_pos.x, src_pos.y, dst_pos.x, dst_pos.y);
             if (src_overlapped.width > 0.0 &&
                 src_overlapped.height > 0.0 &&

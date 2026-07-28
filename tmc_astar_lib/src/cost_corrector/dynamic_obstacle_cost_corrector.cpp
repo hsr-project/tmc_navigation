@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -39,7 +39,7 @@ void DynamicObstacleCostCorrector::Setup(const SetupParams& params) {}
 int32_t DynamicObstacleCostCorrector::GetAdditionalCost(const GetAdditionalCostParams& params) {
   if (params.dynamic_cost > params.static_cost) {
     if (params.occupancy_threshold <= params.dynamic_cost) {
-      // Since dynamic_cost*1 is accounted for in the base processing, only the difference is returned
+      // Since dynamic_cost*1 is accounted for in the base process, only the difference is returned
       return static_cast<int32_t>((kObstacleCostFactor - 1.0) * params.dynamic_cost);
     }
   }

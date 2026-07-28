@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -34,15 +34,15 @@ DAMAGE.
 #include <tmc_astar_lib/layered_cost_map.hpp>
 
 namespace tmc_astar_lib {
-// Edge size of static map
+// Edge size of the static map
 constexpr int32_t kStaticMapSize = 100;
 // Parameters
 const PreferredPathCostCorrector::Parameter kCorrectorParam(-20, -10);
 // Path length used for testing
 constexpr int32_t kTestPathLength = 10;
-// Fixed index of straight path (Y coordinate for horizontal path, X coordinate for vertical path)
+// Fixed index of the straight path (Y-coordinate for horizontal paths, X-coordinate for vertical paths)
 constexpr int32_t kPathFixedIndex = 50;
-/// Threshold considered as a wall when taking potential into account
+/// Threshold to consider as a wall when taking potential into account
 const int32_t kOccupancyThreshold = static_cast<int32_t>(
     (1.0 - kExclusiveSizeDefault / kWallThresholdDefault) * kWallValue);
 
@@ -58,7 +58,7 @@ TEST(PreferredPathCostCorrectorParameterTest, ConstructParameter) {
 }
 
 /// Parameter test
-/// If invalid values are specified, they are generated with default values (absolute value is invalid)
+/// When invalid values are specified, default values are generated (absolute values are invalid)
 TEST(PreferredPathCostCorrectorParameterTest, ConstructWithInvalidParameter) {
   // exercise
   const PreferredPathCostCorrector::Parameter param = PreferredPathCostCorrector::Parameter(10, 20);
@@ -69,7 +69,7 @@ TEST(PreferredPathCostCorrectorParameterTest, ConstructWithInvalidParameter) {
 }
 
 /// Parameter test
-/// If invalid values are specified, they are generated with default values (interrelationship between two parameters is invalid)
+/// When invalid values are specified, default values are generated (mutual relationship between two parameters is invalid)
 TEST(PreferredPathCostCorrectorParameterTest, ConstructWithRelativeInvalidParameter) {
   // exercise
   const PreferredPathCostCorrector::Parameter param = PreferredPathCostCorrector::Parameter(-10, -20);
@@ -87,8 +87,8 @@ class PreferredPathCostCorrectorTest : public ::testing::Test {
 
  protected:
   virtual void SetUp() {
-    // This CostCorrector depends on the size of the static map and preferred_path
-    // Only generation is performed here to set preferred_path for each test
+    // This CostCorrector depends on the size of the static map and the preferred_path
+    // Only generation is performed here as preferred_path is set for each test
     corrector_ = std::make_shared<PreferredPathCostCorrector>(
         PreferredPathCostCorrector(kCorrectorParam));
   }
@@ -97,7 +97,7 @@ class PreferredPathCostCorrectorTest : public ::testing::Test {
 };
 
 /// PreferredPathCostCorrector test
-/// Input a horizontal path and ensure correction values are set on the path and on the grids above and below
+/// Input a horizontal path and verify that correction values are set on the path and on the grids above and below it
 TEST_F(PreferredPathCostCorrectorTest, HorizontalPath) {
   // setup
   std::vector<MapIndex> preferred_path_indexes;
@@ -109,7 +109,7 @@ TEST_F(PreferredPathCostCorrectorTest, HorizontalPath) {
 
   // exercise & verify
   for (int32_t i = 0; i < kTestPathLength; ++i) {
-    // On the path, corrected by cost_on_preferred_path
+    // On the path, correction is applied by cost_on_preferred_path
     const ICostCorrector::GetAdditionalCostParams param_on(
         nullptr, MapIndex(i, kPathFixedIndex), 0, 0, 0, kOccupancyThreshold);
     EXPECT_EQ(kCorrectorParam.cost_on_preferred_path, corrector_->GetAdditionalCost(param_on));
@@ -133,7 +133,7 @@ TEST_F(PreferredPathCostCorrectorTest, HorizontalPath) {
 }
 
 /// PreferredPathCostCorrector test
-/// Input a vertical path and ensure correction values are set on the path and on the grids to the left and right
+/// Input a vertical path and verify that correction values are set on the path and on the grids to the left and right of it
 TEST_F(PreferredPathCostCorrectorTest, VerticalPath) {
   // setup
   std::vector<MapIndex> preferred_path_indexes;
@@ -145,7 +145,7 @@ TEST_F(PreferredPathCostCorrectorTest, VerticalPath) {
 
   // exercise & verify
   for (int32_t i = 0; i < kTestPathLength; ++i) {
-    // On the path, corrected by cost_on_preferred_path
+    // On the path, correction is applied by cost_on_preferred_path
     const ICostCorrector::GetAdditionalCostParams param_on(
         nullptr, MapIndex(kPathFixedIndex, i), 0, 0, 0, kOccupancyThreshold);
     EXPECT_EQ(kCorrectorParam.cost_on_preferred_path, corrector_->GetAdditionalCost(param_on));
@@ -169,7 +169,7 @@ TEST_F(PreferredPathCostCorrectorTest, VerticalPath) {
 }
 
 /// PreferredPathCostCorrector test
-/// Input a 45° path and ensure correction values are set on the path and on the grids above, below, left, and right
+/// Input a 45° path and verify that correction values are set on the path and on the grids above, below, left, and right of it
 TEST_F(PreferredPathCostCorrectorTest, DiagonalPath) {
   // setup
   std::vector<MapIndex> preferred_path_indexes;
@@ -181,7 +181,7 @@ TEST_F(PreferredPathCostCorrectorTest, DiagonalPath) {
 
   // exercise & verify
   for (int32_t i = 1; i < kTestPathLength; ++i) {
-    // On the path, corrected by cost_on_preferred_path
+    // On the path, correction is applied by cost_on_preferred_path
     const ICostCorrector::GetAdditionalCostParams param_on(
         nullptr, MapIndex(i, i), 0, 0, 0, kOccupancyThreshold);
     EXPECT_EQ(kCorrectorParam.cost_on_preferred_path, corrector_->GetAdditionalCost(param_on));

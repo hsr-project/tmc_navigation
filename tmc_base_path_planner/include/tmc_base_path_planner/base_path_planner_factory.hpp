@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -44,15 +44,15 @@ namespace tmc_base_path_planner {
 
 class BasePathPlannerFactory {
  public:
-  /// BasePathPlanner object creation
+  /// Create BasePathPlanner object
   template <typename T>  // rclcpp::Node::SharedPtr or rclcpp_lifecycle::LifecycleNode::SharedPtr
   static BasePathPlanner::Ptr Create(const T& node,
                                      const CostMapPtr& static_map, const double static_map_potential_width);
 
  private:
-  /// MapFilter parameter creation
+  /// Create MapFilter parameters
   static MapFilter::Parameter CreateMapFilterParameter(const std::map<std::string, rclcpp::Parameter> params);
-  /// PathUpdater parameter creation
+  /// Create PathUpdater parameters
   static PathUpdater::Parameter CreatePathUpdaterParameter(const std::map<std::string, rclcpp::Parameter> params);
 };
 }  // namespace tmc_base_path_planner

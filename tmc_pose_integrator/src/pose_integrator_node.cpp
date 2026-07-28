@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -42,11 +42,11 @@ DAMAGE.
 
 /// Anonymous namespace (pose_integrator)
 namespace {
-/// Default operation cycle (sec): Same as the publish cycle of global_pose
+/// Default operation cycle (sec): Same as the global_pose publishing cycle
 double const kDefaultCycleTime = 0.005;
 /// default cycletime of tf broadcast(sec)
 double const kDefaultTfCycleTime = 1.0/30.0;
-/// Buffer size of the topic
+/// Topic buffer size
 uint32_t const kTopicBufferSize = 10;
 /// Node name
 const char* const kNodeName = "pose_integrator";
@@ -63,23 +63,23 @@ const char* const kOdometryTopicName = "odometry";
 const char* const kLaserPoseTopicName = "laser_2d_pose";
 /// Parameter name (cycle)
 const char* const kParameterNameCycleTime = "cycle_time";
-/// Parameter name (tf broadcast cycletime)
+/// Parameter name (tf broadcast cycle time)
 const char* const kParameterNameTfCycleTime = "tf_cycle_time";
 /// Parameter name (convergence time)
 const char* const kParameterNameConvergenceTime = "convergence_time";
 /// Parameter name (rear URG)
 const char* const kParameterNameInvertedUrg = "inverted_urg";
-/// Parameter name (tf name of the cart)
+/// Parameter name (cart's tf name)
 const char* const kParameterNameRobotTfName = "robot_tf_name";
 /// Parameter name for translational speed considered as the cart being stopped
 const char* const kParameterNameStopTranslationalVel = "stop_translational_vel_threshold";
-/// Parameter name for rotational speed considered as the cart being stopped
+/// Parameter name for in-place rotational speed considered as the cart being stopped
 const char* const kParameterNameStopRotationalVel = "stop_rotational_vel_threshold";
 /// Default value of translational speed considered as the cart being stopped [m/s]
 double const kDefalutStopTranslationalVel = 0.001;
-/// Default value of rotational speed considered as the cart being stopped [rad/s]
+/// Default value of in-place rotational speed considered as the cart being stopped [rad/s]
 double const kDefalutStopRotationalVel = 0.001;
-/// Cycle [ms] for issuing a warning when TF cannot be read
+/// Warning cycle [ms] when TF cannot be read
 int32_t const kWarnLogIndicatePeriod = 10000;
 
 // Retrieve required parameters
@@ -144,7 +144,7 @@ void PoseIntegratorNode::Init() {
     cycle_time = kDefaultCycleTime;
   }
 
-  // Set the cycle for the self-positioning integration object.
+  // Set the cycle for the self-position integration object.
   pose_integrator_->set_cycle_time(cycle_time);
   rate_ = std::make_shared<rclcpp::Rate>(1.0 / cycle_time);
 
@@ -176,21 +176,21 @@ void PoseIntegratorNode::Init() {
     msg += kParameterNameInvertedUrg;
     throw std::runtime_error(msg);
   }
-  // Threshold for stop judgment (translational speed)
+  // Threshold for determining stop (translational speed)
   double value;
   GetOptionalParam(shared_from_this(), kParameterNameStopTranslationalVel, value, kDefalutStopTranslationalVel);
   pose_integrator_->set_stop_translational_vel(value);
-  // Threshold for stop judgment (rotational speed)
+  // Threshold for determining stop (in-place rotational speed)
   GetOptionalParam(shared_from_this(), kParameterNameStopRotationalVel, value, kDefalutStopRotationalVel);
   pose_integrator_->set_stop_rotational_vel(value);
 
   GetOptionalParam(shared_from_this(), "odom_tf_name", odom_frame_id_, std::string(kDefaultOdomFrameId));
   GetOptionalParam(shared_from_this(), "base_tf_name", base_frame_id_, std::string(kDefaultBaseFrameId));
 
-  // Subscriber setting: Self-positioning estimation using 2D laser data
+  // Subscriber setup: Self-position estimation using 2D laser data
   subscribe_laser2d_pose_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
       kLaserPoseTopicName, kTopicBufferSize, std::bind(&PoseIntegratorNode::CallbackLaser2dPose_, this, _1));
-  // Publisher setting: Self-positioning estimation
+  // Publisher setup: Self-position estimation
   global_pose_publisher_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
       kGlobalPoseTopicName, kTopicBufferSize);
   // initialize timer for tf broadcast
@@ -198,25 +198,25 @@ void PoseIntegratorNode::Init() {
       std::bind(&PoseIntegratorNode::CallbackTfBroadcast_, this));
 }
 
-/// Since the object is generated on the stack, memory is not specifically released.
+/// Since the object is created on the stack, memory is not explicitly released.
 PoseIntegratorNode::~PoseIntegratorNode() {
   pose_integrator_.reset();
 }
 
-/// @param[in] laser_2d_msg 2D LRF self-positioning message
+/// @param[in] laser_2d_msg 2D LRF self-position message
 void PoseIntegratorNode::CallbackLaser2dPose_(
     const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr laser_2d_msg) {
 
-  // Initialize the variable for checking time update only for the first time
+  // Initialize a variable for checking time updates only on the first run
   if (is_first_laser_2d_pose_) {
     pre_laser_2d_pose_time_ = rclcpp::Time(laser_2d_msg->header.stamp).seconds();
     is_first_laser_2d_pose_ = false;
     return;
   }
 
-  // Confirm that the timestamp of self-positioning is updated
-  // Because pose_integrator_ is not operating,
-  // If not updated, issue a warning and discard the data
+  // Confirm that the timestamp of the self-position is updated
+  // Since pose_integrator_ is not operating,
+  // Discard data with a warning if it has not been updated
   if (!(fabs(pre_laser_2d_pose_time_ - rclcpp::Time(laser_2d_msg->header.stamp).seconds()) >
       std::numeric_limits<double>::epsilon())) {
     auto clock = rclcpp::Clock(RCL_ROS_TIME);
@@ -237,7 +237,7 @@ void PoseIntegratorNode::CallbackLaser2dPose_(
   // Retrieve global_pose from tf that matches the timestamp of laser_2d_pose
   tf2::Stamped<tf2::Transform> map_to_odom;
   Pose2d odom_synchronized_with_localizer;
-  // Check if global_pose is being issued && if the cart is moving
+  // Check if global_pose is being published && if the cart is moving
   if (rclcpp::Time(laser_2d_msg->header.stamp).seconds() < latest_global_pose_tf_stamp_ &&
       pose_integrator_->IsBaseMoving()) {
     try {
@@ -260,14 +260,14 @@ void PoseIntegratorNode::CallbackLaser2dPose_(
     odom_synchronized_with_localizer.theta = tf2::getYaw(map_to_odom.getRotation());
 
   } else {
-    // Global_pose synchronized with the timestamp of laser_2d_pose has not been issued yet
-    // Or do not synchronize with the time of laser_2d_pose when the cart is stopped
+    // If a global_pose synchronized with the timestamp of laser_2d_pose has not yet been published
+    // Or if the cart is stopped, do not synchronize with the timestamp of laser_2d_pose
     // Use the latest global_pose
     odom_synchronized_with_localizer.x = global_pose_.x;
     odom_synchronized_with_localizer.y = global_pose_.y;
     odom_synchronized_with_localizer.theta = global_pose_.theta;
   }
-  // Set synchronized odometry
+  // Set the synchronized odometry
   pose_integrator_->set_synchronized_odometry(odom_synchronized_with_localizer);
 }
 
@@ -326,7 +326,7 @@ void PoseIntegratorNode::UpdateGlobalPose() {
   // Retrieve odom from tf
   GetOdometryFromTf();
 
-  // Do nothing until the odometry value is first received
+  // Do nothing until the first odometry value is received
   if (pose_integrator_->is_first_odometry_received()) {
     // Use time-synchronized odometry
     SendGlobalPose_(pose_integrator_->CorrectOdometryWithConvergenceAndSynchronization());
@@ -339,7 +339,7 @@ void PoseIntegratorNode::UpdateGlobalPose() {
   }
 }
 
-/// Publish the self-positioning integration result to the topic & update the tf frame
+/// Publish the self-position integration result as a topic & update the tf frame
 /// @param[in] pose Robot self-position
 void PoseIntegratorNode::SendGlobalPose_(const Pose2d& pose) {
   geometry_msgs::msg::PoseStamped pose_stamped;
@@ -350,7 +350,7 @@ void PoseIntegratorNode::SendGlobalPose_(const Pose2d& pose) {
 
   global_pose_ = pose;
 
-  // When using URG for map generation, the orientation of the robot is reversed
+  // When using URG for map generation, reverse the orientation of the robot
   double send_pose = 0.0;
   if (is_inverted_urg_) {
     send_pose = pose.theta + M_PI;

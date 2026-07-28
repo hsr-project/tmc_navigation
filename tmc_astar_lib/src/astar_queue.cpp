@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -41,7 +41,7 @@ void AstarQueue::Initialize(const int32_t max_cost) {
   min_cost_in_queue_ = std::numeric_limits<int32_t>::max();
 }
 
-/// Insert node into queue
+/// Insert node into the queue
 void AstarQueue::Push(AstarNode* const node) {
   const int32_t queue_index = node->total_cost();
   // Remove if the node is already queued
@@ -68,7 +68,7 @@ void AstarQueue::Push(AstarNode* const node) {
     head->set_prev(node);
   }
   priority_list_[queue_index] = node;
-  // Check for update of the minimum cost in the queue
+  // Check for updates to the minimum cost in the queue
   if (min_cost_in_queue_ > queue_index) {
     min_cost_in_queue_ = queue_index;
   }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -29,6 +29,8 @@ DAMAGE.
 #define TMC_ASTAR_LIB_LAYERED_COST_MAP_HPP_
 #include <climits>
 #include <stdint.h>
+
+#include <array>
 #include <limits>
 #include <memory>
 #include <vector>
@@ -40,7 +42,7 @@ DAMAGE.
 #include "node_direction.hpp"
 
 namespace { // NOLINT
-/// Parameter default value
+/// Default parameter values
 constexpr double kExclusiveSizeDefault = 0.2;
 constexpr double kPotentialSizeDefault = 0.07;
 constexpr double kWallThresholdDefault = 3.0;
@@ -59,9 +61,9 @@ struct SearchDirectionInfo {
   int32_t cost;
 };
 
-/// Overlay static map and dynamic map, and refer to both in the same coordinate system (static map's coordinate system)
+/// Overlay the static map and dynamic map, and reference both in the same coordinate system (the static map's coordinate system)
 /// The search logic performs exploration by repeatedly calling GetNextNodes provided by this class
-/// The load of GetNextNodes and related processes greatly affects the overall speed of exploration
+/// The load of GetNextNodes and related processes significantly affects the overall search speed
 /// When making changes to this class, consider the impact on processing load
 class LayeredCostMap : public IMap {
  public:
@@ -114,35 +116,35 @@ class LayeredCostMap : public IMap {
     double exclusive_size;
     // Potential area size [m]
     double potential_size;
-    // Distance affected by the wall [m]
+    // Distance influenced by walls [m]
     double wall_threshold;
-    // Cost value indicating unknown area
+    // Cost value representing unknown areas
     int32_t cost_unknown;
     // Cost estimation coefficient
     double cost_factor;
     // Movement cost between adjacent grids
     int32_t single_cost;
-    // Movement cost for diagonal direction grids
+    // Movement cost for diagonal grids
     int32_t diagonal_cost;
   };
   /// Constructor
   explicit LayeredCostMap(const Parameter& param, const CostMapPtr& static_map);
   /// Initialization
   void Initialize(const CostMapPtr& static_map);
-  /// Obtain adjacent nodes that can be moved to from the specified node
+  /// Retrieve adjacent nodes that can be moved to from the specified node
   void GetNextNodes(AstarQueue::Ptr& queue, IAstarNodeManager::Ptr& node_manager, AstarNode* const current_node,
                     const int32_t max_cost) const;
   /// Get index from coordinates
   void PoseToIndex(const Pose2d& pose, MapIndex& index) const;
-  /// Get index within range from coordinates and range
+  /// Get indices within a range from coordinates and range
   void PoseToIndexes(const Pose2d& pose, const double range, std::vector<MapIndex>& indexes) const;
   /// Get coordinates from index
   void IndexToPose(const MapIndex& index, Pose2d& pose) const;
-  /// Is the specified index passable?
+  /// Check if the specified index is passable
   bool IsPassable(const MapIndex& index) const;
   /// Maximum cost estimation
   int32_t EstimateMaxCost(const Pose2d& start, const Pose2d& goal) const;
-  /// Dynamic map setting
+  /// Set dynamic map
   void SetDynamicMap(const CostMapPtr& dynamic_map, const Pose2d& dyamic_map_origin);
   /// Check if the specified grid coordinates are within the range of the static map
   bool IsOnMap(const MapIndex& index) const;
@@ -157,9 +159,9 @@ class LayeredCostMap : public IMap {
   uint8_t static_map_occupancy_threshold() const { return static_map_occupancy_threshold_; }
 
  private:
-  /// Get static cost of specified grid coordinates
+  /// Get static cost for the specified grid coordinates
   int32_t GetStaticMapCost(const MapIndex& index) const;
-  /// Get dynamic cost of specified grid coordinates
+  /// Get dynamic cost for the specified grid coordinates
   int32_t GetDynamicMapCost(const MapIndex& index) const;
   // Generate cost conversion table considering potential
   void CreatePotentialCostTable();
@@ -167,7 +169,7 @@ class LayeredCostMap : public IMap {
   void CreateSearchDirInfo();
   // Calculate the coverage range of the dynamic map at the grid coordinates of the static map
   void CalcDynamicMapRange(const Pose2d& origin, const int32_t width, const int32_t height);
-  /// Convert to cost value considering potential
+  /// Convert to cost values considering potential
   int32_t ApplyPotentialSlope(const int32_t cost_value) const;
 
   // Search direction table
@@ -176,7 +178,7 @@ class LayeredCostMap : public IMap {
   CostMapPtr dynamic_map_;
   // Inverse transformation of the relative origin of the dynamic map based on the static map origin
   Pose2d dynamic_map_origin_inverse_;
-  // Threshold for forbidden area of static map
+  // Threshold for forbidden areas in the static map
   uint8_t static_map_occupancy_threshold_;
   // Cost conversion table considering potential
   std::array<uint8_t, UCHAR_MAX + 1> potential_table_;

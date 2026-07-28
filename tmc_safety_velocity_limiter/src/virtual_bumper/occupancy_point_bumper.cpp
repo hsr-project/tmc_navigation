@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -46,7 +46,7 @@ OccupancyPointBumper::OccupancyPointBumper(
     VirtualBumper(parameters, velocity_slope) {}
 
 /// Returns the speed limit multiplier based on the occupancy value of the grid closest to the self-position
-/// Outputs the self-position as the coordinates that caused the restriction
+/// Outputs the self-position as the coordinate that caused the restriction
 /// @param input_velocity [I] Input velocity
 /// @param obstacle_pose [O] Obstacle coordinates. Always outputs the origin
 /// @return Speed limit multiplier (0.0 to 1.0)

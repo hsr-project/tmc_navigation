@@ -2,6 +2,11 @@
 Changelog for package tmc_odometry_switcher
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.0 (2026-06-29)
+-------------------
+* Migration to ROS2 jazzy
+* Contributors: Kazuki Shibamiya, Hozumi Inoue, Katsushi Fukuoka, Yoshimi Iyoda
+
 2.1.0 (2025-12-04)
 -------------------
 * Except unstable tests.

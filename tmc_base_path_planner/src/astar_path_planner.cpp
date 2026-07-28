@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -66,7 +66,7 @@ bool AstarPathPlanner::PlanPath(
   map_->PoseToIndex(adjusted_start, adjusted_start_index);
   map_->PoseToIndex(goal, goal_index);
 
-  // If start and goal are in the same grid, return the two points as is
+  // If the start and goal are in the same grid, return the two points as is
   if (adjusted_start_index == goal_index) {
     output_path.clear();
     output_path.push_back(adjusted_start);
@@ -74,7 +74,7 @@ bool AstarPathPlanner::PlanPath(
     return true;
   }
 
-  // Maximum cost estimation
+  // Estimate maximum cost
   const int32_t max_cost = map_->EstimateMaxCost(adjusted_start, goal);
 
   std::vector<MapIndex> preferred_path_indexes;

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -56,19 +56,19 @@ constexpr const char* const kTopicNamePubLocalizationScore = "laser_2d_localizer
 constexpr double kParticleNum = 200;
 /// Effective particle ratio. Resampling trigger threshold
 constexpr double kEffectiveParticleRatio = 0.5;
-/// Standard deviation of odometry error caused by xy movement affecting yx movement
+/// Standard deviation of odometry error caused by xy movement on yx movement
 constexpr double kStandardDeviationXyToYx = 0.1;
-/// Standard deviation of odometry error caused by xy movement affecting xy movement
+/// Standard deviation of odometry error caused by xy movement on xy movement
 constexpr double kStandardDeviationXyToXy = 0.1;
-/// Standard deviation of odometry error caused by xy movement affecting angular movement
+/// Standard deviation of odometry error caused by xy movement on angular movement
 constexpr double kStandardDeviationXyToTheta = 0.01;
-/// Standard deviation of odometry error caused by angular movement affecting xy movement
+/// Standard deviation of odometry error caused by angular movement on xy movement
 constexpr double kStandardDeviationThetaToXy = 1.0;
-/// Standard deviation of odometry error caused by angular movement affecting angular movement
+/// Standard deviation of odometry error caused by angular movement on angular movement
 constexpr double kStandardDeviationThetaToTheta = 0.1;
-/// Standard deviation of xy error in particle dispersion during self-position reset
+/// Standard deviation of xy error for particle dispersion during self-position reset
 constexpr double kStandardDeviationInitXY = 0.0;
-/// Standard deviation of angular error in particle dispersion during self-position reset
+/// Standard deviation of angular error for particle dispersion during self-position reset
 constexpr double kStandardDeviationInitTheta = 0.0;
 /// (m) Initial position
 constexpr double kInitX = 0.0;
@@ -92,7 +92,7 @@ constexpr const char* const kDefaultBaseTfName = "base_footprint";
 constexpr const char* const kDefaultRobotTfName = "base_link";
 /// Odometry movement limit distance [m]
 constexpr double kDefaultMaxOdomDistanceThreshold = 0.5;
-/// Odometry turning limit amount [rad]
+/// Odometry turning limit [rad]
 constexpr double kDefaultMaxOdomAngleThreshold = 45.0 * M_PI / 180;
 /// Warning cycle [ms] when TF cannot be read
 constexpr int32_t kWarnLogPublishPeriod = 10000;
@@ -147,7 +147,7 @@ void Laser2dLocalizerNode::Init() {
   GetOptionalParam(shared_from_this(), "max_odom_angle_threshold", max_odom_angle_threshold_,
                    kDefaultMaxOdomAngleThreshold);
 
-  // Retrieve parameters and set to object
+  // Retrieve parameters and set them to the object
   SetParams();
 
   // Set publisher
@@ -163,10 +163,10 @@ void Laser2dLocalizerNode::Init() {
 Laser2dLocalizerNode::~Laser2dLocalizerNode() {}
 
 void Laser2dLocalizerNode::InitializePublishers() {
-  // Self-position estimation result (also publishes initial position, so latch is turned ON)
+  // Self-position estimation result (also publishes initial position, so latch is ON)
   laser_2d_pose_publisher_ =
       this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
-      kTopicNamePubPose, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());  // latch is ON
+      kTopicNamePubPose, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());  // latch ON
   particle_positions_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud>(
       kTopicNamePubParticlePositions, 1);
   score_publisher_ = this->create_publisher<std_msgs::msg::Float64>(kTopicNamePubLocalizationScore, 1);
@@ -175,7 +175,7 @@ void Laser2dLocalizerNode::InitializePublishers() {
 }
 
 void Laser2dLocalizerNode::InitializeServices() {
-  // Service to turn ON/OFF laser_2d_pose PUBLISH
+  // ON/OFF service for publishing laser_2d_pose
   start_localized_pose_ =
       this->create_service<std_srvs::srv::Empty>("start_sending_localized_pose",
       std::bind(&Laser2dLocalizerNode::StartLocalizedPose, this, _1, _2));
@@ -210,20 +210,20 @@ void Laser2dLocalizerNode::InitializeSubscribers() {
 }
 
 /**
- * \brief  Callback function to retrieve odometry values
+ * \brief  Callback function for retrieving odometry values
  * \param  odom_msg Odometry data message
  * Accumulate odometry movement and monitor if it exceeds the threshold.<br>
  * Set the latest odometry to the object.<br>
- * Threshold judgment of odometry movement is also part of the self-position estimation function,<br>
- * I want to include it in the class in the future
+ * Threshold determination of odometry movement is also part of the self-position estimation function,<br>
+ * and it will be incorporated into the class in the future
  */
 void Laser2dLocalizerNode::UpdateOdometry(const Pose2d& odom) {
-  // Skip calculation of movement amount for the first time
+  // Skip movement calculation for the first time
   if (!is_first_odometry_received_) {
     is_first_odometry_received_ = true;
     laser_2d_mcl_.set_odometry(odom);
   } else {
-    // Calculate movement amount
+    // Calculate movement
     sum_distance_ += (odom.point() - previous_odom_.point()).norm();
     // Calculate turning amount (normalize angle)
     double diff_angle = odom.theta() - previous_odom_.theta();
@@ -235,8 +235,8 @@ void Laser2dLocalizerNode::UpdateOdometry(const Pose2d& odom) {
       }
     }
     sum_angle_ += fabs(diff_angle);
-    // If movement amount exceeds minimum movement amount, set particle filter execution flag
-    // If movement amount exceeds maximum movement amount, move particles with zero noise
+    // If movement exceeds the minimum threshold, set the particle filter execution flag
+    // If movement exceeds the maximum threshold, move particles with zero noise
     if ((sum_distance_ >= laser_2d_mcl_.params().distance_triggering_filter &&
          sum_distance_ < max_odom_distance_threshold_) ||
         (sum_angle_ >= laser_2d_mcl_.params().angle_triggering_filter && sum_angle_ < max_odom_angle_threshold_)) {
@@ -258,7 +258,7 @@ void Laser2dLocalizerNode::UpdateOdometry(const Pose2d& odom) {
 }
 
 /**
- * \brief  Callback function to retrieve grid map data
+ * \brief  Callback function for retrieving grid map data
  * \param  distance_map_msg Grid map data message
  */
 void Laser2dLocalizerNode::StaticGridMapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr distance_map_msg) {
@@ -268,14 +268,14 @@ void Laser2dLocalizerNode::StaticGridMapCallback(const nav_msgs::msg::OccupancyG
              distance_map_msg->info.height, static_cast<uint32_t>(distance_map_msg->data.size()));
     return;
   }
-  // Convert to DistanceMap and expand obstacle area to potential distance from the wall
+  // Convert to DistanceMap and expand obstacle areas to potential distances from walls
   distance_map_ = std::make_shared<DistanceMap>(
       tmc_pose_2d_lib::RosMsg2DistanceMap(*distance_map_msg));
   distance_map_->InflateMap(laser_2d_mcl_.params().potential_width);
 
   /// DistanceMap for passing to MCL
-  /// MCL calculates based on the origin of DistanceMap,
-  /// Set origin to Pose2d(0.0, 0.0, 0.0)
+  /// To calculate in MCL based on the origin of the DistanceMap,
+  /// set the origin to Pose2d(0.0, 0.0, 0.0)
   std::shared_ptr<DistanceMap> mcl_distance_map = std::make_shared<DistanceMap>(
       DistanceMap(Pose2d(0.0, 0.0, 0.0), distance_map_->resolution(), distance_map_->width(), distance_map_->height(),
                   distance_map_->data()));
@@ -288,7 +288,7 @@ void Laser2dLocalizerNode::StaticGridMapCallback(const nav_msgs::msg::OccupancyG
     frame_id_ = kGlobalFrameId;
   }
 
-  // Convert initial position to map system
+  // Convert initial position to map coordinates
   Pose2d init_pose = laser_2d_mcl_.init_pose_param();
   distance_map_->MapToImage(init_pose);
   laser_2d_mcl_.set_init_pose_param(init_pose);
@@ -300,7 +300,7 @@ void Laser2dLocalizerNode::StaticGridMapCallback(const nav_msgs::msg::OccupancyG
 
 
 /**
- * \brief  Callback function to retrieve point_cloud2 data
+ * \brief  Callback function for retrieving point_cloud2 data
  * \param  point_cloud2_msg 2D LRF data
  */
 void Laser2dLocalizerNode::PointCloud2Callback(const sensor_msgs::msg::PointCloud2::SharedPtr point_cloud2_msg) {
@@ -309,7 +309,7 @@ void Laser2dLocalizerNode::PointCloud2Callback(const sensor_msgs::msg::PointClou
   try {
     // Convert PointCloud2 to robot coordinate system
     TransformPointCloud(robot_tf_name_, *point_cloud2_msg, transformed_cloud);
-    // Retrieve odometry from tf to match timestamp with pointcloud
+    // Retrieve odometry from tf to match the timestamp with pointcloud
     if (!tf_buffer_.canTransform(odometry_tf_name_, base_tf_name_, rclcpp::Time(transformed_cloud.header.stamp),
                                  rclcpp::Duration::from_seconds(1.0))) {
       throw std::runtime_error("canTransform Error from " + odometry_tf_name_ + " to " + base_tf_name_);
@@ -323,8 +323,8 @@ void Laser2dLocalizerNode::PointCloud2Callback(const sensor_msgs::msg::PointClou
   }
   Pose2d odom(odom_to_base.getOrigin().getX(), odom_to_base.getOrigin().getY(),
               tf2::getYaw(odom_to_base.getRotation()));
-  // UpdateOdometry() performs threshold judgment of movement amount
-  // Raise and lower run_mcl_flag within this method
+  // Threshold determination of movement is performed in UpdateOdometry()
+  // The flag for run_mcl_ is toggled within this method
   UpdateOdometry(odom);
 
   // Do nothing if the map is not initialized
@@ -332,8 +332,8 @@ void Laser2dLocalizerNode::PointCloud2Callback(const sensor_msgs::msg::PointClou
     return;
   }
 
-  // Check MCL execution flag.
-  // Do nothing if not true.
+  // Check the MCL execution flag.
+  // Do nothing if it is not true.
   if (!run_mcl_) {
     return;
   }
@@ -347,7 +347,7 @@ void Laser2dLocalizerNode::PointCloud2Callback(const sensor_msgs::msg::PointClou
     return;
   }
 
-  // Confirm that the number of point cloud data does not exceed the array number of C struct members
+  // Confirm that the number of point cloud data does not exceed the array size of the C structure member
   if (point_cloud_msg.points.size() > ICSLAM_D_MAX_NUM_LASER) {
     RCLCPP_ERROR(this->get_logger(), "Num of points(%d) is more than MCL capacity(%d). Data is ignored.",
               static_cast<uint32_t>(point_cloud_msg.points.size()), ICSLAM_D_MAX_NUM_LASER);
@@ -355,20 +355,20 @@ void Laser2dLocalizerNode::PointCloud2Callback(const sensor_msgs::msg::PointClou
   }
 
   // Point cloud structure for object setting.
-  // Must be static as it is managed by pointers within the object.
-  // (Want to use vector, but MCL library is not C++, so use fixed array structure)
-  /// @todo Do not use static
+  // Always make it static as it is managed by pointers within the object.
+  // (Would prefer vector, but due to MCL library not being in C++, use a fixed-size array structure)
+  /// @todo Avoid using static
   static icSlam_tagRangeXY s_pc_2d;
   static icSlam_tagRangeXY s_pc_2d_tmp;
 
-  // Copy message to local variable of different type
+  // Copy message to a local variable of a different type
   for (uint32_t i = 0; i < point_cloud_msg.points.size(); ++i) {
     s_pc_2d_tmp.t_laser[i].f_x = point_cloud_msg.points[i].x;
     s_pc_2d_tmp.t_laser[i].f_y = point_cloud_msg.points[i].y;
   }
   s_pc_2d_tmp.d_numLaser = point_cloud_msg.points.size();
 
-  // Filter laser points (remove points below interval distance)
+  // Filter laser points (remove points below the interval threshold)
   double resolution = laser_2d_mcl_.GetMapResolution();
   s_pc_2d = laser_2d_mcl_.FilterPointCloud(s_pc_2d_tmp, resolution);
 
@@ -439,9 +439,9 @@ void Laser2dLocalizerNode::CorrectPoseCallback(
   RCLCPP_INFO(this->get_logger(), "[laser_2d_localizer] correct pose (%f %f %f)",
            correct_pose.x(), correct_pose.y(), correct_pose.theta());
   distance_map_->MapToImage(correct_pose);
-  // Force adoption of estimation result
+  // Force adoption of estimation results
   laser_2d_mcl_.set_is_manual_reset(true);
-  // Initial value input
+  // Input initial value
   laser_2d_mcl_.set_initial_pose(correct_pose);
   // Turn ON MCL execution flag
   run_mcl_ = true;
@@ -473,8 +473,8 @@ void Laser2dLocalizerNode::StopLocalizedPose(
 
 
 /**
- *  @brief Service to check publishing status of laser_2d_pose
- *  @param res.is_localization_running true: publishing false: stopped
+ *  @brief Service to check the publishing status of laser_2d_pose
+ *  @param res.is_localization_running true: Publishing false: Stopped
 */
 void Laser2dLocalizerNode::CheckLocalizerRunning(
     tmc_navigation_msgs::srv::BoolResponse::Request::SharedPtr req,
@@ -499,9 +499,9 @@ void Laser2dLocalizerNode::SetLocalizationScore(
 
 
 /**
- * @brief  Processing function to set parameters
+ * @brief Function to set parameters
  * @par
- * Retrieve default parameters and overwrite to set desired parameters
+ * Retrieve default parameters, overwrite desired parameters, and set them
  */
 void Laser2dLocalizerNode::SetParams() {
   Laser2dMclParams params = laser_2d_mcl_.default_params();
@@ -554,8 +554,8 @@ void Laser2dLocalizerNode::SetParams() {
 /**
  * @brief Publish initial position
  * @par
- * Reason: grid_map_server publishes map based on self-position,
- * This node requires the map to publish self-position.
+ * Reason: grid_map_server publishes maps based on self-position,
+ * and this node, which publishes self-position, requires the map.
  * To avoid locking, publish self-position first from here.
  */
 void Laser2dLocalizerNode::PublishInitialPose() {
@@ -573,7 +573,7 @@ void Laser2dLocalizerNode::PublishInitialPose() {
 }
 
 /// @brief Convert PointCloud to specified frame_id
-/// @param frame_id[in]  Target frame for conversion
+/// @param frame_id[in] Target frame for conversion
 /// @param input_cloud[in] PointCloud before conversion
 /// @param output_cloud[out] PointCloud after conversion
 void Laser2dLocalizerNode::TransformPointCloud(const std::string& frame_id,

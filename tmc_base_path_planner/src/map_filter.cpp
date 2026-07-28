@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -38,7 +38,7 @@ void MapFilter::FilterMapOnStartAndGoal(
     const double distance_robot_to_start = (global_pose.point() - start_pose.point()).norm();
     const double distance_start_to_goal = (start_pose.point() - goal_pose.point()).norm();
     /// To reduce load, filter only while the start point is within the filter range
-    /// If the goal is within the filter range and filtering is done, there is a possibility of creating a path that collides with obstacles, so
+    /// If the goal is within the filter range and filtering occurs, it may create a path that collides with obstacles
     /// Filter only when the goal point is outside the filter range
     if (distance_robot_to_start <= param_.map_filter_range_around_start &&
         distance_start_to_goal > param_.map_filter_range_around_start) {

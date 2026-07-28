@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -51,7 +51,7 @@ const double kTfTimeOut = 5.0;
 const double kJointStateTimeOut = 60.0;
 /// Log message issuance cycle [s]
 const double kConsoleMessageIndicatePeriod = 1.0;
-/// Topic buffer size
+/// Buffer size for the topic
 const uint32_t kTopicBufferSize = 1;
 
 bool IsAllJointsStop(const std::vector<double>& velocity, double threshold) {
@@ -176,7 +176,7 @@ void MarkerBasedLocalizerNode::MarkerSubscriptionCallback_(
   }
 
   if (joints_list_.size() > 0) {
-    // Get the speed of the axes in joints_list
+    // Retrieve the speed of axes listed in joints_list
     std::vector<double> joints_velocity;
     for (std::vector<std::string>::iterator it = joints_list_.begin(); it != joints_list_.end(); ++it) {
       std::vector<std::string>::iterator joint_name_it =
@@ -218,7 +218,7 @@ void MarkerBasedLocalizerNode::MarkerSubscriptionCallback_(
   // If not the first marker self-position correction, check the movement amount
   // Skip processing if the movement amount does not exceed the threshold
   if (!is_first_localization_) {
-    // Determine whether to execute processing based on the movement amount threshold for non-first instances
+    // For subsequent corrections, determine whether to execute processing based on the movement threshold
     if (travel_distance_ < travel_distance_threshold_) {
       // Skip processing if the movement amount is below the threshold
       RCLCPP_DEBUG(this->get_logger(),
@@ -251,11 +251,11 @@ void MarkerBasedLocalizerNode::MarkerSubscriptionCallback_(
         "Cannot transform %s to %s", base_frame_name_.c_str(), marker_pose_in_camera_frame.header.frame_id.c_str());
     return;
   }
-  // Obtain the simultaneous transformation matrix of the marker's posture
+  // Obtain the simultaneous transformation matrix of the marker's pose
   Eigen::Affine3d base_to_marker;
   tmc_eigen_bridge::PoseMsgToAffine3d(marker_pose_in_base_frame.pose, base_to_marker);
 
-  // Convert to the base posture relative to the marker frame
+  // Transform to the base pose relative to the marker frame
   Eigen::Affine3d marker_to_base = base_to_marker.inverse();
 
   double squared_distance_to_marker = marker_to_base.translation().x() * marker_to_base.translation().x() +
@@ -263,7 +263,7 @@ void MarkerBasedLocalizerNode::MarkerSubscriptionCallback_(
   RCLCPP_DEBUG(this->get_logger(), "marker_to_base: %lf %lf", squared_distance_to_marker,
                marker_to_base_distance_threshold_ * marker_to_base_distance_threshold_);
 
-  // Skip processing if the distance between the marker and the robot is far
+  // Skip processing if the distance between the marker and the robot is too far
   if (squared_distance_to_marker > marker_to_base_distance_threshold_ * marker_to_base_distance_threshold_) {
     auto clock = rclcpp::Clock(RCL_ROS_TIME);
     RCLCPP_INFO_THROTTLE(this->get_logger(), clock, kConsoleMessageIndicatePeriod * 1000,
@@ -271,7 +271,7 @@ void MarkerBasedLocalizerNode::MarkerSubscriptionCallback_(
     return;
   }
 
-  // Obtain the posture of the object (marker) relative to the floor frame from object information
+  // Obtain the pose of the object (marker) relative to the floor frame from object information
   Eigen::Affine3d floor_to_marker;
   tmc_eigen_bridge::PoseMsgToAffine3d(object_pose, floor_to_marker);
 

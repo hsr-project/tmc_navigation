@@ -1,0 +1,4 @@
+point_cloud_merger:
+  ros__parameters:
+    cloud_1_range: 30.0
+    cloud_2_range: 30.0

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -69,7 +69,7 @@ constexpr double kCycleTimeParam = 0.01;
 constexpr double kConvergenceTimeParam = 5.0;
 
 // TODO(syuuhei_shiro): tmc_rostest_utilをROS2化してそこに置く
-// Load parameters from yaml file
+// Load parameters from the yaml file
 void LoadParameterFromYaml(std::shared_ptr<rclcpp::Node> node,
     const std::string& yaml_directory, const std::string& yaml_name) {
   const std::string yaml_path = yaml_directory + yaml_name;
@@ -79,7 +79,7 @@ void LoadParameterFromYaml(std::shared_ptr<rclcpp::Node> node,
   rcl_parse_yaml_file(yaml_path.c_str(), yaml_params);
   rclcpp::ParameterMap yaml_param_map = rclcpp::parameter_map_from(yaml_params);
   rcl_yaml_node_struct_fini(yaml_params);
-  // Set ros parameters to node
+  // Set ROS parameters to the node
   const std::string parameter_space = "/" + std::string(node->get_name());
   auto iter = yaml_param_map.find(parameter_space);
   for (auto& param : iter->second) {
@@ -134,16 +134,16 @@ class TestNode : public rclcpp::Node {
   geometry_msgs::msg::PoseStamped global_pose() { return global_pose_; }
 
  private:
-  /// Callback (self-position estimate)
+  /// Callback (self-position estimation)
   void CallbackGlobalPose_(const geometry_msgs::msg::PoseStamped::SharedPtr global_pose) {
     global_pose_ = *global_pose;
   }
 
-  /// Topic transmission (self-position estimate using 2D laser data)
+  /// Topic transmission (self-position estimation using 2D laser data)
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pub_laser2d_pose_;
-  /// Topic reception (self-position estimate)
+  /// Topic reception (self-position estimation)
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr sub_global_pose_;
-  /// Self-position estimate
+  /// Self-position estimation
   geometry_msgs::msg::PoseStamped global_pose_;
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 };
@@ -179,8 +179,8 @@ class PoseIntegratorTest : public ::testing::Test {
   std::shared_ptr<rclcpp::Rate> rate_;
 };
 
-/// x=rand(), y=rand(), θ=4 divisions (0°, 90°, 180°, 270°: 0[rad]〜2PI[rad])
-/// @todo If possible, introduce MT (Mersenne Twister) method for random number generation
+/// x=rand(), y=rand(), θ=divided into 4 (0°, 90°, 180°, 270°: 0[rad] to 2PI[rad])
+/// @todo If possible, introduce the MT (Mersenne Twister) method for random number generation
 TEST_F(PoseIntegratorTest, Random) {
   tf2::Transform odom;
   odom.setOrigin(tf2::Vector3(0.0, 0.0, 0.0));
@@ -192,7 +192,7 @@ TEST_F(PoseIntegratorTest, Random) {
   for (uint32_t i = 0; i < kTestCount; ++i) {
     RCLCPP_INFO_STREAM(rclcpp::get_logger("pose_integrator-test"), "*****");
     RCLCPP_INFO_STREAM(rclcpp::get_logger("pose_integrator-test"), "Loop = " << i);
-    // Random number generation (x=y:1 to 100, theta:0 , 90°, 180°, 270°)
+    // Random number generation (x=y:1 to 100, theta:0, 90°, 180°, 270°)
     double random_rad = static_cast<double>((random() % 4) * 90) * M_PI / 180;
     RCLCPP_INFO_STREAM(rclcpp::get_logger("pose_integrator-test"), "random_rad = " << random_rad);
     Eigen::Vector3d position = Eigen::Vector3d::Identity();
@@ -226,7 +226,7 @@ TEST_F(PoseIntegratorTest, Random) {
         pose_with_covariance.pose.pose.orientation.z << ", " <<
         pose_with_covariance.pose.pose.orientation.w);
 
-    // Due to the construction of pose_integrator, resend as the first time skips for time adjustment
+    // Due to the construction of pose_integrator, the first time is skipped for time adjustment, so retransmit
     pose_with_covariance.header.stamp = rclcpp::Clock(RCL_ROS_TIME).now();
     test_node_->PublishLaser2dPose(pose_with_covariance);
     // Initialize odometry
@@ -250,7 +250,7 @@ TEST_F(PoseIntegratorTest, Random) {
       test_node_->SendTransform(CreateTransformStamped(
           odom, rclcpp::Clock(RCL_ROS_TIME).now(), "odom", "base_footprint"));
       SpinOnce();
-      // Wait until convergence time (target -1 cycle)
+      // Wait until convergence time (target - 1 cycle)
       if (!is_get_global_pose_1) {
         if (loop_count * kCycleTimeParam > kConvergenceTimeParam - kCycleTimeParam) {
           global_pose_1 = test_node_->global_pose();
@@ -264,7 +264,7 @@ TEST_F(PoseIntegratorTest, Random) {
           is_get_global_pose_2 = true;
         }
       }
-      // Wait until convergence time (target +1 cycle)
+      // Wait until convergence time (target + 1 cycle)
       if (!is_get_global_pose_3) {
         if (loop_count * kCycleTimeParam > kConvergenceTimeParam + kCycleTimeParam) {
           global_pose_3 = test_node_->global_pose();
@@ -330,8 +330,8 @@ TEST_F(PoseIntegratorTest, Random) {
     RCLCPP_INFO_STREAM(rclcpp::get_logger("pose_integrator-test"), "dy3 = " << diff_y3);
 
     // Allowable range is 3 cycles of movement + 1mm
-    // The basis for 3 cycles is due to the test node and pose_integrator node
-    // Allowance for cycle shift due to lack of complete synchronization
+    // The basis for 3 cycles is that the test node and pose_integrator node
+    // Allowable cycle shift due to lack of perfect synchronization
     double expectation = kCycleTimeParam * 3 * kLinearVelX * kConvergenceTimeParam + 0.001;
     RCLCPP_INFO_STREAM(rclcpp::get_logger("pose_integrator-test"), "expectation = " << expectation);
     bool success = false;
@@ -346,9 +346,9 @@ TEST_F(PoseIntegratorTest, Random) {
 }  // end namespace tmc_pose_integrator
 
 
-/// Main processing
+/// Main process
 /// @param[in] argc Total number of arguments (including program name)
-/// @param[in] argv Pointer array pointing to argument strings
+/// @param[in] argv Pointer array to argument strings
 /// @retval EXIT_SUCCESS = 0 Success
 /// @retval EXIT_FAILURE = 1 Failure
 int main(int argc, char** argv) {
@@ -362,7 +362,7 @@ int main(int argc, char** argv) {
       "/test/parameter/";
   LoadParameterFromYaml(pose_integrator_node, yaml_directory, "pose_integrator-test.yaml");
   pose_integrator_node->Init();
-  // Create thread
+  // Create a thread
   auto pose_integrator_node_thread = std::make_shared<std::thread>([&]() {
         while (rclcpp::ok()) {
           rclcpp::spin_some(pose_integrator_node);

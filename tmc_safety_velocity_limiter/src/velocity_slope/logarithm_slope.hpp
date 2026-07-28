@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file logarithm_slope.hpp
-/// @brief Logarithmic speed gradient
+/// @brief Logarithmic velocity gradient
 #ifndef TMC_SAFETY_VELOCITY_LIMITER_LOGARITHM_SLOPE_HPP_
 #define TMC_SAFETY_VELOCITY_LIMITER_LOGARITHM_SLOPE_HPP_
 #include <map>
@@ -36,16 +36,16 @@ DAMAGE.
 #include "velocity_slope.hpp"
 
 namespace tmc_safety_velocity_limiter {
-/// Linear speed gradient
+/// Linear velocity gradient
 class LogarithmSlope : public VelocitySlope {
  public:
   typedef std::shared_ptr<LogarithmSlope> Ptr;
   explicit LogarithmSlope(std::map<std::string, rclcpp::Parameter>& parameters);
 
-  /// Calculate speed ratio from input information
+  /// Calculate velocity ratio from input information
   double CalcRatio(const double distance_ratio);
 
-  /// Get ROS PARAM
+  /// Retrieve ROS PARAM
   void UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters);
 
  private:

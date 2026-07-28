@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -43,7 +43,7 @@ const int8_t kUnknown = -1;
 /// @brief Unoccupied
 const int8_t kFree = 0;
 
-/// @brief Directly obtain Yaw from geometry_msgs::msg::Quaternion
+/// @brief Directly calculate Yaw from geometry_msgs::msg::Quaternion
 double GetYawFromQuaternion(const geometry_msgs::msg::Quaternion& q) {
   return std::atan2(2.0*(q.w*q.z + q.x*q.y), 1.0 - 2.0 * (q.y*q.y + q.z*q.z));
 }
@@ -60,7 +60,7 @@ typedef nav_msgs::msg::OccupancyGrid Map;
 typedef nav_msgs::msg::MapMetaData MapInfo;
 
 /// @brief Map that can hold a one-dimensional array of any type T
-/// Holds data and info (MapInfo type) as members
+/// Holds data and info (of type MapInfo) as members
 template<typename T>
 struct AnyMap {
   explicit AnyMap(const MapInfo& i)
@@ -73,7 +73,7 @@ struct AnyMap {
 template<typename T>
 struct BasicAdapter {
   /// @brief Internal type
-  /// Declaration of DataType is necessary for use by MapOperator
+  /// Declaration of DataType is mandatory for use by MapOperator
   typedef T DataType;
   /// @brief Extract DataType type as V type
   template<typename V>
@@ -91,7 +91,7 @@ struct BasicAdapter {
   }
 };
 
-/// @brief Adapter for Map(int8_t). Set to Unknown upon reset
+/// @brief Adapter for Map(int8_t). Resets to Unknown
 struct BasicMapAdapter {
   typedef int8_t DataType;
   template<typename V>
@@ -107,7 +107,7 @@ struct BasicMapAdapter {
   }
 };
 
-/// @brief Adapter for Map(int8_t). Update if it's the maximum value.
+/// @brief Adapter for Map(int8_t). Updates if it's the maximum value.
 struct UpdateIfGreaterMapAdapter {
   typedef int8_t DataType;
   template<typename V>
@@ -125,7 +125,7 @@ struct UpdateIfGreaterMapAdapter {
   }
 };
 
-/// @breif Class that allows access to Map of MapType using Adapter
+/// @brief Class that enables access to Map of MapType using Adapter
 /// Class with implemented methods: GetInfo, Get, Update, Reset
 template<typename Adapter = BasicMapAdapter,
          typename MapType = Map>
@@ -143,17 +143,17 @@ struct MapOperator {
   /// @brief Constructor
   MapOperator(MapType& target, MapInfo& new_info, const Adapter& s)
       : map(target), info(new_info), adapter(s) {}
-  /// @brief Information retrieval
+  /// @brief Retrieve information
   const MapInfo& GetInfo() const {
     return info;
   }
-  /// @brief Retrieval (if no type specified, extract as DataType type)
+  /// @brief Retrieve (if no type is specified, extract as DataType type)
   typename Adapter::DataType Get(size_t index) const {
     typename Adapter::DataType v;
     adapter.Get(v, map.data[index]);
     return v;
   }
-  /// @brief Retrieval (type specified)
+  /// @brief Retrieve (with type specification)
   template<typename V>
   V Get(size_t index) const {
     V v;
@@ -165,7 +165,7 @@ struct MapOperator {
   void Update(size_t index, const V data) const {
     adapter.Update(map.data[index], data);
   }
-  /// @brief Initialization
+  /// @brief Initialize
   void Reset(size_t index) const {
     adapter.Reset(map.data[index]);
   }

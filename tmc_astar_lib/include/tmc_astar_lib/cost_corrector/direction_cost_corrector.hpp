@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -31,15 +31,15 @@ DAMAGE.
 #include "../node_direction.hpp"
 #include "cost_corrector.hpp"
 /*
-Direction Cost Correction
+Direction Cost Adjustment
 
 Overview:
-Reduce the cost when moving in a zigzag pattern at angles less than 45°, like north, north, northeast, north, north, northeast...
+Reduce costs when moving in a zigzag pattern at angles less than 45°, such as north, north, northeast, north, north, northeast...
 
 Background:
 The A* algorithm can only draw paths in 45° increments,
-The resulting path is a combination of 0°, 90°, and 45°, and the turning points do not affect the cost.
-For example, the following patterns have equal cost, and how they will turn out is undefined.
+resulting in paths composed of combinations of 0°, 90°, and 45°, where turning points do not affect the cost.
+For example, the following patterns have equal costs, and the resulting path is undefined.
 
 ①                    ②                    ③
 □□□□□□□□□□　□□□□□□□□□□　□□□□□□□□□□
@@ -57,24 +57,24 @@ For example, the following patterns have equal cost, and how they will turn out 
 □□□□□□□□□□　□□□□□□□□□□　□□□□□□□□□□
 
 Objective:
-In the case of pattern ③, correct the negative cost to prioritize it, aiming to move as straight as possible.
-Zigzag paths become closer to straight lines through smoothing processing.
+In the case of pattern ③, adjust the negative cost to prioritize it, aiming for a more straight path.
+Zigzag paths are smoothed into a shape closer to a straight line.
 */
 
 namespace tmc_astar_lib {
 
 const int32_t kDirectionNum = static_cast<int32_t>(NodeDirection::DIR_Max);
 
-// Correction Value Definition
-// Designed with the assumption that there is no turn of 90° or more in one step
-// Adjacent: Parallel to X-axis/Y-axis
-// Diagonal: Diagonal direction
-static constexpr int32_t kCostAdjAdjDiag = -12;   // Adjacent→Adjacent→Diagonal ――／
-static constexpr int32_t kCostAdjDiagAdj = -4;    // Adjacent→Diagonal→Adjacent ―／―
-static constexpr int32_t kCostAdjDiagDiag = -2;   // Adjacent→Diagonal→Diagonal ―／／
-static constexpr int32_t kCostDiagDiagAdj = -11;  // Diagonal→Diagonal→Adjacent ／／―
-static constexpr int32_t kCostDiagAdjDiag = -2;   // Diagonal→Adjacent→Diagonal ／―／
-static constexpr int32_t kCostDiagAdjAdj = -4;    // Diagonal→Adjacent→Adjacent ／――
+// Correction value definition
+// Designed under the assumption that no turn exceeds 90° in a single step
+// Adjacent: Parallel to the X-axis/Y-axis
+// Diagonal: Along the diagonal direction
+static constexpr int32_t kCostAdjAdjDiag = -12;   // Adjacent → Adjacent → Diagonal ――／
+static constexpr int32_t kCostAdjDiagAdj = -4;    // Adjacent → Diagonal → Adjacent ―／―
+static constexpr int32_t kCostAdjDiagDiag = -2;   // Adjacent → Diagonal → Diagonal ―／／
+static constexpr int32_t kCostDiagDiagAdj = -11;  // Diagonal → Diagonal → Adjacent ／／―
+static constexpr int32_t kCostDiagAdjDiag = -2;   // Diagonal → Adjacent → Diagonal ／―／
+static constexpr int32_t kCostDiagAdjAdj = -4;    // Diagonal → Adjacent → Adjacent ／――
 
 class DirectionCostCorrector : public ICostCorrector {
  public:
@@ -84,7 +84,7 @@ class DirectionCostCorrector : public ICostCorrector {
   virtual void Setup(const SetupParams& params);
   virtual int32_t GetAdditionalCost(const GetAdditionalCostParams& params);
  private:
-  // Outputs correction values based on the direction of the past 3 steps, so all patterns are stored in a table
+  // Outputs correction values based on the directions of the past three steps, storing all patterns in a table
   int32_t correction_table_[kDirectionNum][kDirectionNum][kDirectionNum];
 };
 }  // namespace tmc_astar_lib

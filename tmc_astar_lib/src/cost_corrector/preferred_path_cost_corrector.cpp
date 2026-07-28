@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -41,7 +41,7 @@ PreferredPathCostCorrector::~PreferredPathCostCorrector() {}
 void PreferredPathCostCorrector::Setup(const SetupParams& params) {
   // XY offset of surrounding grids (up, down, left, right)
   const int32_t around_offset[4][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-  // Set negative cost to grids passed by the recommended route and their adjacent grids
+  // Set negative costs for grids traversed by the recommended route and their adjacent grids
   width_ = params.map_width;
   height_ = params.map_height;
   additional_cost_map_.resize(width_ * height_);
@@ -49,7 +49,7 @@ void PreferredPathCostCorrector::Setup(const SetupParams& params) {
   for (const MapIndex& index : params.preferred_path_indexes) {
     if (index.x >= 0 && index.x < width_ &&
         index.y >= 0 && index.y < height_) {
-      // Set cost_on_preferred_path on the same grid as the route point, and cost_arround_preferred_path on up, down, left, and right
+      // Set cost_on_preferred_path for the same grid as the route point, and cost_arround_preferred_path for up, down, left, and right
       const int32_t center_index = index.y * width_ + index.x;
       additional_cost_map_[center_index] = cost_on_preferred_path_;
       for (int32_t i = 0; i < 4; ++i) {
@@ -71,11 +71,11 @@ int32_t PreferredPathCostCorrector::GetAdditionalCost(const GetAdditionalCostPar
   const MapIndex index = params.index;
   if (index.x >= 0 && index.x < width_ &&
       index.y >= 0 && index.y < height_) {
-    // Return the correction cost for the relevant grid
+    // Return the correction cost for the corresponding grid
     const int32_t grid_index = index.y * width_ + index.x;
     return additional_cost_map_[grid_index];
   } else {
-    // Return 0 for out of map
+    // Return 0 for areas outside the map
     return 0;
   }
 }

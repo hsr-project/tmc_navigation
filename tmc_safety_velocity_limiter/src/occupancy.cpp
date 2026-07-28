@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -32,7 +32,7 @@ DAMAGE.
 #include <memory>
 #include <string>
 #include <nav_msgs/msg/occupancy_grid.hpp>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/transform_listener.h>
 
 #include "param.hpp"
@@ -59,20 +59,20 @@ void Occupancy::Init(const rclcpp::Node::SharedPtr node) {
       kTopicOccupancyGrid, 1, std::bind(&Occupancy::OccupancyGridCallback, this, _1));
 }
 
-/// Obtain raw data of OccupancyGrid
+/// Retrieve raw data of OccupancyGrid
 nav_msgs::msg::OccupancyGrid::ConstSharedPtr Occupancy::OccupancyGrid() {
   return occupancy_grid_;
 }
 
-/// Obtain occupancy value of the relevant location from the base coordinates
+/// Get the occupancy value of the corresponding location from the base coordinates
 int32_t Occupancy::GetOccupancyFromBase(const double x, const double y) {
-  // If OccupancyGrid is not received, return unknown (-1)
+  // If OccupancyGrid has not been received, return unknown (-1)
   if (!occupancy_grid_) {
     return kUnknown;
   }
-  // Convert specified base coordinates to OccupancyGrid coordinate system
+  // Convert the specified base coordinates to the coordinate system of OccupancyGrid
   // Since the update frequency of OccupancyGrid is low and the temporal accuracy of coordinate conversion is not important,
-  // convert without specifying the time axis of tf using Time(0) (use the latest value available without waiting)
+  // Convert using Time(0) (latest value available without waiting) without specifying the time axis of tf
   geometry_msgs::msg::PointStamped position;
   position.header.frame_id = base_frame_;
   position.point.x = x;
@@ -95,7 +95,7 @@ int32_t Occupancy::GetOccupancyFromBase(const double x, const double y) {
   double dy = transform_position.point.y - occupancy_grid_->info.origin.position.y;
   int32_t index_x = static_cast<int32_t>(dx / occupancy_grid_->info.resolution);
   int32_t index_y = static_cast<int32_t>(dy / occupancy_grid_->info.resolution);
-  // If the specified coordinates are out of Grid range, return unknown (-1)
+  // If the specified coordinates are outside the Grid range, return unknown (-1)
   if ((index_x < 0) || (index_x >= static_cast<int32_t>(occupancy_grid_->info.width)) ||
       (index_y < 0) || (index_y >= static_cast<int32_t>(occupancy_grid_->info.height))) {
     return kUnknown;

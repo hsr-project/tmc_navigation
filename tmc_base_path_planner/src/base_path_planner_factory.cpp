@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -57,7 +57,7 @@ BasePathPlanner::Ptr BasePathPlannerFactory::Create(const T& node,
   return planner;
 }
 
-// Explicit generation of template instance
+// Explicit instantiation of template instance
 template BasePathPlanner::Ptr BasePathPlannerFactory::Create<rclcpp::Node::SharedPtr>(
     const rclcpp::Node::SharedPtr& node,
     const CostMapPtr& static_map, const double static_map_potential_width);

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -25,8 +25,8 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
-/// velocity_switcher node test
-/// Check Publish, Subscribe, input and output.
+/// Node test for velocity_switcher
+/// Check Publish, Subscribe, and input/output.
 /// Copyright (C) 2023 TOYOTA Motor Corporation.
 #include <memory>
 #include <string>
@@ -53,13 +53,13 @@ constexpr int32_t kTopicBufferSize = 1000;
 // Output velocity topic name
 constexpr const char* const kNameOutputVelocity = "output_velocity";
 
-/// Variables used in the node under test Ensure consistency with the node under test
-// Operation cycle of the node under test [hz]
+/// Variables used in the target node for testing Ensure consistency with the target node
+// Operation cycle of the target node [hz]
 constexpr double kControlCycleTestNode    = 200.0;
-// Velocity switching time of the node under test [sec]
+// Velocity switching time of the target node [sec]
 constexpr double kPeriodSwitchingTestNode = 0.50;
 
-// Test pattern setting velocity [m/s]
+// Test pattern configuration velocity [m/s]
 constexpr double kTestParamVelocity0 = 1.0;
 constexpr double kTestParamVelocity1 = 2.0;
 constexpr double kTestParamVelocity2 = 3.0;
@@ -68,7 +68,7 @@ constexpr double kTestParamVelocity4 = 5.0;
 constexpr double kTestParamVelocity5 = 6.0;
 constexpr double kTestParamVelocity6 = 7.0;
 
-// Number of loops considered for output_velocity to stabilize
+// Loop count to consider output_velocity value as stable
 constexpr int32_t kTestParamLoopCountThresholdToCheckConstant = 100;
 
 // Input velocity topic name
@@ -106,7 +106,7 @@ void LoadParameterFromYaml(std::shared_ptr<rclcpp::Node> node,
   rcl_parse_yaml_file(yaml_path.c_str(), yaml_params);
   rclcpp::ParameterMap yaml_param_map = rclcpp::parameter_map_from(yaml_params);
   rcl_yaml_node_struct_fini(yaml_params);
-  // Set ros parameters to node
+  // Set ROS parameters to the node
   const std::string parameter_space = "/" + std::string(node->get_name());
   auto iter = yaml_param_map.find(parameter_space);
   for (auto& param : iter->second) {
@@ -126,7 +126,7 @@ TestNode::TestNode(const rclcpp::NodeOptions& options):
 
 // Initialization
 void TestNode::Init() {
-  // Waiting for reception flag true = reception complete false = waiting for reception
+  // Reception waiting flag true = reception complete false = waiting for reception
   subscribed_flag_ = false;
 
   // Declaration of topic to publish
@@ -147,17 +147,17 @@ void TestNode::Init() {
   ASSERT_TRUE(WaitForPublishersLinked());
   // Subscriber construction test
   ASSERT_TRUE(WaitForSubscriberLinked());
-  // Setting test parameters
+  // Test parameter settings
   SetTestParam();
 }
 
-// Timeout check returns true if timed out
+// Timeout check Returns true if timed out
 bool TestNode::CheckTimeOut(const rclcpp::Time& start_time) const {
   const double elapsed_time = (rclcpp::Clock(RCL_ROS_TIME).now() - start_time).seconds();
   return (kTimeOutSec < elapsed_time);
 }
 
-// Function to wait for Publisher link
+// Function to wait for publisher link
 bool TestNode::WaitForPublishersLinked() {
   rclcpp::Rate rate(kTestRate);
   const rclcpp::Time start_time = rclcpp::Clock(RCL_ROS_TIME).now();
@@ -179,7 +179,7 @@ bool TestNode::WaitForPublishersLinked() {
   return true;
 }
 
-// Function to wait for Subscriber link
+// Function to wait for subscriber link
 bool TestNode::WaitForSubscriberLinked() {
   // Wait for link with publisher
   rclcpp::Rate rate(kTestRate);
@@ -194,7 +194,7 @@ bool TestNode::WaitForSubscriberLinked() {
   return true;
 }
 
-// Function to wait for Subscriber reception
+// Function to wait for subscriber reception
 bool TestNode::WaitForSubscriberReceived() {
   rclcpp::Rate rate(kTestRate);
   const rclcpp::Time start_time = rclcpp::Clock(RCL_ROS_TIME).now();
@@ -211,7 +211,7 @@ bool TestNode::WaitForSubscriberReceived() {
 }
 
 
-// Wait until output_velocity stabilizes at 0.0
+// Wait until output_velocity value stabilizes at 0.0
 void TestNode::WaitUntilOutputGetsZero() {
   rclcpp::Rate rate(kTestRate);
   while (rclcpp::ok()) {
@@ -229,7 +229,7 @@ void TestNode::CallbackOutput(const geometry_msgs::msg::Twist::SharedPtr msg) {
   subscribed_flag_ = true;
 }
 
-/// Monitor output_velocity's linear.x for a certain period,
+/// Monitor output_velocity's linear.x for a certain period
 /// Check the first change in its value
 bool TestNode::CheckSubscribedDataChange() {
   rclcpp::Rate rate(kTestRate);
@@ -239,11 +239,11 @@ bool TestNode::CheckSubscribedDataChange() {
 
   // Change check
   while (!CheckTimeOut(start_time) && rclcpp::ok()) {
-    // Compare previous and current values, return TRUE if different
+    // Compare previous and current values Return TRUE if values differ
     if (fabs(pre_data - output_velocity_.linear.x) > kCompareThreshold) {
       return true;
     }
-    // Remember current value
+    // Store current value
     pre_data = output_velocity_.linear.x;
     SpinOnce();
     rate.sleep();
@@ -302,7 +302,7 @@ void TestNode::SpinOnce() {
   rclcpp::spin_some(shared_from_this());
 }
 
-// Setting test parameters
+// Test parameter settings
 void TestNode::SetTestParam() {
   input_velocity0_.linear.x  = kTestParamVelocity0;
   input_velocity0_.linear.y  = kTestParamVelocity0;
@@ -354,7 +354,7 @@ void TestNode::SetTestParam() {
   input_velocity6_.angular.z = kTestParamVelocity6;
 }
 
-// Function to publish test pattern according to test_pattern_num number
+// Function to publish test patterns based on test_pattern_num
 void VelocitySwitcherNodeTest::PubTopic(const int32_t test_pattern_num) {
   switch (test_pattern_num) {
     case kTestPatternEnum0:
@@ -423,21 +423,21 @@ INSTANTIATE_TEST_CASE_P(
 ));
 
 /// Test
-/// Obtain input_velocity and test if the first changed value of the outputted output_velocity matches the expected value
-/// Test if the first changed value matches the expected value
+/// Obtain input_velocity and test whether the first changed value of the output_velocity
+/// matches the expected value
 TEST_P(VelocitySwitcherNodeTest, first_value) {
   PubTopic(GetParam().first);
   // Check if the value has changed
   ASSERT_TRUE(test_node_->CheckSubscribedDataChange());
-  /// The node under test operates at kControlCycleTestNode [hz],
-  /// When transitioning to the maximum value at kPeriodSwitchingTestNode [sec],
-  /// In one step,
-  /// The speed increases by maximum value/kControlCycleTestNode/kPeriodSwitchingTestNode
-  /// In this test, since the first subscribed value is examined,
-  /// If that value is
-  /// maximum value/kControlCycleTestNode/kPeriodSwitchingTestNode
-  /// It passes
-  /// It passes
+  /// The target node operates at kControlCycleTestNode [hz]
+  /// and transitions to the maximum value in kPeriodSwitchingTestNode [sec]
+  /// In one step
+  /// The speed increases by Maximum value/kControlCycleTestNode/kPeriodSwitchingTestNode
+  /// In this test, the first subscribed value is examined
+  /// That value should be
+  /// Maximum value/kControlCycleTestNode/kPeriodSwitchingTestNode
+  /// to pass
+  // Obtain continuously output input_velocity0
   EXPECT_EQ(GetParam().second/kControlCycleTestNode / kPeriodSwitchingTestNode,
             test_node_->output_velocity().linear.x);
   EXPECT_EQ(GetParam().second/kControlCycleTestNode / kPeriodSwitchingTestNode,
@@ -447,8 +447,8 @@ TEST_P(VelocitySwitcherNodeTest, first_value) {
 }
 
 
-// Obtain continuously outputted input_velocity0,
-// Test if the outputted output_velocity value stabilizes at the value of input_velocity0
+// Test whether the output_velocity value stabilizes at the input_velocity0 value
+// Output input_velocity0
 TEST_F(VelocitySwitcherNodeTest, Continuation_input_each_publisher0) {
   rclcpp::Rate rate(kTestRate);
   const rclcpp::Time start_time = rclcpp::Clock(RCL_ROS_TIME).now();
@@ -458,39 +458,39 @@ TEST_F(VelocitySwitcherNodeTest, Continuation_input_each_publisher0) {
   int32_t loop_count = 0;
 
   while (rclcpp::ok()) {
-    // Output input_velocity0
+    // Set flag ON when published value starts changing
     PubTopic(kTestPatternEnum0);
 
-    // Turn flag ON if the published value starts to change
+    // If flag is ON, the value has started moving
     if (!subscribed_data_changed &&
         fabs(pre_data - test_node_->output_velocity().linear.x) > kCompareThreshold) {
       subscribed_data_changed = true;
     }
 
-    // If the flag is ON, the value has started to move
+    // Previous and current values are the same
     if (subscribed_data_changed) {
-      // Previous and current values are the same
+      // Values remain the same for a certain period
       if (fabs(pre_data - test_node_->output_velocity().linear.x) < kCompareThreshold) {
-        // Values are the same for more than a certain period
+        // Consider the value stable and perform the test
         if (loop_count > kTestParamLoopCountThresholdToCheckConstant) {
-          // Consider the value stable and perform the test
+          // Timeout check
           EXPECT_EQ(kTestParamVelocity0, test_node_->output_velocity().linear.x);
           break;
         }
         loop_count++;
       }
     }
-    // Timeout check
+    // Store current value
     ASSERT_FALSE(test_node_->CheckTimeOut(start_time));
-    // Remember current value
+    // Obtain continuously output input_velocity1
     pre_data = test_node_->output_velocity().linear.x;
     test_node_->SpinOnce();
     rate.sleep();
   }
 }
 
-// Obtain continuously outputted input_velocity1,
-// Test if the outputted output_velocity value stabilizes at the value of input_velocity1
+// Test whether the output_velocity value stabilizes at the input_velocity1 value
+// Output input_velocity1
 TEST_F(VelocitySwitcherNodeTest, Continuation_input_each_publisher1) {
   rclcpp::Rate rate(kTestRate);
   const rclcpp::Time start_time = rclcpp::Clock(RCL_ROS_TIME).now();
@@ -500,40 +500,40 @@ TEST_F(VelocitySwitcherNodeTest, Continuation_input_each_publisher1) {
   int32_t loop_count = 0;
 
   while (rclcpp::ok()) {
-    // Output input_velocity1
+    // Set flag ON when published value starts changing
     PubTopic(kTestPatternEnum1);
 
-    // Turn flag ON if the published value starts to change
+    // If flag is ON, the value has started moving
     if (!subscribed_data_changed &&
         fabs(pre_data - test_node_->output_velocity().linear.x) > kCompareThreshold) {
       subscribed_data_changed = true;
     }
 
-    // If the flag is ON, the value has started to move
+    // Previous and current values are the same
     if (subscribed_data_changed) {
-      // Previous and current values are the same
+      // Values remain the same for a certain period
       if (fabs(pre_data - test_node_->output_velocity().linear.x) < kCompareThreshold) {
-        // Values are the same for more than a certain period
+        // Consider the value stable and perform the test
         if (loop_count > kTestParamLoopCountThresholdToCheckConstant) {
-          // Consider the value stable and perform the test
+          // Timeout check
           EXPECT_EQ(kTestParamVelocity1, test_node_->output_velocity().linear.x);
           break;
         }
         loop_count++;
       }
     }
-    // Timeout check
+    // Store current value
     ASSERT_FALSE(test_node_->CheckTimeOut(start_time));
-    // Remember current value
+    /// Obtain continuously output input_velocity0 and 1
     pre_data = test_node_->output_velocity().linear.x;
     test_node_->SpinOnce();
     rate.sleep();
   }
 }
 
-/// Obtain continuously outputted input_velocity0 and 1,
-/// Stop input_velocity0 when the outputted output_velocity value stabilizes
-/// Test if it stabilizes at the value of input_velocity1
+/// Stop input_velocity0 when output_velocity stabilizes
+/// Test whether the value stabilizes at input_velocity1
+// Provide input_velocity0
 TEST_F(VelocitySwitcherNodeTest, Continuation_input_composite_publisher) {
   rclcpp::Rate rate(kTestRate);
   rclcpp::Time start_time = rclcpp::Clock(RCL_ROS_TIME).now();
@@ -542,53 +542,53 @@ TEST_F(VelocitySwitcherNodeTest, Continuation_input_composite_publisher) {
   double pre_data = test_node_->output_velocity().linear.x;
   int32_t loop_count = 0;
 
-  // Provide input_velocity0
+  // Set flag ON when published value starts changing
   while (rclcpp::ok()) {
     PubTopic(kTestPatternEnum5);
 
-    // Turn flag ON if the published value starts to change
+    // If flag is ON, the value has started moving
     if (!subscribed_data_changed &&
         fabs(pre_data - test_node_->output_velocity().linear.x) > kCompareThreshold) {
       subscribed_data_changed = true;
     }
 
 
-    // If the flag is ON, the value has started to move
+    // Previous and current values are the same
     if (subscribed_data_changed) {
-      // Previous and current values are the same
+      // Values remain the same for a certain period
       if (fabs(pre_data - test_node_->output_velocity().linear.x) < kCompareThreshold) {
-        // Values are the same for more than a certain period
+        // Consider the value stable and perform the test
         if (loop_count > kTestParamLoopCountThresholdToCheckConstant) {
-          // Consider the value stable and perform the test
+          } else {  // Reset if the value changes. Values must remain the same continuously
           break;
         }
         loop_count++;
-      } else {  // Reset if the value has changed. It must be the same continuously
+      // Timeout check
         loop_count = 0;
       }
     }
-    // Timeout check
+    // Store current value
     ASSERT_FALSE(test_node_->CheckTimeOut(start_time));
-    // Remember current value
+    // Update start time
     pre_data = test_node_->output_velocity().linear.x;
     test_node_->SpinOnce();
     rate.sleep();
   }
 
 
-  // Update start time
+  // Provide input_velocity1
   start_time = rclcpp::Clock(RCL_ROS_TIME).now();
   subscribed_data_changed = false;
 
-  // Provide input_velocity1
+  // Set flag ON when published value starts changing
   while (rclcpp::ok()) {
     PubTopic(kTestPatternEnum1);
 
-    // Turn flag ON if the published value starts to change
+    /// Gradually change from kTestParamVelocity0 to kTestParamVelocity1
     if (!subscribed_data_changed &&
         fabs(pre_data - test_node_->output_velocity().linear.x) > kCompareThreshold) {
-      /// Gradually change from kTestParamVelocity0 to kTestParamVelocity1
       /// Obtain the first change and test
+      // If flag is ON, the value has started moving
       EXPECT_EQ((kTestParamVelocity1 - kTestParamVelocity0) /
                 kControlCycleTestNode/kPeriodSwitchingTestNode +
                 kTestParamVelocity0,
@@ -597,34 +597,34 @@ TEST_F(VelocitySwitcherNodeTest, Continuation_input_composite_publisher) {
       subscribed_data_changed = true;
     }
 
-    // If the flag is ON, the value has started to move
+    // Previous and current values are the same
     if (subscribed_data_changed) {
-      // Previous and current values are the same
+      // Values remain the same for a certain period
       if (fabs(pre_data - test_node_->output_velocity().linear.x) < kCompareThreshold) {
-        // Values are the same for more than a certain period
+        // Consider the value stable and perform the test
         if (loop_count > kTestParamLoopCountThresholdToCheckConstant) {
-          // Consider the value stable and perform the test
+          } else {  // Reset if the value changes. Values must remain the same continuously
           EXPECT_EQ(kTestParamVelocity1, test_node_->output_velocity().linear.x);
           break;
         }
         loop_count++;
-      } else {  // Reset if the value has changed. It must be the same continuously
+      // Timeout check
         loop_count = 0;
       }
     }
-    // Timeout check
+    // Store current value
     ASSERT_FALSE(test_node_->CheckTimeOut(start_time));
-    // Remember current value
+    // For input_velocity5 controlling only the XY axis with high priority
     pre_data = test_node_->output_velocity().linear.x;
     test_node_->SpinOnce();
     rate.sleep();
   }
 }
 
-// When input_velocity5, which targets only the XY axis and has high priority,
-// and input_velocity0, which targets all axes and has low priority, are issued,
-// Test if the XY axis of the outputted output_velocity value stabilizes at the value of input_velocity5,
-// and the rotational axis stabilizes at the value of input_velocity0
+// and input_velocity0 controlling all axes with low priority
+// Test whether the XY axis of output_velocity stabilizes at input_velocity5
+// and the rotational axis stabilizes at input_velocity0
+// Set flag ON when published value starts changing
 TEST_F(VelocitySwitcherNodeTest, Control_specific_axis0) {
   rclcpp::Rate rate(kTestRate);
   const rclcpp::Time start_time = rclcpp::Clock(RCL_ROS_TIME).now();
@@ -636,19 +636,19 @@ TEST_F(VelocitySwitcherNodeTest, Control_specific_axis0) {
   while (rclcpp::ok()) {
     PubTopic(kTestPatternEnum9);
 
-    // Turn flag ON if the published value starts to change
+    // If flag is ON, the value has started moving
     if (!subscribed_data_changed &&
         fabs(pre_data - test_node_->output_velocity().linear.x) > kCompareThreshold) {
       subscribed_data_changed = true;
     }
 
-    // If the flag is ON, the value has started to move
+    // Previous and current values are the same
     if (subscribed_data_changed) {
-      // Previous and current values are the same
+      // Values remain the same for a certain period
       if (fabs(pre_data - test_node_->output_velocity().linear.x) < kCompareThreshold) {
-        // Values are the same for more than a certain period
+        // Consider the value stable and perform the test
         if (loop_count > kTestParamLoopCountThresholdToCheckConstant) {
-          // Consider the value stable and perform the test
+          // Timeout check
           EXPECT_EQ(kTestParamVelocity5, test_node_->output_velocity().linear.x);
           EXPECT_EQ(kTestParamVelocity5, test_node_->output_velocity().linear.y);
           EXPECT_EQ(kTestParamVelocity0, test_node_->output_velocity().angular.z);
@@ -658,19 +658,19 @@ TEST_F(VelocitySwitcherNodeTest, Control_specific_axis0) {
       }
     }
 
-    // Timeout check
+    // Store current value
     ASSERT_FALSE(test_node_->CheckTimeOut(start_time));
-    // Remember current value
+    // For input_velocity6 controlling only the rotational axis with high priority
     pre_data = test_node_->output_velocity().linear.x;
     test_node_->SpinOnce();
     rate.sleep();
   }
 }
 
-// When input_velocity6, which targets only the rotational axis and has high priority,
-// and input_velocity0, which targets all axes and has low priority, are issued,
-// Test if the rotational axis of the outputted output_velocity value stabilizes at the value of input_velocity6,
-// and the XY axis stabilizes at the value of input_velocity0
+// and input_velocity0 controlling all axes with low priority
+// Test whether the rotational axis of output_velocity stabilizes at input_velocity6
+// and the XY axis stabilizes at input_velocity0
+// Set flag ON when published value starts changing
 TEST_F(VelocitySwitcherNodeTest, Control_specific_axis1) {
   rclcpp::Rate rate(kTestRate);
   const rclcpp::Time start_time = rclcpp::Clock(RCL_ROS_TIME).now();
@@ -682,19 +682,19 @@ TEST_F(VelocitySwitcherNodeTest, Control_specific_axis1) {
   while (rclcpp::ok()) {
     PubTopic(kTestPatternEnum10);
 
-    // Turn flag ON if the published value starts to change
+    // If flag is ON, the value has started moving
     if (!subscribed_data_changed &&
         fabs(pre_data - test_node_->output_velocity().linear.x) > kCompareThreshold) {
       subscribed_data_changed = true;
     }
 
-    // If the flag is ON, the value has started to move
+    // Previous and current values are the same
     if (subscribed_data_changed) {
-      // Previous and current values are the same
+      // Values remain the same for a certain period
       if (fabs(pre_data - test_node_->output_velocity().linear.x) < kCompareThreshold) {
-        // Values are the same for more than a certain period
+        // Consider the value stable and perform the test
         if (loop_count > kTestParamLoopCountThresholdToCheckConstant) {
-          // Consider the value stable and perform the test
+          // Timeout check
           EXPECT_EQ(kTestParamVelocity0, test_node_->output_velocity().linear.x);
           EXPECT_EQ(kTestParamVelocity0, test_node_->output_velocity().linear.y);
           EXPECT_EQ(kTestParamVelocity6, test_node_->output_velocity().angular.z);
@@ -704,21 +704,21 @@ TEST_F(VelocitySwitcherNodeTest, Control_specific_axis1) {
       }
     }
 
-    // Timeout check
+    // Store current value
     ASSERT_FALSE(test_node_->CheckTimeOut(start_time));
-    // Remember current value
+    // Confirm that no output occurs if no input velocity is provided
     pre_data = test_node_->output_velocity().linear.x;
     test_node_->SpinOnce();
     rate.sleep();
   }
 }
 
-// Confirm that nothing is output if no input velocity is provided
+// Confirm that output stops after input velocity ceases and stabilizes at 0
 TEST_F(VelocitySwitcherNodeTest, No_input_velocity) {
   ASSERT_FALSE(test_node_->WaitForSubscriberReceived());
 }
 
-// Confirm that output stops after input velocity ceases and speed stabilizes at 0
+// Create velocity_switcher node
 TEST_F(VelocitySwitcherNodeTest, Stop_output_velocity) {
   PubTopic(kTestPatternEnum0);
   ASSERT_TRUE(test_node_->WaitForSubscriberReceived());
@@ -736,9 +736,9 @@ int main(int argc, char** argv) {
   option.automatically_declare_parameters_from_overrides(true);
   const std::string yaml_directory = ament_index_cpp::get_package_share_directory("tmc_velocity_switcher")
       + "/test/parameter/";
-  // Generate velocity_switcher node
-  auto velocity_switcher_node = std::make_shared<tmc_velocity_switcher::VelocitySwitcher>(option);
   // Read parameters from yaml
+  auto velocity_switcher_node = std::make_shared<tmc_velocity_switcher::VelocitySwitcher>(option);
+  // Start a thread to spin
   LoadParameterFromYaml(velocity_switcher_node, yaml_directory, "velocity_switcher-test.yaml");
   velocity_switcher_node->Init();
   // Create a thread to spin

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -43,25 +43,25 @@ class OccupancyEllipseBumper : public VirtualBumper {
   typedef std::shared_ptr<OccupancyEllipseBumper> Ptr;
   OccupancyEllipseBumper(std::map<std::string, rclcpp::Parameter>& parameters, VelocitySlope::Ptr& velocity_slope);
 
-  /// Limit speed according to occupancy values of grids within the search range
-  /// If limited, output the coordinates of the obstacle that caused the limitation, which is the coordinate with the largest and closest occupancy value within the range
+  /// Limit the velocity based on the occupancy values of grids within the search range
+  /// If limited, output the coordinates of the obstacle that caused the limitation, which is the coordinate with the highest and closest occupancy value within the range
   /// @param input_velocity [I] Input velocity
-  /// @param obstacle_pose [O] Obstacle coordinates. Output the coordinates with the largest and closest occupancy value within the range
-  /// @return Limited speed ratio (0.0 to 1.0)
+  /// @param obstacle_pose [O] Obstacle coordinates. Outputs the coordinates with the highest and closest occupancy value within the range
+  /// @return Speed limit ratio (0.0 to 1.0)
   double LimitVelocityRatio(const Twist& input_velocity, geometry_msgs::msg::PoseStamped& obstacle_pose);
 
  private:
-  /// Calculate the distance from self-position to the farthest point within the elliptical range
+  /// Calculate the distance from the current position to the farthest point within the elliptical range
   double SearchLongestDistance();
 
-  /// Get ROS PARAM
+  /// Retrieve ROS PARAM
   void UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters);
 
   // Parameters
   double radius_x_;
   double radius_y_;
   double center_position_x_;
-  // Maximum distance of search range
+  // Maximum distance of the search range
   double obstacle_search_distance_;
 };
 }  // namespace tmc_safety_velocity_limiter

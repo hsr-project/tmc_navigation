@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,8 +36,8 @@ namespace tmc_astar_lib {
 /*
 Node data structure class.
 
-In A*, a node stores the state of one grid.
-Stores cumulative cost from the start point and the direction of the path on that grid.
+In A*, a node stores the state of one grid cell.
+It stores the cumulative cost from the start point and the direction of the path on that grid.
 */
 class AstarNode {
  public:
@@ -46,7 +46,7 @@ class AstarNode {
       parent_(nullptr),
       index_(index),
       is_closed_(false),
-      total_cost_(std::numeric_limits<int32_t>::max()),  // Initialize cost to maximum value to ensure it is updated on the first run
+      total_cost_(std::numeric_limits<int32_t>::max()),  // Initialize cost to the maximum value to ensure it gets updated on the first calculation
       total_step_(0),
       prev_(nullptr), next_(nullptr), queue_index_(-1),
       additional_info_(0) {}
@@ -64,34 +64,34 @@ class AstarNode {
   void set_prev(AstarNode* const prev) { prev_ = prev; }
   void set_next(AstarNode* const next) { next_ = next; }
 
-  /// Set the node to CLOSE
+  /// Mark the node as CLOSED
   void Close();
-  /// Update the node's state and set it to OPEN
-  /// @param [I] parent Parent node (one step before) In the case of the start point, it is nullptr
-  /// @param [I] total_cost Total cost from the start to this node
-  /// @param [I] total_step Total steps from the start to this node (count horizontal, vertical, and diagonal as 1)
-  /// @param [I] open true: Set this node to OPEN false: Do nothing (even if it is OPEN, do not set to CLOSE)
-  /// @param [I] additional_info Additional information (optional)
+  /// Update the state of the node and mark it as OPEN
+  /// @param [I] parent Parent node (the previous node). For the start point, this is nullptr.
+  /// @param [I] total_cost The total cost from the start to this node.
+  /// @param [I] total_step The total steps from the start to this node (counting horizontal, vertical, and diagonal as 1).
+  /// @param [I] open true: Mark this node as OPEN. false: Do nothing (even if the node is OPEN, it will not be marked as CLOSED).
+  /// @param [I] additional_info Additional information (optional).
   /// @return None
   void Update(AstarNode* const parent, const int32_t total_cost, const int32_t total_step,
               const bool open, const int32_t additional_info = 0);
   /// List linking
-  /// @param [I] queue_index Cost value when added to the queue Specify -1 when removed
-  /// @param [I] prev_node Pointer to the previous node in the queue Specify nullptr if it is the head or removed
-  /// @param [I] next_node Pointer to the next node in the queue Specify nullptr if it is the tail or removed
+  /// @param [I] queue_index The cost value when the node was added to the queue. Specify -1 if removed.
+  /// @param [I] prev_node Pointer to the previous node in the queue. Specify nullptr if it's the head or removed.
+  /// @param [I] next_node Pointer to the next node in the queue. Specify nullptr if it's the tail or removed.
   /// @return None
   void Connect(const int32_t queue_index, AstarNode* const prev_node, AstarNode* const next_node);
 
  private:
   AstarNode* parent_;            // Parent node of this node
   MapIndex index_;               // Index of this node
-  bool is_closed_;               // This node is true: explored false: unexplored
+  bool is_closed_;               // true: Explored, false: Not explored
   int32_t total_cost_;           // Total cost from the start point to this node
-  int32_t total_step_;           // Number of steps from the start point to this node (number of grids passed)
-  AstarNode* prev_;              // List link in the queue Previous
-  AstarNode* next_;              // List link in the queue Next
-  int32_t queue_index_;          // Queue index when added to the queue (cost value)
-  int32_t additional_info_;      // Additional information. Set any information you want to add to the node according to the characteristics of the map
+  int32_t total_step_;           // Number of steps (grids passed) from the start point to this node
+  AstarNode* prev_;              // Previous node in the queue list
+  AstarNode* next_;              // Next node in the queue list
+  int32_t queue_index_;          // Queue index when the node was added to the queue (cost value)
+  int32_t additional_info_;      // Additional information. Set any information specific to the map characteristics here.
 };
 
 }  // namespace tmc_astar_lib

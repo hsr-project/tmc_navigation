@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -49,24 +49,24 @@ class TestNode : public rclcpp::Node {
   // Initialization
   void Init();
 
-  // Check for timeout, returns true if timed out
+  // Check for timeout; returns true if timed out
   bool CheckTimeOut(const rclcpp::Time& start_time) const;
 
-  // Wait for the publisher link to be established
+  // Wait for the publisher's link to be established
   bool WaitForPublishersLinked();
-  // Wait for the subscriber link to be established
+  // Wait for the subscriber's link to be established
   bool WaitForSubscriberLinked();
 
-  // Wait for the subscriber to receive the topic
+  // Wait for the subscriber to receive a topic
   bool WaitForSubscriberReceived();
 
-  // Returns true if there is a change in the subscribed data from the previous value
+  // Returns true if the subscribed data has changed from the previous value
   bool CheckSubscribedDataChange();
 
   // Callback function
   void CallbackOutput(const geometry_msgs::msg::Twist::SharedPtr msg);
 
-  // Wait until the value of output_velocity settles to 0.0
+  // Wait until the value of output_velocity stabilizes at 0.0
   void WaitUntilOutputGetsZero();
 
   // Publish input velocity 0
@@ -132,7 +132,7 @@ class VelocitySwitcherNodeTest
   virtual void SetUp();
   virtual void TearDown();
 
-  // Function to issue test patterns according to the test_pattern_num number
+  // Function to issue test patterns based on the test_pattern_num number
   void PubTopic(const int32_t input_velocity_num);
 
   std::shared_ptr<TestNode> test_node_;

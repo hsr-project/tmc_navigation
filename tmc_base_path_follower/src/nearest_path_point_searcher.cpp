@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -31,7 +31,7 @@ DAMAGE.
 #include <vector>
 namespace tmc_base_path_follower {
 
-/// Route Nearest Point Search
+/// Search for the nearest point on the route
 uint32_t NearestPathPointSearcher::SearchNearestPathPointIndex(
     const PoseSeq& path, const std::vector<double>& left_path_lengths,
     const Pose2d& global_pose, const std::optional<uint32_t>& prev_index) {
@@ -61,26 +61,26 @@ uint32_t NearestPathPointSearcher::SearchNearestPathPointIndex(
     // Search for the nearest point within the range
     nearest_path_point_index = SearchNearestPathPointIndexInRange(path, global_pose,
         search_first_index, search_last_index);
-    // Calculate the position difference with the found point
+    // Calculate the positional difference with the found point
     error = (path[nearest_path_point_index].point() - global_pose.point()).norm();
   }
-  // If not performing partial search, or if the nearest point found in partial search is not closer than the threshold, perform full search
+  // If partial search is not performed or the nearest point in partial search is not found closer than the threshold, perform a full search
   if (error > param_.partial_search_permit_error) {
     nearest_path_point_index = SearchNearestPathPointIndexInRange(path, global_pose, 0, path.size() - 1);
   }
   return nearest_path_point_index;
 }
 
-/// Range Search for Route Nearest Point
+/// Range search for the nearest point on the route
 /// Search for the nearest point within the specified index range
 uint32_t NearestPathPointSearcher::SearchNearestPathPointIndexInRange(
     const PoseSeq& path, const Pose2d& global_pose,
     const uint32_t search_first_index, const uint32_t search_last_index) {
   uint32_t nearest_index = search_first_index;
   double minimum_error = std::numeric_limits<double>::max();
-  // Calculate the difference between each route point and the robot position
+  //  Calculate the positional difference between each route point and the robot's position
   for (uint32_t i = search_first_index; i <= search_last_index; ++i) {
-    // Store the magnitude of the position deviation
+    //  Store the magnitude of the positional deviation
     const double difference = (path[i].point() - global_pose.point()).norm();
     if (difference < minimum_error) {
       nearest_index = i;

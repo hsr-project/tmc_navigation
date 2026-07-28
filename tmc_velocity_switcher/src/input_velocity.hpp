@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -39,7 +39,7 @@ DAMAGE.
 #include <rclcpp/rclcpp.hpp>
 
 namespace tmc_velocity_switcher {
-/// Axis index
+/// Axis Index
 enum Axis {
   kAxisX = 0,
   kAxisY = 1,
@@ -61,7 +61,7 @@ class InputVelocity : private boost::noncopyable {
   // Returns the last subscribed time
   double updated_time() const;
 
-  // Get whether the specified axis is under control
+  // Check if the specified axis is under control
   bool as_control_target(const int32_t axis) const;
 
   // Get velocity priority

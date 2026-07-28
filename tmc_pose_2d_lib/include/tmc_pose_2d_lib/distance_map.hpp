@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -75,9 +75,9 @@ class DistanceMap {
   bool SetValueAt(const size_t index_u, const size_t index_v, const unsigned char value);
   /// @brief Get map data value
   bool GetValueAt(const size_t index_u, const size_t index_v, unsigned char& value) const;
-  /// @brief Obtain coordinate values in map coordinate system from values in image coordinate system
+  /// @brief Get coordinate value in map coordinate system from value in image coordinate system
   bool GetMapPoint(const size_t index_u, const size_t index_v, Point2d& point_map) const;
-  /// @brief Determine whether a specified 2D point in the map coordinate system is within the map data range
+  /// @brief Determine whether the specified 2D point in the map coordinate system is within the map data range
   bool InMap(const Point2d& p_map) const;
   /// @brief Check the type of image data at the specified map coordinate point, and return the value if a valid distance is present
   void CheckTypeAndDistance(const Point2d& p_map, DistanceMap::CellType& type, double& distance) const;
@@ -87,7 +87,7 @@ class DistanceMap {
   void ImageToMap(Pose2d& pose);
   /// @brief Coordinate transformation from map coordinate system to image coordinate system
   void MapToImage(Pose2d& pose);
-  /// @brief Expand the obstacle area so that the occupancy rate decreases as it moves away from the wall up to the specified distance from the wall
+  /// @brief Expand the obstacle area so that the occupancy rate decreases as the distance from the wall increases, up to the specified distance from the wall
   void InflateMap(const double potential_width);
 
  private:
@@ -106,7 +106,7 @@ class DistanceMap {
   std::vector<unsigned char> data_;
 
   /// Occupied and unoccupied threshold
-  // Normalize (255-data) and multiply by potential_width to get the shortest distance to the object in that cell
+  // Normalizing (255-data) and multiplying by potential_width gives the shortest distance to an object in that cell
   double potential_width_;
 
   // Range of indices where potential values exist
@@ -115,7 +115,7 @@ class DistanceMap {
   size_t max_u_;
   size_t max_v_;
 
-  /// @brief Obtain the value in the image coordinate system for a specified 2D point in the map coordinate system
+  /// @brief Get the value in the image coordinate system for the specified 2D point in the map coordinate system
   bool CheckIndices(const Point2d& p_map, size_t& index_u, size_t& index_v) const;
   bool CheckIndexArea(const size_t index_u, const size_t index_v) const;
 
@@ -123,7 +123,7 @@ class DistanceMap {
 
   /// Calculate the grid distance to the nearest wall for each grid
   std::vector<double> CalculateGridDistanceToWalls();
-  /// Update the distance to the nearest wall and nearest wall position information
+  /// Update the distance to the nearest wall and the nearest wall position information
   void UpdateDistanceAndNearestWall(const int32_t x, const int32_t y, const int32_t neighbor_index,
                                     std::vector<int32_t>& nearest_wall_indexes, double& distance);
 };

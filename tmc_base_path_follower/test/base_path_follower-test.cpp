@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -34,7 +34,7 @@ DAMAGE.
 
 namespace tmc_base_path_follower {
 
-/// Result of each mock function
+/// Results of each mock function
 struct MockModulesResults {
   MockModulesResults(
       const uint32_t in_nearest_index, const bool in_arrived_goal_area, const bool in_arrived_goal,
@@ -53,7 +53,7 @@ struct MockModulesResults {
   bool calculate_velocity_result;
 };
 
-// Expected output value
+// Expected output
 struct ExpectedOutput {
   ExpectedOutput(const bool in_result, const Vector3d& in_velocity,
                  const uint32_t in_current_path_index, const bool in_is_arrived_goal)
@@ -75,13 +75,13 @@ struct BasePathFollowerTestParameter {
       use_path_transit_velocity(in_use_path_transit_velocity),
       expect_arg_transit_velocity(in_expect_arg_transit_velocity),
       expected_output(in_expected_output) {}
-  // Result of each mock function
+  // Results of each mock function
   MockModulesResults mock_results;
   // Setting whether to perform path transit velocity control
   bool use_path_transit_velocity;
   // Expected value of path transit velocity passed to CalculateVelocity
   std::optional<double> expect_arg_transit_velocity;
-  // Expected output value
+  // Expected output
   ExpectedOutput expected_output;
 };
 
@@ -101,7 +101,7 @@ class BasePathFollowerTest : public ::testing::TestWithParam<BasePathFollowerTes
     using ::testing::DoAll;
     using ::testing::SetArgReferee;
     using ::testing::Return;
-    // Set the behavior of each mock according to the parameters
+    // Configure the behavior of each mock according to the parameters
     BasePathFollowerTestParameter param = (BasePathFollowerTestParameter)GetParam();
     const MockModulesResults mock_results = param.mock_results;
 
@@ -131,7 +131,7 @@ class BasePathFollowerTest : public ::testing::TestWithParam<BasePathFollowerTes
             GetPathTransitVelocity(_))
             .WillByDefault(Return(mock_results.transit_velocity));
     // Set the result of CalculateVelocity
-    // Also verify if the passed transit_velocity is correct
+    // Also confirm that the passed transit_velocity is correct
     ON_CALL(*mock_velocity_calculator_,
             CalculateVelocity(_, _, _, _, _, _, param.expect_arg_transit_velocity, _))
             .WillByDefault(DoAll(SetArgReferee<7>(mock_results.calculate_velocity),
@@ -145,7 +145,7 @@ class BasePathFollowerTest : public ::testing::TestWithParam<BasePathFollowerTes
   MockGoalChecker::Ptr mock_goal_checker_;
   MockVelocityCalculator::Ptr mock_velocity_calculator_;
   MockPathTransitVelocityCalculator::Ptr mock_path_transit_velocity_calculator_;
-  // Test subject
+  // Test target
   BasePathFollower::Ptr base_path_follower_;
 };
 
@@ -186,7 +186,7 @@ INSTANTIATE_TEST_CASE_P(
             MockModulesResults(1, true, true, 1.0, Vector3d(0.1, 0.2, 0.3), true),
             true, 1.0,
             ExpectedOutput(true, Vector3d::Zero(), 1, true)),
-        // The current path index is output as the value output by NearestPathPointSearcher
+        // The current path index is directly output as the value output by NearestPathPointSearcher
         BasePathFollowerTestParameter(
             MockModulesResults(5, false, false, 1.0, Vector3d(0.1, 0.2, 0.3), true),
             true, 1.0,

@@ -1,7 +1,7 @@
 <package format="3">
   <name>tmc_base_path_planner</name>
-  <version>2.1.0</version>
-  <description>Given a grid map, the path from the current position to the goal is provided.</description>
+  <version>3.0.0</version>
+  <description>Given a grid map, path from current position to goal is provided.</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
 
   <license>BSD 3-clause Clear License</license>

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -41,15 +41,15 @@ using tmc_astar_lib::ICostCorrector;
 namespace tmc_base_path_planner {
 
 /*
-The A* algorithm generates the optimal path from the start point to the goal point.
+Generate the optimal path from the start point to the goal point using the A* algorithm.
 
-・The input and output coordinate system is based on the origin of the static map.
+・The input and output coordinate systems are based on the origin of the static map.
 ・The output goal point matches the input goal.
 ・Points other than the goal are the coordinates of the center of the grid passed through.
 ・Except for the goal point, the direction of each point is undefined.
 
-1. Adjust the position of the start point if necessary.
-2. If the start and goal exist in the same grid, return them as a two-point path as is.
+1. Adjust the position of the start point as needed.
+2. If the start and goal exist in the same grid, return them as a two-point path.
 3. Estimate the maximum cost.
 4. Execute the A* algorithm.
    Refer to the tmc_astar_lib package for details.
@@ -63,11 +63,11 @@ class AstarPathPlanner : public IPathPlannerCore {
       const std::vector<ICostCorrector::Ptr>& cost_correctors);
   /// Destructor
   ~AstarPathPlanner() {}
-  /// Execute path planning
-  /// @param [I] start Start coordinates (relative to static map)
-  /// @param [I] goal Goal coordinates (relative to static map)
+  /// Execute route planning
+  /// @param [I] start Start coordinates (relative to the static map)
+  /// @param [I] goal Goal coordinates (relative to the static map)
   /// @param [I] dynamic_map Dynamic map
-  /// @param [I] dynamic_map_origin Origin of dynamic map (relative to static map)
+  /// @param [I] dynamic_map_origin Dynamic map origin (relative to the static map)
   /// @param [I] enable_adaptive_start_positioning Start position adjustment feature ON/OFF
   /// @param [I] preferred_path Preferred path
   /// @param [O] output_path Generated path

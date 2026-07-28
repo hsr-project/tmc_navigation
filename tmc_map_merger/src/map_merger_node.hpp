@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -82,7 +82,7 @@ class MapMergerNode : public rclcpp::Node {
           map_merger_->Merge(merger->GetMap());
         }
       }
-      // Copy, add header, and publish
+      // Publish after copying and adding header
       *map = map_merger_->GetMap();
       map->header.frame_id = fixed_frame_;
       map->header.stamp = map_center.header.stamp;
@@ -95,10 +95,10 @@ class MapMergerNode : public rclcpp::Node {
 
   void Reset(const std_srvs::srv::Empty::Request::SharedPtr req,
              const std_srvs::srv::Empty::Response::SharedPtr res) {
-    // Reset root merger buffer
+    // Reset buffer of root merger
     map_merger_->Clear();
 
-    // Reset map input buffer
+    // Reset buffer of map input port
     for (auto map_input : map_inputs_) {
       map_input->GetMapMerger()->Clear();
     }

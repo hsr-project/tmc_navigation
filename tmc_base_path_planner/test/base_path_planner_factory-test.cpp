@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,7 +36,7 @@ DAMAGE.
 #include "test_utils_ros.hpp"
 
 namespace {
-// Potential width of the static map [m]
+// Static map potential width [m]
 constexpr double kStaticMapPotentialWidth = 3.0;
 }   // anonymous namespace
 
@@ -65,8 +65,8 @@ class BasePathPlannerFactoryTest : public ::testing::Test {
 
 
 /// BasePathPlannerFactoryCreate test
-/// Can be created when all parameters are specified
-/// Whether it is generated according to the specified parameters is concealed and not visible from the outside, so it is not confirmed
+/// It can be created when all parameters are specified
+/// Whether it is generated according to the specified parameters is concealed and cannot be confirmed from the outside
 TEST_F(BasePathPlannerFactoryTest, CreateWithAllParameterSpecified) {
   // setup
   LoadParameterFromYaml(test_node_, yaml_directory_,
@@ -82,8 +82,8 @@ TEST_F(BasePathPlannerFactoryTest, CreateWithAllParameterSpecified) {
 
 
 /// BasePathPlannerFactoryCreate test
-/// Can be created even if no parameters are specified
-/// Whether it is generated according to default values is concealed and not visible from the outside, so it is not confirmed
+/// It can be created even if no parameters are specified
+/// Whether it is generated according to the default values is concealed and cannot be confirmed from the outside
 TEST_F(BasePathPlannerFactoryTest, CreateWithNoParameterSpecified) {
   // setup
   LoadParameterFromYaml(test_node_, yaml_directory_,
@@ -99,7 +99,7 @@ TEST_F(BasePathPlannerFactoryTest, CreateWithNoParameterSpecified) {
 
 
 /// BasePathPlannerFactoryCreate test
-/// Throws an exception and cannot be created if an undefined planner is specified
+/// It cannot be created and throws an exception if an undefined planner is specified
 TEST_F(BasePathPlannerFactoryTest, CreateWithUnknownPlannerTypeSpecified) {
   // setup
   LoadParameterFromYaml(test_node_, yaml_directory_,

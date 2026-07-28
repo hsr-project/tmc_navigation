@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -49,14 +49,14 @@ class IBasePathPlanner {
   /// Initialization
   virtual void Initialize() = 0;
 
-  /// Plan Route
+  /// Plan a route
   /// @param [I] in_start_pose Start
   /// @param [I] in_goal_pose Goal
-  /// @param [I] in_global_pose Self Position
+  /// @param [I] in_global_pose Self-position
   /// @param [I] in_dynamic_map Dynamic Map
-  /// @param [I] in_dynamic_map_origin Dynamic Map Origin Pose
+  /// @param [I] in_dynamic_map_origin Dynamic Map's origin pose
   /// @param [I] in_skip_non_update Whether to skip if there is no update to the previous route
-  /// @param [O] out_path Planned Route
+  /// @param [O] out_path Planned route
   virtual BasePathPlannerErrorCode PlanPath(
       const Pose2d& in_start_pose, const Pose2d& in_goal_pose, const Pose2d& in_global_pose,
       const CostMapPtr& in_dynamic_map, const Pose2d& in_dynamic_map_origin, const bool in_skip_non_update,
@@ -84,14 +84,14 @@ class BasePathPlanner : public IBasePathPlanner {
 
   void Initialize();
 
-  /// Plan Route
+  /// Plan a route
   /// @param [I] in_start_pose Start
   /// @param [I] in_goal_pose Goal
-  /// @param [I] in_global_pose Self Position
+  /// @param [I] in_global_pose Self-position
   /// @param [I] in_dynamic_map Dynamic Map
-  /// @param [I] in_dynamic_map_origin Dynamic Map Origin Pose
+  /// @param [I] in_dynamic_map_origin Dynamic Map's origin pose
   /// @param [I] in_skip_non_update Whether to skip if there is no update to the previous route
-  /// @param [O] out_path Planned Route
+  /// @param [O] out_path Planned route
   BasePathPlannerErrorCode PlanPath(
       const Pose2d& in_start_pose, const Pose2d& in_goal_pose, const Pose2d& in_global_pose,
       const CostMapPtr& in_dynamic_map, const Pose2d& in_dynamic_map_origin, const bool in_skip_non_update,

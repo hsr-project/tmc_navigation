@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -50,7 +50,7 @@ DAMAGE.
 
 namespace tmc_safety_velocity_limiter {
 
-/// Uses obstacle information, etc., to impose speed limits on the robot according to the situation
+/// Using obstacle information, restrict robot speed according to the situation
 class VelocityLimiter : public rclcpp::Node {
  public:
   // Constructor
@@ -78,7 +78,7 @@ class VelocityLimiter : public rclcpp::Node {
   // Service to reset to default settings
   void ResetToDefaultServiceCallback(std_srvs::srv::Empty::Request::SharedPtr req,
       std_srvs::srv::Empty::Response::SharedPtr res);
-  // Service to get current settings
+  // Service to retrieve current settings
   void GetCurrentSettingServiceCallback(tmc_navigation_msgs::srv::GetCurrentSetting::Request::SharedPtr req,
       tmc_navigation_msgs::srv::GetCurrentSetting::Response::SharedPtr res);
   // Acceleration limit
@@ -110,7 +110,7 @@ class VelocityLimiter : public rclcpp::Node {
   bool default_enable_function_;            // Default value for function enable/disable
   std::string default_bumper_set_;          // Default value for bumper set name
 
-  // Function On/Off flag
+  // Flags for function On/Off
   bool enable_function_;
   // Function On service
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr start_service_;
@@ -120,7 +120,7 @@ class VelocityLimiter : public rclcpp::Node {
   rclcpp::Service<tmc_navigation_msgs::srv::SwitchBumperSet>::SharedPtr switch_bumper_set_service_;
   // Service to reset to default settings
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_to_default_service_;
-  // Service to get current settings
+  // Service to retrieve current settings
   rclcpp::Service<tmc_navigation_msgs::srv::GetCurrentSetting>::SharedPtr get_current_setting_service_;
   // Registered bumper sets
   std::map<std::string, BumperSet::Ptr> bumper_sets_;
@@ -130,15 +130,15 @@ class VelocityLimiter : public rclcpp::Node {
   // Currently set invalid bumper list
   std::vector<std::string> current_disable_bumpers_;
 
-  // Output speed at the last control
+  // Output speed during previous control
   geometry_msgs::msg::Twist previous_velocity_;
-  // Time at the last control
+  // Time during previous control
   rclcpp::Time previous_operation_time_;
   // Whether sudden deceleration is being detected
   bool is_slowing_down_;
-  // Time when sudden deceleration detection/non-detection switched
+  // Time when sudden deceleration detection toggled
   rclcpp::Time slowdown_status_update_time_;
-  // State of the output topic
+  // State of output topic
   std_msgs::msg::Bool is_slowing_down_topic_;
 };
 

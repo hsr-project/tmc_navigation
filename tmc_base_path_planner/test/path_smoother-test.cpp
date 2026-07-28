@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -53,13 +53,13 @@ class PathSmootherTest : public ::testing::Test {
 };
 
 /// PathSmoother test
-/// The start, goal, and number of path points are the same as the input, and a smoothed path is returned
+/// The start, goal, and number of waypoints are the same as the input, and a smoothed path is returned
 TEST_F(PathSmootherTest, NormalCase) {
   // exercise
   PoseSeq input;
-  // Generate a path with a zigzag width of one grid
+  // Generate a path with zigzags of one grid width
   for (int32_t i = 0; i < kTestPathLength / 2; ++i) {
-    // Insert dummy values for orientation
+    // Set dummy values for orientation
     input.push_back(Pose2d(static_cast<double>(i) * kResolution, 0.0, 0.123));
     input.push_back(Pose2d(static_cast<double>(i) * kResolution, kResolution, 0.123));
   }
@@ -67,15 +67,15 @@ TEST_F(PathSmootherTest, NormalCase) {
   smoother_->SmoothingPath(input, output);
 
   // verify
-  // The number of path points is the same
+  // The number of waypoints is the same
   ASSERT_EQ(input.size(), output.size());
   // The start coordinates are the same
   EXPECT_DOUBLE_EQ(input.front().x(), output.front().x());
   EXPECT_DOUBLE_EQ(input.front().y(), output.front().y());
-  // The start point is facing the direction of the next point
+  // The start point faces the direction of the next point
   const double expect_start_theta = atan2(output[1].y() - output[0].y(), output[1].x() - output[0].x());
   EXPECT_DOUBLE_EQ(expect_start_theta, output[0].theta());
-  // Points other than the start and goal are facing the direction of progress from the previous point
+  // Points other than the start and goal face the direction of progress from the previous point
   for (size_t i = 1; i < output.size() - 1; ++i) {
     const double expect_theta = atan2(output[i].y() - output[i - 1].y(), output[i].x() - output[i - 1].x());
     EXPECT_DOUBLE_EQ(expect_theta, output[i].theta());
@@ -84,7 +84,7 @@ TEST_F(PathSmootherTest, NormalCase) {
   EXPECT_DOUBLE_EQ(input.back().x(), output.back().x());
   EXPECT_DOUBLE_EQ(input.back().y(), output.back().y());
   EXPECT_DOUBLE_EQ(input.back().theta(), output.back().theta());
-  // The width of the zigzag is reduced
+  // The zigzag width is reduced
   // Since the start and goal are not subject to correction, check the others
   double min_y = output[1].y();
   double max_y = output[1].y();

@@ -1,6 +1,6 @@
 <package format="3">
   <name>tmc_marker_based_localizer</name>
-  <version>2.1.0</version>
+  <version>3.0.0</version>
   <description>Publish localized pose based on the information of
      marker recognition and object database.</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>

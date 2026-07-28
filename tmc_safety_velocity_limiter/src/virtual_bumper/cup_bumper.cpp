@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -38,13 +38,13 @@ DAMAGE.
 namespace {
 // ROS parameter name
 const char* kBottomLength = "bottom_length";                       // Cup bottom length [m]
-const char* kObstacleSearchDistance = "obstacle_search_distance";  // Restricted target range [m]
-const char* kObstacleSearchAngle = "obstacle_search_angle";        // Restricted target angle [rad]
+const char* kObstacleSearchDistance = "obstacle_search_distance";  // Restricted range [m]
+const char* kObstacleSearchAngle = "obstacle_search_angle";        // Restricted angle [rad]
 const char* kRobotRadius = "robot_radius";                         // Robot radius [m]
-// ROS parameter default value
+// ROS parameter default values
 const double kBottomLengthDef = 0.44;            // Cup bottom length [m]
-const double kObstacleSearchDistanceDef = 1.2;   // Restricted target range [m]
-const double kObstacleSearchAngleDef = 0.1745;   // Restricted target angle [rad]
+const double kObstacleSearchDistanceDef = 1.2;   // Restricted range [m]
+const double kObstacleSearchAngleDef = 0.1745;   // Restricted angle [rad]
 const double kRobotRadiusDef = 0.22;             // Robot radius [m]
 }  // anonymous namespace
 
@@ -55,47 +55,47 @@ CupBumper::CupBumper(std::map<std::string, rclcpp::Parameter>& parameters, Veloc
   UpdateParameters(parameters);
 }
 
-/// Returns the speed limit ratio according to the distance to the nearest point within the range.
-/// Outputs the coordinates of the obstacle that caused the restriction when restricted
-/// @param input_velocity [I] Input speed
-/// @param obstacle_pose [O] Output obstacle coordinates
+/// Returns the velocity restriction ratio based on the distance to the nearest point within the range.
+/// Outputs the coordinates of the obstacle that caused the restriction if restricted.
+/// @param input_velocity [I] Input velocity
+/// @param obstacle_pose [O] Outputs obstacle coordinates
 /// @return Restriction ratio (0.0 to 1.0)
 double CupBumper::LimitVelocityRatio(const Twist& input_velocity, geometry_msgs::msg::PoseStamped& obstacle_pose) {
   PointCloudPtr obstacle_cloud = Obstacle::GetInstance()->ObstacleCloud();
-  double velocity_ratio = 1.0;  // Speed limit ratio
+  double velocity_ratio = 1.0;  // Velocity restriction ratio
   double distance_ratio = 1.0;  // Ratio of obstacle distance to search distance
-  // Obtain the point with the shortest distance within the range
+  // Retrieve the nearest point within the range
   if (FindNearestPoseInRange(obstacle_cloud, input_velocity, obstacle_pose, distance_ratio)) {
-    // Calculate the speed limit ratio from the ratio of obstacle distance to search distance
+    // Calculate the velocity restriction ratio based on the ratio of obstacle distance to search distance
     velocity_ratio = velocity_slope_->CalcRatio(distance_ratio);
   }
   return velocity_ratio;
 }
 
-/// Find the point with the shortest distance within the range
+/// Find the nearest point within the range
 /// @param input_cloud [I] Point cloud
-/// @param input_velocity [I] Movement speed
-/// @param nearest_pose [O] Point with the shortest distance
+/// @param input_velocity [I] Movement velocity
+/// @param nearest_pose [O] Nearest point
 /// @param distance_ratio [O] Ratio of obstacle distance to search distance
-/// @return Whether found or not true found false not found
+/// @return Whether found or not: true if found, false if not found
 bool CupBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, const Twist& input_velocity,
     geometry_msgs::msg::PoseStamped& nearest_pose, double& distance_ratio) {
-  // Determine the bumper size ratio according to the input speed
+  // Determine bumper size ratio based on input velocity
   const double bumper_scale = CalcBumperScale(input_velocity);
   if (bumper_scale < std::numeric_limits<double>::epsilon()) {
     return false;
   }
   bool ret = false;
   const double velocity_angle = atan2(input_velocity.linear.y, input_velocity.linear.x);
-  // Find the vertices of the cup bottom
-  // Angle and distance from robot position to bottom vertices
+  // Calculate the vertices of the cup's bottom edge
+  // Angle and distance from the robot position to the bottom edge vertices
   const double theta = atan2(bottom_length_ / 2.0, -robot_radius_);
   const double apex_distance = sqrt(pow(bottom_length_ / 2.0, 2.0) + pow(robot_radius_, 2.0));
-  // Cup bottom left vertex
+  // Cup bottom edge left vertex
   geometry_msgs::msg::Point apex_left;
   apex_left.x = cos(velocity_angle + theta) * apex_distance;
   apex_left.y = sin(velocity_angle + theta) * apex_distance;
-  // Cup bottom right vertex
+  // Cup bottom edge right vertex
   geometry_msgs::msg::Point apex_right;
   apex_right.x = cos(velocity_angle - theta) * apex_distance;
   apex_right.y = sin(velocity_angle - theta) * apex_distance;
@@ -103,17 +103,17 @@ bool CupBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, const T
   const double obstacle_search_distance = obstacle_search_distance_ * bumper_scale;
   double min_distance_square = pow(obstacle_search_distance, 2.0);
   for (PointCloud::iterator it = input_cloud->points.begin(); it != input_cloud->points.end(); ++it) {
-    // Distance from robot origin to point
+    // Distance from the robot origin to the point
     const double point_distance_square = it->x * it->x + it->y * it->y;
     if (point_distance_square > min_distance_square) {
       continue;
     }
-    // Calculate the angle from the left and right vertices of the cup bottom to the point
+    // Calculate the angle from the left and right vertices of the cup's bottom edge to the point
     const double point_angle_left =
         angles::shortest_angular_distance(velocity_angle, atan2(it->y - apex_left.y, it->x - apex_left.x));
     const double point_angle_right =
         angles::shortest_angular_distance(velocity_angle, atan2(it->y - apex_right.y, it->x - apex_right.x));
-    // Determine if within cup range
+    // Determine if within the cup range
     if (point_angle_left < obstacle_search_angle_ / 2.0 &&
         point_angle_left > - M_PI / 2.0 &&
         point_angle_right > -obstacle_search_angle_ / 2.0 &&
@@ -128,7 +128,7 @@ bool CupBumper::FindNearestPoseInRange(const PointCloudPtr& input_cloud, const T
   return ret;
 }
 
-/// Get ROS PARAM
+/// Retrieve ROS PARAM
 void CupBumper::UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters) {
   GetOptionalParam(parameters, kBottomLength, bottom_length_, kBottomLengthDef);
   if (bottom_length_ <= 0.0) {

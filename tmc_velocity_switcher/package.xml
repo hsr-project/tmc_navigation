@@ -1,7 +1,7 @@
 <package format="3">
   <name>tmc_velocity_switcher</name>
-  <version>2.1.0</version>
-  <description>    Select the input velocity of higher priority, then output it smoothly.</description>
+  <version>3.0.0</version>
+  <description>    select input velocity of higher priority then output it smoothly.</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
   <license>BSD 3-clause Clear License</license>
   <author>Syuuhei Shiro</author>

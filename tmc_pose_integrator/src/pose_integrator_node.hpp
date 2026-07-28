@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file     pose_integrator_node.hpp
-/// @brief    Integrate multiple self-positioning results (definition part)
+/// @brief    Integrates multiple self-positioning results (definition part)
 /// @version  0.2.0
 /// @author   Takao Yasuda
 /// @author   Applied for Partner-Robot Coding Rule(Ver:x.xx)
@@ -64,7 +64,7 @@ class PoseIntegratorNode : public rclcpp::Node {
   void UpdateGlobalPose();
 
  private:
-  /// Callback (laser self-positioning)
+  /// Callback (laser self-position)
   void CallbackLaser2dPose_(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr laser_2d_msg);
   /// Callback (odometry)
   void CallbackOdometry_(const nav_msgs::msg::Odometry::SharedPtr odometry_msg);
@@ -72,15 +72,15 @@ class PoseIntegratorNode : public rclcpp::Node {
   void SendGlobalPose_(const Pose2d& pose);
   /// callback for tf broadcast
   void CallbackTfBroadcast_();
-  /// Get odom from tf
+  /// Retrieve odom from tf
   void GetOdometryFromTf(void);
   /// Flag to check if laser_2d_pose subscription is the first time
   bool is_first_laser_2d_pose_;
-  /// Flag to use URG for map generation
+  /// Flag to determine whether to use URG for map generation
   bool is_inverted_urg_;
   /// node transfers tf(map->odom) only when odometry is updated.
   bool is_odom_updated_;
-  /// Specify the initial installation position of the robot's upper arm relative to the robot's orientation (deg)
+  /// Specify the initial installation position (deg) of the robot's upper arm relative to the robot's orientation
   double robot_base_tf_yaw_;
   /// Timestamp for checking laser_2d_pose data update
   double pre_laser_2d_pose_time_;
@@ -92,13 +92,13 @@ class PoseIntegratorNode : public rclcpp::Node {
   std::string odom_frame_id_;
   /// Self-position integration class
   PoseIntegrator::Ptr pose_integrator_;
-  /// Broadcaster for self-position frame update
+  /// Broadcaster for self-position frame updates
   tf2_ros::TransformBroadcaster tf_broadcaster_;
   /// timer for tf broadcast
   rclcpp::TimerBase::SharedPtr timer_;
   /// Periodic controller
   std::shared_ptr<rclcpp::Rate> rate_;
-  /// Subscriber (laser self-positioning)
+  /// Subscriber (laser self-position)
   rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr subscribe_laser2d_pose_;
   /// Publisher (self-position estimation)
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr global_pose_publisher_;

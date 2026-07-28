@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -41,21 +41,21 @@ void PathTransitVelocityCalculator::CalculatePathTransitVelocity(const PathInfo&
   transit_velocity_.clear();
   transit_velocity_.resize(path_size);
 
-  // Calculate initial speed to embed at each point and acceleration range
+  // Calculate initial speed and acceleration range for each point
   std::vector<double> max_acceleration;
   std::vector<double> max_deceleration;
   max_acceleration.resize(path_size);
   max_deceleration.resize(path_size);
   for (int32_t i = 0; i < path_size; ++i) {
     if (fabs(curvatures[i]) > std::numeric_limits<double>::epsilon()) {
-      // Calculate passing speed according to curvature
+      // Calculate passing speed based on curvature
       transit_velocity_[i] = std::min<double>(
           param_.max_linear_velocity,
           param_.max_angular_velocity * param_.transit_velocity_angular_velocity_ratio / fabs(curvatures[i]));
-      // If below minimum speed, store minimum speed
+      // If below minimum speed, store the minimum speed
       transit_velocity_[i] = std::max<double>(transit_velocity_[i], param_.min_linear_velocity);
 
-      // Calculate acceleration and deceleration according to curvature
+      // Calculate acceleration/deceleration based on curvature
       max_acceleration[i] =
           std::min<double>(param_.max_linear_acceleration,
                            param_.max_angular_acceleration / fabs(curvatures[i]));
@@ -75,29 +75,29 @@ void PathTransitVelocityCalculator::CalculatePathTransitVelocity(const PathInfo&
     // Calculate speed difference between two points
     const double delta_v = transit_velocity_[i] - transit_velocity_[prev_index];
 
-    // Calculate speed change range from maximum acceleration and deceleration
+    // Calculate speed change range from maximum acceleration/deceleration
     Point2d prev_point_diff = path[i].point() - path[prev_index].point();
     double delta_l = prev_point_diff.norm();
     double delta_v_max = max_acceleration[prev_index] * delta_l / transit_velocity_[prev_index];
     double delta_v_min = -max_deceleration[prev_index] * delta_l / transit_velocity_[prev_index];
     // Compare speed difference value with possible range, and adjust speed if out of range
     if (delta_v > delta_v_max) {
-      // If acceleration is too high, increase subsequent speed with maximum acceleration
+      // If acceleration is too high, increase subsequent speeds using the maximum acceleration
       for (int32_t fix_index = i; fix_index < path_size - 1; ++fix_index) {
         if (transit_velocity_[fix_index] < transit_velocity_[fix_index - 1] + delta_v_max) {
-          // Finish if within maximum acceleration range from previous point
+          // Finish if within the maximum acceleration range from the previous point
           break;
         }
-        // Increase speed with maximum acceleration
+        // Increase speed using maximum acceleration
         transit_velocity_[fix_index] = transit_velocity_[fix_index - 1] + delta_v_max;
 
-        // Calculate maximum acceleration for next point
+        // Calculate maximum acceleration for the next point
         prev_point_diff = path[fix_index + 1].point() - path[fix_index].point();
         delta_l = prev_point_diff.norm();
         delta_v_max = max_acceleration[fix_index + 1] * delta_l / transit_velocity_[fix_index];
       }
     } else if (delta_v < delta_v_min) {
-      // If deceleration is too high, decrease speed with maximum deceleration
+      // If deceleration is too high, decrease speed using the maximum deceleration
       transit_velocity_[prev_index] = (transit_velocity_[i] + sqrt(
           pow(transit_velocity_[i], 2.0) + 4.0 * delta_l * max_deceleration[prev_index])) / 2.0;
     }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -50,11 +50,11 @@ DAMAGE.
 #include <std_srvs/srv/empty.hpp>
 #include <tf2/convert.h>
 #include <tf2/utils.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
-#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 #include <tmc_navigation_msgs/srv/bool_response.hpp>
 #include <tmc_navigation_msgs/srv/set_localization_score_limit.hpp>
 #include <tmc_pose_2d_lib/distance_map.hpp>
@@ -72,8 +72,8 @@ const char* const kGlobalFrameId = "map";
 /**
     \brief  Laser2dLocalizer class
     \par
-    Creates self-localization estimation data using 2D LRF data.
-    Uses the self-localization library laser_2d_mcl_lib.c.
+    Create self-localization data using 2D LRF data.
+    Use the self-localization library laser_2d_mcl_lib.c.
 */
 
 class Laser2dLocalizerNode : public rclcpp::Node {
@@ -110,14 +110,14 @@ class Laser2dLocalizerNode : public rclcpp::Node {
                            sensor_msgs::msg::PointCloud2& output_cloud);
 
 
-  /// Switch is triggered by odometry movement threshold judgment
+  /// Switch is triggered by odometry movement threshold
   bool run_mcl_;
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr static_distance_map_subscriber_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr point_cloud_subscriber_;
   rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr correct_pose_subscriber_;
-  /// Publisher of self-localization estimation results
+  /// Publisher for self-localization results
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr laser_2d_pose_publisher_;
-  /// Publisher of current particle status results
+  /// Publisher for current particle status results
   rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr particle_positions_publisher_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr score_publisher_;
 
@@ -126,7 +126,7 @@ class Laser2dLocalizerNode : public rclcpp::Node {
   Laser2dMcl laser_2d_mcl_;
   /// frame_id of the map
   std::string frame_id_;
-  /// Whether to PUBLISH laser_2d_pose or not
+  /// Whether to PUBLISH laser_2d_pose
   bool publish_laser_2d_pose_;
 
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr start_localized_pose_;
@@ -142,13 +142,13 @@ class Laser2dLocalizerNode : public rclcpp::Node {
 
   // Distance map
   std::shared_ptr<DistanceMap> distance_map_;
-  /// Accumulated movement amount
+  /// Accumulated movement distance
   double sum_distance_;
   /// Accumulated rotation amount
   double sum_angle_;
   /// Previous odometry
   Pose2d previous_odom_;
-  /// Whether odometry has been received or not
+  /// Whether odometry has been received
   bool is_first_odometry_received_;
   /// Odometry movement limit distance [m]
   double max_odom_distance_threshold_;

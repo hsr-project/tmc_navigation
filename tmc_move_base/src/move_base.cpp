@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file move_base.cpp
-/// @brief Autonomous movement action node
+/// @brief Autonomous Navigation Action Node
 #include "tmc_move_base/move_base.hpp"
 
 #include <string>
@@ -36,37 +36,37 @@ DAMAGE.
 // #include <ros/file_log.h>
 
 namespace {
-/// Autonomous movement action name
+/// Autonomous Navigation Action Name
 const char* const kMoveBaseGoalActionName = "move_base/move";
-/// Autonomous movement action goal name
+/// Autonomous Navigation Action Goal Name
 const char* const kMoveBaseGoalActionGoalName = "move_base/move/goal";
-/// Autonomous movement goal topic name
+/// Autonomous Navigation Goal Topic Name
 const char* const kGoalTopicName = "move_base_simple/goal";
-/// Path planning action name
+/// Path Planning Action Name
 const char* const kPathPlannerActionName = "base_path_plan";
-/// Self-position topic name
+/// Self-Position Topic Name
 const char* const kGlobalPoseTopicName = "global_pose";
-/// Topic buffer size
+/// Topic Buffer Size
 const uint32_t kTopicBufferSize = 10;
-/// Action cycle [Hz]
+/// Action Cycle [Hz]
 const double kRate = 10.0;
-/// TF waiting time [s]
+/// TF Wait Time [s]
 const double kWaitTFDuration = 2.0;
-/// Path planning action completion wait timeout
+/// Path Planning Action Completion Timeout
 const double kWaitResultTimeout = 5.0;
 
-/// Timeout parameter name for path planning failure state
+/// Timeout Parameter Name for Path Planning Failure State
 const char* const kPlanningTimeoutParameterName = "planning_timeout";
-/// Global coordinate frame parameter name
+/// Global Coordinate Frame Parameter Name
 const char* const kGlobalFrameParameterName = "floor_frame";
 
-/// Default timeout for path planning failure state [s]
+/// Default Timeout Duration for Path Planning Failure State [s]
 const double kDefaultPlanningTimeOut = 10.0;
-/// Default name for global coordinate frame
+/// Default Name for Global Coordinate Frame
 const char* const kDefaultGlobalFrameName = "map";
 
 // TODO(syuuhei_shiro): パラメータ取得関数は共通パッケージに置く
-// Retrieve required parameters
+// Retrieve Required Parameters
 template <typename T>
 bool GetParam(const rclcpp::Node::SharedPtr& node, const std::string& param_name, T& value) {
   rclcpp::Parameter param;
@@ -79,7 +79,7 @@ bool GetParam(const rclcpp::Node::SharedPtr& node, const std::string& param_name
   return true;
 }
 
-// Retrieve optional parameters
+// Retrieve Optional Parameters
 template <typename T>
 void GetOptionalParam(const rclcpp::Node::SharedPtr& node, const std::string& param_name, T& value,
                       const T& default_value) {
@@ -95,7 +95,7 @@ void GetOptionalParam(const rclcpp::Node::SharedPtr& node, const std::string& pa
 namespace tmc_move_base {
 using std::placeholders::_1;
 using std::placeholders::_2;
-// Convert feedback from path planning action to text
+// Convert Feedback from Path Planning Action to Text
 std::string PathPlannerStatusToString(const PathPlanAction::Feedback& status) {
   if (status.status == PathPlanAction::Feedback::RUNNING) {
     return "RUNNING";
@@ -117,7 +117,7 @@ std::string PathPlannerStatusToString(const PathPlanAction::Feedback& status) {
   return std::string();
 }
 
-/// Coordinate transformation
+/// Coordinate Transformation
 bool TransformPoseStamped(const tf2_ros::Buffer& tf_buffer, const geometry_msgs::msg::PoseStamped& in_pose,
                           const std::string& frame_id, geometry_msgs::msg::PoseStamped& out_pose) {
   try {
@@ -143,7 +143,7 @@ MoveBase::MoveBase(const rclcpp::NodeOptions& options = rclcpp::NodeOptions())
 
 // Initialization
 void MoveBase::Init() {
-  // Subscriber setup
+  // Subscriber Setup
   global_pose_subscriber_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
       kGlobalPoseTopicName, kTopicBufferSize, std::bind(&MoveBase::GlobalPoseCallback, this, _1));
   goal_subscriber_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
@@ -157,12 +157,12 @@ void MoveBase::Init() {
   GetOptionalParam(shared_from_this(), kGlobalFrameParameterName,
                    global_frame_name_, std::string(kDefaultGlobalFrameName));
 
-  // Create path planning client
+  // Create Path Planning Client
   path_plan_action_client_ = rclcpp_action::create_client<PathPlanAction>(this, kPathPlannerActionName);
-  /// Create action client for own action server
+  /// Create Action Client for Own Action Server
   move_base_action_client_ = rclcpp_action::create_client<MoveBaseAction>(this, kMoveBaseGoalActionName);
 
-  // Launch action server
+  // Launch Action Server
   action_server_ = std::make_shared<SimpleActionServer<MoveBaseAction>>(
       shared_from_this(),
       kMoveBaseGoalActionName,
@@ -173,34 +173,34 @@ void MoveBase::Init() {
 void MoveBase::MoveBaseActionCallback() {
   const auto goal = action_server_->get_current_goal();
   auto result = std::make_shared<MoveBaseAction::Result>();
-  // Convert goal to global coordinate system
+  // Convert Goal to Global Coordinate System
   geometry_msgs::msg::PoseStamped global_goal;
   if (!TransformPoseStamped(tf_buffer_, goal->pose, global_frame_name_, global_goal)) {
     action_server_->terminate_current(result);
     return;
   }
-  // Send path planning action
+  // Send Path Planning Action
   SendPathPlanAction(global_goal);
   rclcpp::Time last_running_time = rclcpp::Clock(RCL_ROS_TIME).now();
   while (rclcpp::ok()) {
-    // Copy feedback from path planning action locally
+    // Copy Feedback from Path Planning Action Locally
     PathPlanAction::Feedback current_status = planner_feedback_;
 
     if (action_server_->is_preempt_requested()) {
-      // If a new goal is received, terminate without stopping path planning
+      // If a New Goal is Received, Terminate Without Stopping Path Planning
       action_server_->terminate_current(result);
       return;
     }
-    // Cancel check
+    // Cancel Check
     if (action_server_->is_cancel_requested() || !action_server_->is_server_active()) {
       RCLCPP_DEBUG(this->get_logger(), "ActionMoveBase PREEMPTED.");
-      // If canceled, stop path planning and terminate
+      // If Canceled, Stop Path Planning and Terminate
       CancelPathPlanAction();
       action_server_->terminate_current(result);
       return;
     }
 
-    // Check the state of the path planning action
+    // Check Path Planning Action State
     auto state = planner_goal_handle_->get_status();
     if (state == rclcpp_action::GoalStatus::STATUS_ACCEPTED ||
         state == rclcpp_action::GoalStatus::STATUS_EXECUTING) {
@@ -209,7 +209,7 @@ void MoveBase::MoveBaseActionCallback() {
       } else {
         RCLCPP_DEBUG_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "Base path was not made.");
         if ((rclcpp::Clock(RCL_ROS_TIME).now() - last_running_time).seconds() > planning_timeout_) {
-          // If a state other than RUNNING persists and times out, stop path planning and terminate with ABORTED
+          // If a State Other Than RUNNING Persists and Times Out, Stop Path Planning and Terminate with ABORTED
           RCLCPP_ERROR_STREAM(this->get_logger(),
               "Path plan timeout.(" << PathPlannerStatusToString(current_status) << ")");
           CancelPathPlanAction();
@@ -238,7 +238,7 @@ void MoveBase::MoveBaseActionCallback() {
       planner_goal_handle_ = nullptr;
       return;
     }
-    // Publish current cart position as feedback
+    // Publish Current Cart Position as Feedback
     auto feedback = std::make_shared<MoveBaseAction::Feedback>();
     feedback->current_pose = current_global_pose_;
     action_server_->publish_feedback(feedback);
@@ -259,22 +259,22 @@ void MoveBase::result_callback(const PathPlanGoalHandle::WrappedResult& result) 
   planner_result_ = result;
 }
 
-/// Self-position callback
+/// Self-Position Callback
 /// TODO(syuuhei_shiro) 自己位置はPoseWithCoverianceStamped型で受け、尤度低下に対する異常系を実装する
 void MoveBase::GlobalPoseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
   current_global_pose_ = *msg;
 }
 
-/// Autonomous movement goal topic callback
+/// Autonomous Navigation Goal Topic Callback
 void MoveBase::GoalTopicCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
-  // Convert to own action and send
+  // Convert to Own Action and Send
   auto move_base_action_goal = MoveBaseAction::Goal();
   move_base_action_goal.pose = *msg;
   move_base_action_client_->async_send_goal(move_base_action_goal);
 }
 
 
-/// Send path planning action request
+/// Send Path Planning Action Request
 void MoveBase::SendPathPlanAction(const geometry_msgs::msg::PoseStamped& goal_pose) {
   auto send_goal_options = rclcpp_action::Client<PathPlanAction>::SendGoalOptions();
   send_goal_options.goal_response_callback =
@@ -292,10 +292,10 @@ void MoveBase::SendPathPlanAction(const geometry_msgs::msg::PoseStamped& goal_po
   planner_result_ = std::nullopt;
 }
 
-/// Cancel path planning action
+/// Cancel Path Planning Action
 void MoveBase::CancelPathPlanAction() {
   if (planner_goal_handle_) {
-    // Cancel path following
+    // Cancel Path Following
     path_plan_action_client_->async_cancel_goal(planner_goal_handle_);
     planner_goal_handle_ = nullptr;
   }

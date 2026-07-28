@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -38,7 +38,7 @@ DAMAGE.
 namespace {
 // Input waypoint interval [m]
 constexpr double kInputPathInterval = 0.5;
-// Radius of arc path [m]
+// Radius of the arc path [m]
 constexpr double kArcR = 5.0;
 // Allowable error ratio
 constexpr double kAcceptableErrorRatio = 0.1;
@@ -64,7 +64,7 @@ TEST(PathInfoCreatorParameterTest, ConstructParameter) {
 
 
 /// Parameter test
-/// If an invalid value is specified, it is generated with the default value
+/// Default values are generated when invalid values are specified
 TEST(PathInfoCreatorParameterTest, ConstructWithInvalidParameterMakeDefault) {
   // setup
   const double interpolation_number = kMinimumInterpolationNumber - 1;
@@ -104,12 +104,12 @@ TEST_F(PathInfoCreatorTest, InterpolationNumber) {
   PathInfo path_info = creator_->CreatePathInfo(input_path);
 
   // verify
-  // Since interpolation is not done behind the goal, ([number of points excluding the goal] * multiplier + 1 goal point) is expected
+  // Since interpolation is not performed beyond the goal, the expected result is ([number of points excluding the goal] * multiplier + 1 for the goal point)
   EXPECT_EQ((input_path.size() - 1) * kInterpolationNumberDefault + 1, path_info.splined_path.size());
 }
 
 /// CreatePathInfo test
-/// Interpolation points are inserted to make the change in angle of waypoints gradual, and both the coordinates and angles of the output waypoints become obtuse
+/// Interpolation points are inserted to make the angle changes of waypoints smoother, and the coordinates and angles of the output waypoints become obtuse
 TEST_F(PathInfoCreatorTest, InterpolationAngle) {
   // setup
   PoseSeq input_path;
@@ -118,7 +118,7 @@ TEST_F(PathInfoCreatorTest, InterpolationAngle) {
   // Right curve
   CreateArcPath(kArcR, input_path.back(), kInputPathInterval, -M_PI, input_path);
 
-  // The angle between waypoints of the original path is calculated to have a uniform curvature, so it is determined from only the first two points
+  // The angle between waypoints of the original path is calculated to have a uniform curvature, so it is determined only from the first two points
   const double input_path_angle =
       std::abs(angles::shortest_angular_distance(input_path[0].theta(), input_path[1].theta()));
 
@@ -127,15 +127,15 @@ TEST_F(PathInfoCreatorTest, InterpolationAngle) {
 
   // verify
   for (int32_t i = 1; i < path_info.splined_path.size() - 1; i++) {
-    // Obtain the angle of the waypoint from the direction of the preceding and following points
+    // Obtain the angle of the waypoint from the directions of the preceding and following points
     const double from_direction = atan2(path_info.splined_path[i].y() - path_info.splined_path[i - 1].y(),
                                         path_info.splined_path[i].x() - path_info.splined_path[i - 1].x());
     const double to_direction = atan2(path_info.splined_path[i + 1].y() - path_info.splined_path[i].y(),
                                       path_info.splined_path[i + 1].x() - path_info.splined_path[i].x());
     const double angle = angles::shortest_angular_distance(from_direction, to_direction);
-    // Confirm that it is relaxed to 1 divided by the number of interpolation waypoints
+    // Confirm that it is relaxed by 1 divided by the number of interpolation waypoints
     EXPECT_LT(std::abs(angle), input_path_angle / kInterpolationNumberDefault * (1.0 + kAcceptableErrorRatio));
-    // Confirm that the direction obtained from the coordinates of the waypoint matches the direction set in the output theta
+    // Confirm that the direction of the waypoint obtained from the coordinates matches the direction set in the output theta
     const double theta = angles::normalize_angle(from_direction + angle / 2.0);
     EXPECT_LT(std::abs(angles::shortest_angular_distance(theta, path_info.splined_path[i].theta())),
               std::abs(theta * kAcceptableErrorRatio));
@@ -163,10 +163,10 @@ TEST_F(PathInfoCreatorTest, KeepGoalTheta) {
 }
 
 /// CreatePathInfo test
-/// If there are duplicate points in the input path, they are ignored
+/// Points duplicated in the input path are ignored
 TEST_F(PathInfoCreatorTest, IgnoreDoublePoint) {
   // setup
-  // Generate a 5-point path with 1 duplicate point
+  // Generate a 5-point path with one duplicate point
   PoseSeq input_path;
   input_path.push_back(Pose2d(0.0, 0.0, 0.0));
   input_path.push_back(Pose2d(input_path.back().x() + kInputPathInterval, input_path.back().y(), 0.0));
@@ -178,7 +178,7 @@ TEST_F(PathInfoCreatorTest, IgnoreDoublePoint) {
   PathInfo path_info = creator_->CreatePathInfo(input_path);
 
   // verify
-  // Confirm that the number of waypoints is as expected when processing a 4-point path excluding duplicate points
+  // Confirm that the number of waypoints matches the case where a 4-point path without duplicates is processed
   EXPECT_EQ((input_path.size() - 2) * kInterpolationNumberDefault + 1, path_info.splined_path.size());
 }
 
@@ -208,11 +208,11 @@ TEST_F(PathInfoCreatorTest, KeepOriginalPoints) {
 }
 
 /// CreatePathInfo test
-/// When input that causes spline extrema is given, it becomes linear interpolation
+/// When input that causes spline extrema is given, linear interpolation is used
 TEST_F(PathInfoCreatorTest, AvoidExtremum) {
   // setup
   PoseSeq input_path;
-  // Input a straight path including a point facing backward (135° to avoid being exactly opposite at 180°)
+  // Input a straight path containing a point facing backward (135° to avoid being exactly opposite at 180°)
   input_path.push_back(Pose2d(0.0, 0.0, 0.0));
   input_path.push_back(Pose2d(kInputPathInterval, 0.0, M_PI * 3.0 / 4.0));
   input_path.push_back(Pose2d(kInputPathInterval * 2.0, 0.0, 0.0));
@@ -221,7 +221,7 @@ TEST_F(PathInfoCreatorTest, AvoidExtremum) {
   PathInfo path_info = creator_->CreatePathInfo(input_path);
 
   // verify
-  // Confirm that the output path is straight and aligned in the direction from start to goal
+  // Confirm that the output path is a straight line and aligned in the direction from start to goal
   for (int32_t i = 1; i < path_info.splined_path.size(); ++i) {
     EXPECT_DOUBLE_EQ(0.0, path_info.splined_path[i].y());
     EXPECT_GT(path_info.splined_path[i].x(), path_info.splined_path[i - 1].x());
@@ -229,7 +229,7 @@ TEST_F(PathInfoCreatorTest, AvoidExtremum) {
 }
 
 /// CreatePathInfo test
-/// The curvature of the straight part becomes 0
+/// The curvature of the straight section becomes 0
 TEST_F(PathInfoCreatorTest, CurvatureStraight) {
   PoseSeq input_path;
   for (int32_t i = 0; i < 10; ++i) {
@@ -252,14 +252,14 @@ TEST_F(PathInfoCreatorTest, CurvatureLeftCurve) {
   PoseSeq input_path;
   // Left curve
   CreateArcPath(kArcR, Pose2d(0.0, 0.0, 0.0), kInputPathInterval, M_PI, input_path);
-  // Theoretical value of curvature [1/R]
+  // Theoretical curvature value [1/R]
   const double expected_r = 1.0 / kArcR;
 
   // exercise
   PathInfo path_info = creator_->CreatePathInfo(input_path);
 
   // verify
-  // Confirm that the curvature of waypoints excluding start and goal matches the theoretical value
+  // Confirm that the curvature of waypoints excluding the start and goal matches the theoretical value
   for (int32_t i = 1; i < path_info.splined_path.size() - 1; ++i) {
     EXPECT_NEAR(expected_r, path_info.splined_path_curvatures[i], std::abs(expected_r * kAcceptableErrorRatio));
   }
@@ -272,40 +272,40 @@ TEST_F(PathInfoCreatorTest, CurvatureRightCurve) {
   PoseSeq input_path;
   // Right curve
   CreateArcPath(kArcR, Pose2d(0.0, 0.0, 0.0), kInputPathInterval, -M_PI, input_path);
-  // Theoretical value of curvature [-1/R]
+  // Theoretical curvature value [-1/R]
   const double expected_r = -1.0 / kArcR;
 
   // exercise
   PathInfo path_info = creator_->CreatePathInfo(input_path);
 
   // verify
-  // Confirm that the curvature of waypoints excluding start and goal matches the theoretical value
+  // Confirm that the curvature of waypoints excluding the start and goal matches the theoretical value
   for (int32_t i = 1; i < path_info.splined_path.size() - 1; ++i) {
     EXPECT_NEAR(expected_r, path_info.splined_path_curvatures[i], std::abs(expected_r * kAcceptableErrorRatio));
   }
 }
 
 /// CreatePathInfo test
-/// Distances from each point after spline interpolation to the goal are generated, and they monotonically decrease towards the goal
+/// Distances from each point after spline interpolation to the goal are generated and monotonically decrease towards the goal
 TEST_F(PathInfoCreatorTest, LeftLength) {
   // setup
   PoseSeq input_path;
   // Left curve
   CreateArcPath(kArcR, Pose2d(0.0, 0.0, 0.0), kInputPathInterval, M_PI, input_path);
-  // Theoretical length of the path (semicircle with radius kArcR)
+  // Theoretical path length (semicircle with radius kArcR)
   const double whole_length = kArcR * M_PI;
 
   // exercise
   PathInfo path_info = creator_->CreatePathInfo(input_path);
 
   // verify
-  // Confirm that the remaining distance of the start point approximately matches the theoretical value of the path length
+  // Confirm that the remaining distance at the start point approximately matches the theoretical path length
   EXPECT_NEAR(whole_length, path_info.splined_path_left_lengths.front(), whole_length * kAcceptableErrorRatio);
   // Confirm that it is monotonically decreasing
   for (int32_t i = 1; i < path_info.splined_path.size(); ++i) {
     EXPECT_LT(path_info.splined_path_left_lengths[i], path_info.splined_path_left_lengths[i - 1]);
   }
-  // Confirm that the remaining distance of the goal point is 0
+  // Confirm that the remaining distance at the goal point is 0
   EXPECT_DOUBLE_EQ(0.0, path_info.splined_path_left_lengths.back());
 }
 }  // namespace tmc_base_path_follower

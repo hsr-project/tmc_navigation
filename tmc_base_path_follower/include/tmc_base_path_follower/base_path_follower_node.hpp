@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -68,7 +68,7 @@ class BasePathFollowerNode : public rclcpp::Node {
   void PathCallback(const nav_msgs::msg::Path::SharedPtr msg);
   // Feedback on path following action progress rate
   void FeedbackProgress(const PathInfo& path_info, const uint32_t current_path_index);
-  // Velocity issuance
+  // Velocity publishing
   void PublishVelocity(const Vector3d& velocity);
   // Parameter reading
   void LoadParameter();
@@ -88,7 +88,7 @@ class BasePathFollowerNode : public rclcpp::Node {
   /// Cart command velocity publisher
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr velocity_publisher_;
   /// Path following action goal publisher
-  /// Throw an action goal to itself when subscribing to a path
+  /// Subscribe to path and send action goal to itself
   rclcpp_action::Client<PathFollowActionServer>::SharedPtr action_client_;
   /// Path information generation function
   PathInfoCreator::Ptr path_info_creator_;

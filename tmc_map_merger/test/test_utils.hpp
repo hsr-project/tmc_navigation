@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -38,17 +38,17 @@ DAMAGE.
 
 namespace tmc_map_merger {
 // TODO(syuuhei_shiro): tmc_rostest_utilをROS2化してそこに置く
-// Load parameters from yaml file
+// Load parameters from a yaml file
 void LoadParameterFromYaml(std::shared_ptr<rclcpp::Node> node,
     const std::string& yaml_directory, const std::string& yaml_name) {
   const std::string yaml_path = yaml_directory + yaml_name;
-  // Load yaml and generate ParameterMap
+  // Load yaml and generate a ParameterMap
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
   rcl_params_t* yaml_params = rcl_yaml_node_struct_init(allocator);
   rcl_parse_yaml_file(yaml_path.c_str(), yaml_params);
   rclcpp::ParameterMap yaml_param_map = rclcpp::parameter_map_from(yaml_params);
   rcl_yaml_node_struct_fini(yaml_params);
-  // Set ros parameters to node
+  // Set ros parameters to the node
   const std::string parameter_space = "/" + std::string(node->get_name());
   auto iter = yaml_param_map.find(parameter_space);
   for (auto& param : iter->second) {
@@ -57,7 +57,7 @@ void LoadParameterFromYaml(std::shared_ptr<rclcpp::Node> node,
   }
 }
 
-// Generate node that reads test parameters
+// Generate a node that has loaded test parameters
 std::shared_ptr<rclcpp::Node> CreateParameterNode(const std::string& yaml_name) {
   std::shared_ptr<rclcpp::Node> node;
   rclcpp::NodeOptions option;

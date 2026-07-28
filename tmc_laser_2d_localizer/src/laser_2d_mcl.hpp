@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -56,19 +56,19 @@ struct Laser2dMclParams {
   double number_of_particles;
   /// Threshold for the number of effective particles
   double effective_particle_ratio;
-  /// Standard deviation in the y(x) axis direction for the x(y) coordinate of movement
+  /// Standard deviation in the y(x)-axis direction for the x(y)-coordinate of movement
   double standard_deviation_xy_to_yx;
-  /// Standard deviation in the x(y) axis direction for the x(y) coordinate of movement
+  /// Standard deviation in the x(y)-axis direction for the x(y)-coordinate of movement
   double standard_deviation_xy_to_xy;
-  /// Standard deviation in the θ coordinate for the translational distance of movement
+  /// Standard deviation in the θ-coordinate for the translational distance of movement
   double standard_deviation_xy_to_theta;
-  /// Standard deviation in the x(y) axis direction for the θ coordinate of movement
+  /// Standard deviation in the x(y)-axis direction for the θ-coordinate of movement
   double standard_deviation_theta_to_xy;
-  /// Standard deviation in the θ axis direction for the θ coordinate of movement
+  /// Standard deviation in the θ-axis direction for the θ-coordinate of movement
   double standard_deviation_theta_to_theta;
-  /// Standard deviation for the x(y) coordinate of the robot's initial position
+  /// Standard deviation for the x(y)-coordinate of the robot's initial position
   double standard_deviation_init_xy;
-  /// Standard deviation for the θ coordinate of the robot's initial position
+  /// Standard deviation for the θ-coordinate of the robot's initial position
   double standard_deviation_init_theta;
   /// Initial position and orientation
   Pose2d init_pose;
@@ -78,7 +78,7 @@ struct Laser2dMclParams {
   double angle_triggering_filter;
   /// width of the potential field representing distance.
   double potential_width;
-  /// At what distance from the wall is an obstacle considered not on the map?
+  /// At what distance from the wall should an obstacle be considered not on the map?
   double filtering_thresh;
 };
 
@@ -91,7 +91,7 @@ struct Laser2dMclParams {
   point_cloud2_  2D LRF data
   @par  Output
   laser_2d_pose_    2D LRF self-localization data
-  @attention    If the initial position is not specified, the coordinate reference point will be unknown.
+  @attention    If the initial position is not specified, the reference point of the coordinates will be unclear.
 */
 class Laser2dMcl {
  public:
@@ -120,7 +120,7 @@ class Laser2dMcl {
  private:
   /// Latest odometry
   Pose2d odometry_;
-  /// First odometry received immediately after startup
+  /// First received odometry after startup
   Pose2d init_odometry_;
   /// Parameters set by the client
   Laser2dMclParams params_;
@@ -136,7 +136,7 @@ class Laser2dMcl {
   bool is_range_data_initialized_;
   /// Self-localization reset flag
   /// @par Becomes true when self-localization is reset externally
-  /// Unlike other flags, it may toggle between true and false during program execution
+  /// Unlike other flags, this may toggle between true and false during program execution
   bool is_pose_initialized_;
   /// Self-localization result
   Pose2d laser_2d_pose_;
@@ -144,9 +144,9 @@ class Laser2dMcl {
   Pose2d previous_laser_2d_pose_;
   /// Best score of map matching
   double best_matching_score_;
-  /// Score threshold for map matching
+  /// Threshold score for map matching
   double localization_score_limit_;
-  /// Whether it is a correction by laser_2d_correct_pose
+  /// Whether the correction is done by laser_2d_correct_pose
   bool is_manual_reset_;
   bool is_no_noise_;
 };

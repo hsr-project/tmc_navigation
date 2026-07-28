@@ -1,6 +1,6 @@
 <package format="3">
   <name>tmc_odometry_switcher</name>
-  <version>2.1.0</version>
+  <version>3.0.0</version>
   <description>Switching odometry from some odometry topics</description>
   <maintainer email="xr-hsr-support@mail.toyota.co.jp">HSR Support</maintainer>
 

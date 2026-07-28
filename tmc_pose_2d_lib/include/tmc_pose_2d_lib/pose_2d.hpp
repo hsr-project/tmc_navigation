@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -115,7 +115,7 @@ class Pose2d {
   Point2d operator*(const Point2d& rhs) const;
   // Composite transformation of coordinate systems
   Pose2d operator*(const Pose2d& rhs) const;
-  // Coordinate transformation of point cloud
+  // Coordinate transformation of point clouds
   Cloud2d operator*(const Cloud2d& points) const;
   bool operator==(const Pose2d& other) const;
 };

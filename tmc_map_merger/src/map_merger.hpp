@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -87,12 +87,12 @@ class MapMerger {
     op.Reset();
   }
 
-  /// @brief Map output
+  /// @brief Output of the map
   virtual const Map& GetMap() {
     return map_;
   }
 
-  /// @brief Map input
+  /// @brief Input of the map
   virtual void Merge(const Map& map) = 0;
 
   /// @brief Update position and time
@@ -105,7 +105,7 @@ class MapMerger {
 
 /// @brief Simple merge
 /// Merge that only projects the input map according to UpdateStrategy
-/// The map to be retained is fixed in direction and aligned in grid units
+/// The map to be maintained has a fixed direction and aligns on a grid unit
 template<typename UpdateStrategy>
 class SimpleMapMerger : public MapMerger {
  public:
@@ -118,7 +118,7 @@ class SimpleMapMerger : public MapMerger {
   virtual ~SimpleMapMerger() {
   }
 
-  /// @brief Map input
+  /// @brief Input of the map
   virtual void Merge(const Map& map) {
     Project(ConstSimpleMapOperator(map),
             MapOperator<UpdateStrategy>(map_));
@@ -130,7 +130,7 @@ class SimpleMapMerger : public MapMerger {
     map_.info.origin = origin.pose;
     map_.info.origin.orientation = geometry_msgs::msg::Quaternion();
     map_.info.origin.orientation.w = 1.0;
-    // Fix rotation and align to a position on the grid
+    // Fix the rotation and align it to a grid position
     map_.info.origin.position.x = \
         ::round(static_cast<double>(origin.pose.position.x / map_.info.resolution)) * map_.info.resolution
         - map_.info.width * map_.info.resolution / 2.0;
@@ -144,9 +144,9 @@ class SimpleMapMerger : public MapMerger {
 };
 
 /// @brief Map merge with memory
-/// Memory is a class that realizes memory
-/// For acceleration (to avoid calls via function pointers)
-/// Implement polymorphism with templates
+/// Memory is a class that implements memory retention
+/// For optimization (to avoid function pointer calls)
+/// Implement polymorphism using templates
 /// Implement the following methods
 /// Get, Update, Reset
 template<typename Memory>
@@ -183,7 +183,7 @@ class MemoryMapMerger : public MapMerger {
     op.Reset();
   }
 
-  /// @brief Map input
+  /// @brief Input of the map
   virtual void Merge(const Map& map) {
     Project(ConstSimpleMapOperator(map),
             MemoryMapOperator(memory_, map_.info, MemoryAdapter<Memory>(map.header.stamp, memory_option_)));
@@ -193,7 +193,7 @@ class MemoryMapMerger : public MapMerger {
   virtual void Update(const geometry_msgs::msg::PoseStamped& origin) {
     MapInfo pre_info = map_.info;
     map_.info.origin = origin.pose;
-    // Fix rotation and align to a position on the grid
+    // Fix the rotation and align it to a grid position
     map_.info.origin.orientation = geometry_msgs::msg::Quaternion();
     map_.info.origin.orientation.w = 1.0;
     map_.info.origin.position.x = \
@@ -205,7 +205,7 @@ class MemoryMapMerger : public MapMerger {
     /// Copy as the origin is moved
     ProjectGrid(SimpleMemoryMapOperator(memory_, pre_info),
                 SimpleMemoryMapOperator(memory_, map_.info));
-    // Output to Map
+    // Output to the map
     MemoryMapOperator op(memory_, map_.info, MemoryAdapter<Memory>(origin.header.stamp, memory_option_));
     for (size_t index = 0; index < memory_.data.size(); ++index) {
       map_.data[index] = op.Get(index);
@@ -213,7 +213,7 @@ class MemoryMapMerger : public MapMerger {
   }
 
  protected:
-  /// @brief Memory array
+  /// @brief Array of memory
   MemoryMap memory_;
   /// @brief Options for memory operations
   typename Memory::Option memory_option_;

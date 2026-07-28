@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -64,10 +64,10 @@ class ConditionChecker : public IConditionChecker {
       const Pose2d& start_pose, const Pose2d& goal_pose, const Pose2d& global_pose);
 
  private:
-  // Is the Pose within the Map range?
+  // Check if Pose is within Map boundaries
   bool CheckPoseInMap_(const CostMapPtr& map, const Pose2d& pose);
 
-  // Is the Pose on the Map wall?
+  // Check if Pose is on Map walls
   bool CheckPoseIsOnMapWall_(const CostMapPtr& map, const unsigned char wall_threshold, const Pose2d& pose);
 };
 }  // namespace tmc_base_path_planner

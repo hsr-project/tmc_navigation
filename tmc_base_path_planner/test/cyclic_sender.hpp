@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -41,7 +41,8 @@ namespace tmc_base_path_planner {
 class CyclicSender : public rclcpp::Node {
  public:
   explicit CyclicSender(const rclcpp::NodeOptions& options = rclcpp::NodeOptions()) :
-      Node("cyclic_sender", options), send_dynamic_map_(false), send_global_pose_(false), send_transform_(false) {}
+      Node("cyclic_sender", options), send_dynamic_map_(false), send_global_pose_(false), send_transform_(false),
+      send_dynamic_map_complete_(false), send_global_pose_complete_(false), send_transform_complete_(false) {}
 
   void Init(const double hz) {
     if (hz <= std::numeric_limits<double>::epsilon()) {
@@ -68,19 +69,22 @@ class CyclicSender : public rclcpp::Node {
     killed_ = false;
     while (rclcpp::ok() && !killed_) {
       if (send_dynamic_map_) {
-        // Send dynamic map
+        // Dynamic map transmission
         dynamic_map_.header.stamp = this->get_clock()->now();
         pub_dynamic_map_->publish(dynamic_map_);
+        send_dynamic_map_complete_ = true;
       }
       if (send_global_pose_) {
-        // Send self-position
+        // Self-position transmission
         global_pose_.header.stamp = this->get_clock()->now();
         pub_global_pose_->publish(global_pose_);
+        send_global_pose_complete_ = true;
       }
       if (send_transform_) {
-        // Send TF
+        // TF transmission
         transform_.header.stamp = this->get_clock()->now();
         broadcaster_->sendTransform(transform_);
+        send_transform_complete_ = true;
       }
       rate_->sleep();
       rclcpp::spin_some(shared_from_this());
@@ -91,29 +95,33 @@ class CyclicSender : public rclcpp::Node {
     killed_ = true;
   }
 
-  // Start sending dynamic map
+  // Start dynamic map transmission
   void StartSendDynamicMap(const nav_msgs::msg::OccupancyGrid& dynamic_map) {
     dynamic_map_ = dynamic_map;
     dynamic_map_.header.stamp = this->get_clock()->now();
     pub_dynamic_map_->publish(dynamic_map_);
     send_dynamic_map_ = true;
-    rate_->sleep();
-    rclcpp::spin_some(shared_from_this());
+    send_dynamic_map_complete_ = false;
+    while (!send_dynamic_map_complete_) {
+      rate_->sleep();
+    }
     return;
   }
 
-  // Start sending self-position
+  // Start self-position transmission
   void StartSendGlobalPose(const geometry_msgs::msg::PoseStamped& global_pose) {
     global_pose_ = global_pose;
     global_pose_.header.stamp = this->get_clock()->now();
     pub_global_pose_->publish(global_pose_);
     send_global_pose_ = true;
-    rate_->sleep();
-    rclcpp::spin_some(shared_from_this());
+    send_global_pose_complete_ = false;
+    while (!send_global_pose_complete_) {
+      rate_->sleep();
+    }
     return;
   }
 
-  // Start publishing TF
+  // Start TF publishing
   void StartSendTransform(const std::string& frame_id, const std::string& child_frame_id,
                           const geometry_msgs::msg::Pose& pose) {
     transform_.header.stamp = this->get_clock()->now();
@@ -128,8 +136,10 @@ class CyclicSender : public rclcpp::Node {
     transform_.transform.rotation.w = pose.orientation.w;
     broadcaster_->sendTransform(transform_);
     send_transform_ = true;
-    rate_->sleep();
-    rclcpp::spin_some(shared_from_this());
+    send_transform_complete_ = false;
+    while (!send_transform_complete_) {
+      rate_->sleep();
+    }
     return;
   }
 
@@ -151,6 +161,9 @@ class CyclicSender : public rclcpp::Node {
   bool send_dynamic_map_;
   bool send_global_pose_;
   bool send_transform_;
+  bool send_dynamic_map_complete_;
+  bool send_global_pose_complete_;
+  bool send_transform_complete_;
 
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_global_pose_;
   rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr pub_dynamic_map_;

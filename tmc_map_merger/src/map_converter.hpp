@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -37,7 +37,7 @@ DAMAGE.
 #include <pcl_conversions/pcl_conversions.h>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 
 #include "map.hpp"
 #include "map_drawer.hpp"
@@ -97,7 +97,7 @@ class MapConverter<nav_msgs::msg::OccupancyGrid> {
   template<typename MapOp>
   void Convert(const geometry_msgs::msg::Pose& origin,
                const nav_msgs::msg::OccupancyGrid& obj, const MapOp& op) const {
-    // Project to create a maximum value map
+    // Create a map of maximum values by projection
     op.Reset();
     Project(ConstSimpleMapOperator(obj), op);
   }
@@ -125,7 +125,7 @@ class MapConverter<PointCloud> {
   void Convert(const geometry_msgs::msg::Pose& origin,
                const PointCloud& obj,
                const MapOp& op) const {
-    // Project to create a maximum value map
+    // Create a map of maximum values by projection
     op.Reset();
     const MapInfo& info = op.GetInfo();
 
@@ -139,7 +139,7 @@ class MapConverter<PointCloud> {
     double height = info.height - 1;
     double x0 = transform.translation()(0) / info.resolution - 0.5;
     double y0 = transform.translation()(1) / info.resolution - 0.5;
-    // Do not draw if the origin is outside the frame (it can be done but will not be supported)
+    // Do not render if the origin is outside the frame (it is possible but not supported)
     if (x0 < 0.0 || x0 > width || y0 < 0.0 || y0 > height) {
       return;
     }
@@ -153,7 +153,7 @@ class MapConverter<PointCloud> {
       (*it)->Filter(processing_cloud, transform, filtered_cloud);
     }
 
-    // If invalid values are still present after pre-conversion processing, it will not be supported
+    // If invalid values remain after pre-conversion processing, it is not supported
     if (!filtered_cloud->is_dense) {
       auto steady_clock = rclcpp::Clock(RCL_ROS_TIME);
       RCLCPP_WARN_THROTTLE(rclcpp::get_logger("map_merger"), steady_clock,
@@ -176,11 +176,11 @@ class MapConverter<PointCloud> {
       // TODO(nishino) クリップされる領域をobstacle_radiusを考慮する
       drawer::Clip(x0, y0, x1, y1, width, height);
       size_t index = (int32_t)(y1 + 0.5) * info.width + (int32_t)(x1 + 0.5);
-      // If there are obstacles outside the frame, perform raycast from the edge but do not register obstacles
+      // If there are obstacles outside the frame, raycasting from the edge is performed, but obstacle registration is not done
       obstacle_map_op.Update(index, (int32_t)(outcode ? 0 : 1));
     }
     drawer::MapPlotter<MapOp> plotter(op);
-    // Range to draw obstacle range [pixel]
+    // Range to draw obstacle area [pixel]
     const int obstacle_radius_pixel = static_cast<int>(obstacle_radius_ / info.resolution + 0.5);
     const int forbid_radius_pixel = static_cast<int>(forbid_radius_ / info.resolution + 0.5);
 

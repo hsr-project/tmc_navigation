@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -56,13 +56,13 @@ namespace tmc_pose_integrator {
 /// @param[in] in_pose Posture before rotation
 /// @param[in] theta Rotation amount (rad)
 /// @param[out] out_pose Posture before rotation
-/// @return Posture after rotation. Orientation is not changed.
+/// @return Posture after rotation. Orientation remains unchanged.
 void RotatePoint(const Pose2d& in_pose, double theta, Pose2d& out_pose) {
   out_pose.x = cos(theta) * in_pose.x - sin(theta) * in_pose.y;
   out_pose.y = sin(theta) * in_pose.x + cos(theta) * in_pose.y;
 }
 
-/// Initialize each member variable, allocate data area
+/// Initialize each member variable and allocate data area
 PoseIntegrator::PoseIntegrator()
     : is_first_odometry_received_(false),
       is_localization_updated_(false),
@@ -90,12 +90,12 @@ PoseIntegrator::PoseIntegrator()
   previous_odometry_.theta = 0.0;
 }
 
-/// Initialize members related to odometry only at the first time.
+/// Initialize members related to odometry only on the first occasion.
 /// @param[in]  value Odometry data
 void PoseIntegrator::set_odometry(const Pose2d& value) {
   odometry_ = value;
 
-  // Reinitialize variables related to odometry only at the first time
+  // Reinitialize variables related to odometry only on the first occasion
   if (!is_first_odometry_received_) {
     // Save current odometry as reference odometry
     odometry_at_localization_update_ = odometry_;
@@ -124,9 +124,9 @@ void PoseIntegrator::set_convergence_time(double value) { convergence_time_ = va
 /// @param[in] value Node operation cycle (seconds)
 void PoseIntegrator::set_cycle_time(double value) { cycle_time_ = value; }
 
-/// Determine if the cart is moving from the odometry difference
+/// Determine whether the cart is moving based on odometry differences
 bool PoseIntegrator::IsBaseMoving() {
-  // Assume the cart is stopped at the first time
+  // Assume the cart is stationary on the first occasion
   if (is_first_localization_) {
     previous_odometry_ = odometry_;
     previous_time_ = rclcpp::Clock(RCL_ROS_TIME).now().seconds();
@@ -150,7 +150,7 @@ bool PoseIntegrator::IsBaseMoving() {
 /// Generate corrected odometry using the difference between odometry synchronized with self-positioning and time and self-positioning
 /// @return Self-positioning after convergence calculation
 Pose2d PoseIntegrator::CorrectOdometryWithConvergenceAndSynchronization() {
-  // Return initial position immediately if odometry has never been acquired
+  // Immediately return initial position if odometry has never been acquired
   if (!is_first_odometry_received_) {
     return corrected_odometry_;
   }
@@ -162,7 +162,7 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergenceAndSynchronization() {
     odometry_at_localization_update_ = odometry_;
     // Save reference corrected odometry.
     corrected_odometry_at_localization_ = corrected_odometry_;
-    // Difference between current value and synchronized odometry Movement amount for time delay
+    // Difference between synchronized odometry and current value: movement amount for time delay
     delay_pose.x = corrected_odometry_.x - synchronized_odometry_.x;
     delay_pose.y = corrected_odometry_.y - synchronized_odometry_.y;
     delay_pose.theta = corrected_odometry_.theta - synchronized_odometry_.theta;
@@ -172,7 +172,7 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergenceAndSynchronization() {
     localized_2d_pose_at_localization_update_.y = tmp_pose.y + localized_2d_pose_.y;
     localized_2d_pose_at_localization_update_.theta = localized_2d_pose_.theta + delay_pose.theta;
 
-    // Reset timer to determine correction coefficient
+    // Reset timer to calculate correction coefficient
     time_from_pose_reset_ = 0.0;
     // Reset odometry movement amount
     diff_odometry_.ZeroClear();
@@ -180,29 +180,29 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergenceAndSynchronization() {
     is_localization_updated_ = false;
   }
 
-  // Set convergence time (convergence_time_) and,
-  // From the elapsed time since the last self-positioning was set (time_from_pose_reset_),
-  // Determine current correction coefficient (0 to 1).
+  // Using the set convergence time (convergence_time_) and,
+  // elapsed time since the last self-positioning was set (time_from_pose_reset_),
+  // calculate the current correction coefficient (0 to 1).
   double ratio = 0.0;
   if (!(convergence_time_ < std::numeric_limits<double>::epsilon())) {
     ratio = time_from_pose_reset_ / convergence_time_;
     if (ratio >= 1.0) {
       // If ratio exceeds 1 (= exceeds convergence time),
-      // Fix correction coefficient to 1.
+      // fix the correction coefficient to 1.
       ratio = 1.0;
     }
   } else {
     RCLCPP_WARN(rclcpp::get_logger("pose_integrator"), "warning : convergence parameter must be more than zero");
-    // If convergence setting time is 0 or less, always set correction coefficient to 1.
+    // If the convergence setting time is 0 or less, always set the correction coefficient to 1.
     ratio = 1.0;
   }
 
-  // Determine odometry difference (movement amount)
+  // Calculate the difference (movement amount) of odometry
   diff_odometry_.x = diff_odometry_.x + (odometry_.x - old_odometry_.x);
   diff_odometry_.y = diff_odometry_.y + (odometry_.y - old_odometry_.y);
   diff_odometry_.theta = diff_odometry_.theta + (odometry_.theta - old_odometry_.theta);
 
-  // Set orientation to origin reference
+  // Set orientation based on the origin
   Pose2d diff_odometry_from_localization;
   RotatePoint(diff_odometry_, -odometry_at_localization_update_.theta, diff_odometry_from_localization);
 
@@ -211,12 +211,12 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergenceAndSynchronization() {
       atan2(sin(diff_odometry_from_localization.theta), cos(diff_odometry_from_localization.theta));
   old_odometry_ = odometry_;
 
-  // Determine odometry movement amount relative to laser self-positioning orientation
+  // Calculate odometry movement amount relative to laser self-positioning orientation
   Pose2d diff_odometry_on_localized_pose_coordinate;
   RotatePoint(diff_odometry_from_localization, localized_2d_pose_at_localization_update_.theta,
               diff_odometry_on_localized_pose_coordinate);
 
-  // Determine target corrected self-positioning
+  // Calculate the target corrected self-positioning
   Pose2d target_pose;
   target_pose.x = (localized_2d_pose_at_localization_update_.x + diff_odometry_on_localized_pose_coordinate.x);
   target_pose.y = (localized_2d_pose_at_localization_update_.y + diff_odometry_on_localized_pose_coordinate.y);
@@ -225,12 +225,12 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergenceAndSynchronization() {
   target_pose.theta = localized_2d_pose_at_localization_update_.theta + diff_odometry_.theta;
   target_pose.theta = atan2(sin(target_pose.theta), cos(target_pose.theta));
 
-  // Determine odometry movement amount relative to self-positioning when laser self-positioning is received
+  // Calculate odometry movement amount relative to self-positioning when laser self-positioning is received
   Pose2d diff_odometry_on_corrected_odometry_coordinate;
   RotatePoint(diff_odometry_from_localization, corrected_odometry_at_localization_.theta,
               diff_odometry_on_corrected_odometry_coordinate);
 
-  // Determine self-positioning when laser self-positioning is not received
+  // Calculate self-positioning when laser self-positioning is not received
   Pose2d dying_pose;
   dying_pose.x = (corrected_odometry_at_localization_.x + diff_odometry_on_corrected_odometry_coordinate.x);
   dying_pose.y = (corrected_odometry_at_localization_.y + diff_odometry_on_corrected_odometry_coordinate.y);
@@ -247,7 +247,7 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergenceAndSynchronization() {
   }
   corrected_odometry_.theta = ratio * target_pose.theta + (1.0 - ratio) * dying_pose.theta;
 
-  // Ideally, measured time should be added to timer
+  // Ideally, the measured time should be added to the timer
   time_from_pose_reset_ += cycle_time_;
 
   // Convert to ±π
@@ -258,11 +258,11 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergenceAndSynchronization() {
 }
 
 
-/// Calculate corrected odometry through linear convergence
+/// Calculate corrected odometry using linear convergence
 /// @return Self-positioning after convergence calculation
 /// @todo Complement and acquire reference corrected odometry synchronized with laser self-positioning estimation and time
 Pose2d PoseIntegrator::CorrectOdometryWithConvergence() {
-  // Return initial position immediately if odometry has never been acquired
+  // Immediately return initial position if odometry has never been acquired
   if (!is_first_odometry_received_) {
     return corrected_odometry_;
   }
@@ -274,7 +274,7 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergence() {
     odometry_at_localization_update_ = odometry_;
     // Save reference corrected odometry.
     corrected_odometry_at_localization_ = corrected_odometry_;
-    // Reset timer to determine correction coefficient
+    // Reset timer to calculate correction coefficient
     time_from_pose_reset_ = 0.0;
     // Reset odometry movement amount
     diff_odometry_.ZeroClear();
@@ -282,29 +282,29 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergence() {
     is_localization_updated_ = false;
   }
 
-  // Set convergence time (convergence_time_) and,
-  // From the elapsed time since the last self-positioning was set (time_from_pose_reset_),
-  // Determine current correction coefficient (0 to 1).
+  // Using the set convergence time (convergence_time_) and,
+  // elapsed time since the last self-positioning was set (time_from_pose_reset_),
+  // calculate the current correction coefficient (0 to 1).
   double ratio = 0.0;
   if (!(convergence_time_ < std::numeric_limits<double>::epsilon())) {
     ratio = time_from_pose_reset_ / convergence_time_;
     if (ratio >= 1.0) {
       // If ratio exceeds 1 (= exceeds convergence time),
-      // Fix correction coefficient to 1.
+      // fix the correction coefficient to 1.
       ratio = 1.0;
     }
   } else {
     RCLCPP_WARN(rclcpp::get_logger("pose_integrator"), "warning : convergence parameter must be more than zero");
-    // If convergence setting time is 0 or less, always set correction coefficient to 1.
+    // If the convergence setting time is 0 or less, always set the correction coefficient to 1.
     ratio = 1.0;
   }
 
-  // Determine odometry difference (movement amount)
+  // Calculate the difference (movement amount) of odometry
   diff_odometry_.x = diff_odometry_.x + (odometry_.x - old_odometry_.x);
   diff_odometry_.y = diff_odometry_.y + (odometry_.y - old_odometry_.y);
   diff_odometry_.theta = diff_odometry_.theta + (odometry_.theta - old_odometry_.theta);
 
-  // Set orientation to origin reference
+  // Set orientation based on the origin
   Pose2d diff_odometry_from_localization;
   RotatePoint(diff_odometry_, -odometry_at_localization_update_.theta, diff_odometry_from_localization);
 
@@ -313,11 +313,11 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergence() {
       atan2(sin(diff_odometry_from_localization.theta), cos(diff_odometry_from_localization.theta));
   old_odometry_ = odometry_;
 
-  // Determine odometry movement amount relative to laser self-positioning orientation
+  // Calculate odometry movement amount relative to laser self-positioning orientation
   Pose2d diff_odometry_on_localized_pose_coordinate;
   RotatePoint(diff_odometry_from_localization, localized_2d_pose_.theta, diff_odometry_on_localized_pose_coordinate);
 
-  // Determine target corrected self-positioning
+  // Calculate the target corrected self-positioning
   Pose2d target_pose;
   target_pose.x = (localized_2d_pose_.x + diff_odometry_on_localized_pose_coordinate.x);
   target_pose.y = (localized_2d_pose_.y + diff_odometry_on_localized_pose_coordinate.y);
@@ -326,12 +326,12 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergence() {
   target_pose.theta = localized_2d_pose_.theta + diff_odometry_.theta;
   target_pose.theta = atan2(sin(target_pose.theta), cos(target_pose.theta));
 
-  // Determine odometry movement amount relative to self-positioning when laser self-positioning is received
+  // Calculate odometry movement amount relative to self-positioning when laser self-positioning is received
   Pose2d diff_odometry_on_corrected_odometry_coordinate;
   RotatePoint(diff_odometry_from_localization, corrected_odometry_at_localization_.theta,
               diff_odometry_on_corrected_odometry_coordinate);
 
-  // Determine self-positioning when laser self-positioning is not received
+  // Calculate self-positioning when laser self-positioning is not received
   Pose2d dying_pose;
   dying_pose.x = (corrected_odometry_at_localization_.x + diff_odometry_on_corrected_odometry_coordinate.x);
   dying_pose.y = (corrected_odometry_at_localization_.y + diff_odometry_on_corrected_odometry_coordinate.y);
@@ -348,7 +348,7 @@ Pose2d PoseIntegrator::CorrectOdometryWithConvergence() {
   }
   corrected_odometry_.theta = ratio * target_pose.theta + (1.0 - ratio) * dying_pose.theta;
 
-  // Ideally, measured time should be added to timer
+  // Ideally, the measured time should be added to the timer
   time_from_pose_reset_ += cycle_time_;
 
   // Convert to ±π

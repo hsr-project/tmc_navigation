@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -59,35 +59,35 @@ class PathPlannerDummy : public rclcpp::Node {
     dummy_server_->activate();
   }
 
-  // Set the termination condition for the action
+  // Set the action completion condition
   void SetActionCompleteCondition(const double action_complete_time,
                                   const rclcpp_action::ResultCode& action_result) {
     action_complete_time_ = action_complete_time;
     action_result_ = action_result;
   }
 
-  // Set the feedback for the action
+  // Set the action feedback
   void SetActionFeedback(const PathPlanAction::Feedback& action_feedback) {
     *action_feedback_ = action_feedback;
   }
 
-  // Whether a path planning action has been requested
+  // Check if a path planning action was requested
   bool IsRequested() {
     const bool ret = is_requested_;
-    // Return to false after checking
+    // Reset to false after checking
     is_requested_ = false;
     return ret;
   }
 
-  // Whether a path planning action has been canceled
+  // Check if a path planning action was canceled
   bool IsCanceled() {
     const bool ret = is_canceled_;
-    // Return to false after checking
+    // Reset to false after checking
     is_canceled_ = false;
     return ret;
   }
 
-  // Whether a path planning action is in progress
+  // Check if a path planning action is in progress
   bool IsRunning() {
     return is_running_;
   }
@@ -145,17 +145,17 @@ class PathPlannerDummy : public rclcpp::Node {
   std::shared_ptr<rclcpp::Rate> rate_;
   // Time until action completion
   double action_complete_time_;
-  // Feedback of the action
+  // Action feedback
   std::shared_ptr<PathPlanAction::Feedback> action_feedback_;
-  // Result of the action
+  // Action result
   rclcpp_action::ResultCode action_result_;
   // Currently requested goal
   geometry_msgs::msg::PoseStamped current_requested_goal_;
-  // Whether a request has occurred
+  // Check if a request occurred
   bool is_requested_;
-  // Whether a cancellation has occurred
+  // Check if a cancellation occurred
   bool is_canceled_;
-  // Whether the action is in progress
+  // Check if the action is in progress
   bool is_running_;
   // Flag to stop the running Run
   bool killed_;

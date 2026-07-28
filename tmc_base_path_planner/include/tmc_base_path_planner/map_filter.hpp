@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -67,11 +67,11 @@ class MapFilter : public IMapFilter {
         map_filter_distance_goal_limit = kMapFilterDistanceGoalLimitDefault;
       }
     }
-    // Range to apply the restricted area filter around the start [m]
+    // Range [m] to apply a restricted area filter around the start
     double map_filter_range_around_start;
-    // Range to apply the restricted area filter around the goal [m]
+    // Range [m] to apply a restricted area filter around the goal
     double map_filter_range_around_goal;
-    // If the distance is greater than this from the goal, apply the restricted area filter around the goal [m]
+    // If the distance from the goal is greater than this, apply a restricted area filter around the goal [m]
     double map_filter_distance_goal_limit;
   };
 
@@ -79,7 +79,7 @@ class MapFilter : public IMapFilter {
   /// @param [I] param Parameters
   explicit MapFilter(const Parameter& param) : param_(param) {}
 
-  /// Filter obstacles around the start and goal from the map
+  /// Filters obstacles around the start and goal from the map
   /// @param [I/O] map Map
   /// @param [I] map_origin Origin coordinates of the map
   /// @param [I] start_pose Start
@@ -89,7 +89,7 @@ class MapFilter : public IMapFilter {
                                const Pose2d& start_pose, const Pose2d& goal_pose, const Pose2d& global_pose);
 
  private:
-  /// Remove obstacles in a circular shape from the map
+  /// Removes obstacles in a circular area from the map
   /// @param [I/O] map Map
   /// @param [I] center Center point of the circle to be removed
   /// @param [I] radius Radius of the circle to be removed

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -36,10 +36,10 @@ DAMAGE.
 
 
 namespace tmc_base_path_follower {
-// Minimum number of interpolation points
+// Minimum interpolation points
 const int32_t kMinimumInterpolationNumber = 2;
 
-/// Route information generation class
+/// Path information generation class
 class PathInfoCreator {
  public:
   using Ptr = std::shared_ptr<PathInfoCreator>;
@@ -58,7 +58,7 @@ class PathInfoCreator {
         passing_velocity = kMaxLinearVelocityDefault;
       }
     }
-    // Number of interpolation points
+    // Interpolation points
     int32_t interpolation_number;
     // Maximum speed
     double passing_velocity;
@@ -68,21 +68,21 @@ class PathInfoCreator {
   /// @param [I] param Parameters
   explicit PathInfoCreator(const Parameter& param) : param_(param) {}
 
-  /// Route information generation
-  /// @param [I] path Input route
-  /// @return Route information
+  /// Path information generation
+  /// @param [I] path Input path
+  /// @return Path information
   PathInfo CreatePathInfo(const PoseSeq& path);
 
  private:
-  /// @brief Spline interpolation of the route
-  /// @param[in] input_path Pre-interpolation route
-  /// @param[out] splined_path Interpolated route
-  /// @param[out] splined_path_curvatures Curvatures at each point of the interpolated route
+  /// @brief Spline interpolation of the path
+  /// @param[in] input_path Pre-interpolation path
+  /// @param[out] splined_path Interpolated path
+  /// @param[out] splined_path_curvatures Curvatures at each point of the interpolated path
   void SplineInterpolation(const PoseSeq& input_path, PoseSeq& splined_path,
       std::vector<double>& splined_path_curvatures);
-  // Check for extrema in the spline curve
+  // Check if there are extrema in the spline curve
   bool CheckSplinePathExtremum(const Eigen::Vector4d& coeff, const double time);
-  // Calculate the remaining playback length to the goal for all route points
+  // Calculate the remaining playback length to the goal for all path points
   void CalculateLeftPathLengths(const PoseSeq& path, std::vector<double>& left_path_lengths);
   // Parameters
   Parameter param_;

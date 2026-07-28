@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -148,7 +148,7 @@ TEST_F(EigenCompareTest, SpeedTest) {
   printf("t_eigen_affine  :  %f [micro-sec] \n", t_eigen_affine);
   printf("t_eigen_isometry:  %f [micro-sec] \n", t_eigen_isometry);
 
-  // The order should be pose2d < isometry < affine, with pose2d being about 100 times faster.
+  // pose2d < isometry < affine should be the order; pose2d is about 100 times faster
   ASSERT_LT(t_pose2d, t_eigen_affine);
   ASSERT_LT(t_pose2d, t_eigen_isometry);
 }

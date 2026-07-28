@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -31,7 +31,7 @@ DAMAGE.
 
 /// Main function
 /// @param[in] argc Total number of arguments (including the program name)
-/// @param[in] argv Array of pointers to argument strings
+/// @param[in] argv Pointer array pointing to argument strings
 /// @retval EXIT_SUCCESS = 0 Success
 /// @retval EXIT_FAILURE = 1 Failure
 int main(int argc, char** argv) {

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -41,36 +41,36 @@ using tmc_pose_2d_lib::Pose2d;
 using tmc_pose_2d_lib::Point2d;
 
 namespace tmc_base_path_planner {
-/// Map Free Value
+/// Free value of the map
 constexpr uint8_t kFreeGrid = 1;
-/// Map Wall Value
+/// Wall value of the map
 constexpr uint8_t kWallValue = 255;
-// Start Position Adjustment Function On/Off
+// Start position adjustment feature On/Off
 constexpr bool kEnableAdaptiveStartPositioning = true;
-// Range of Start Position Adjustment [m]
+// Range of start position adjustment [m]
 constexpr double kRangeAdaptiveStartPositioning = 1.0;
 
 typedef std::vector<Pose2d> PoseSeq;
 
-/// Planner Error Code
+/// Planner error code
 enum class BasePathPlannerErrorCode {
-  // Route Planning Success
+  // Route planning successful
   kSuccess = 1,
-  // Skipped because the route is the same as the previous one
+  // Skipping because the route is the same as the previous one
   kSkip = 2,
   // Robot position is outside the map range
   kRobotIsOutOfMap = -1,
-  // Robot position is occupied by the static map
+  // Robot position is occupied in the static map
   kRobotIsOnStaticObstacle = -2,
-  // Robot position is occupied by the dynamic map
+  // Robot position is occupied in the dynamic map
   kRobotIsOnDynamicObstacle = -3,
-  // Goal position is occupied by the static map
+  // Goal position is occupied in the static map
   kGoalIsOnStaticObstacle = -4,
-  // Goal position is occupied by the dynamic map
+  // Goal position is occupied in the dynamic map
   kGoalIsOnDynamicObstacle = -5,
-  // Route Planning Process Failed
+  // Route planning process failed
   kPlanningFail = -6,
-  // Route Smoothing Process Failed
+  // Route smoothing process failed
   kSmoothingFail = -7,
 };
 

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -35,11 +35,11 @@ namespace tmc_astar_lib {
 
 /// Constructor
 AstarNodeManager::AstarNodeManager(const int32_t width, const int32_t height) : width_(width), height_(height) {
-  // The table for coordinates to index is allocated the same size as the static map
+  // The coordinate-to-index table reserves the same size as the static map
   grid_coord_to_index_map_.resize(width * height, kInvalidIndex);
 
-  // The node array reserves the maximum memory space to prevent memory addresses from changing due to resizing
-  // Actual memory is consumed only for the amount actually used (however, in DEBUG builds, actual memory is allocated at this point)
+  // The node array reserves the maximum memory space to ensure memory addresses do not change due to resizing
+  // Actual memory consumption corresponds to the amount actually used (however, in DEBUG builds, actual memory is allocated at this point)
   node_array_.reserve(width * height);
 }
 
@@ -49,7 +49,7 @@ void AstarNodeManager::Initialize() {
   std::fill(grid_coord_to_index_map_.begin(), grid_coord_to_index_map_.end(), kInvalidIndex);
 }
 
-/// Get a pointer to the node corresponding to the specified grid coordinates
+/// Retrieve a pointer to the node corresponding to the specified grid coordinates
 AstarNode* AstarNodeManager::GetNode(const MapIndex& map_index) {
   if ((map_index.x < 0) || (map_index.x >= width_) || (map_index.y < 0) || (map_index.y >= height_)) {
     CONSOLE_BRIDGE_logError("Specified grid coord is out of range: (%d, %d)", map_index.x, map_index.y);
@@ -61,7 +61,7 @@ AstarNode* AstarNodeManager::GetNode(const MapIndex& map_index) {
 
   int32_t index = grid_coord_to_index_map_[key];
   if (index == kInvalidIndex) {
-    // If the coordinates are being referenced for the first time, add the entity
+    // Add an entity if the coordinates are being referenced for the first time
     node_array_.emplace_back(map_index);
     index = node_array_.size() - 1;
     grid_coord_to_index_map_[key] = index;

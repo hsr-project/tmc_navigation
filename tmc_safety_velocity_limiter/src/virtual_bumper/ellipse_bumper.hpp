@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -26,7 +26,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 /// @file ellipse_bumper.hpp
-/// @brief Elliptical virtual bumper
+/// @brief Elliptical Virtual Bumper
 #ifndef TMC_SAFETY_VELOCITY_LIMITER_ELLIPSE_BUMPER_HPP_
 #define TMC_SAFETY_VELOCITY_LIMITER_ELLIPSE_BUMPER_HPP_
 #include <map>
@@ -37,40 +37,40 @@ DAMAGE.
 #include "virtual_bumper.hpp"
 
 namespace tmc_safety_velocity_limiter {
-/// Elliptical virtual bumper
+/// Elliptical Virtual Bumper
 class EllipseBumper : public VirtualBumper {
  public:
   typedef std::shared_ptr<EllipseBumper> Ptr;
   EllipseBumper(std::map<std::string, rclcpp::Parameter>& parameters, const VelocitySlope::Ptr& velocity_slope);
 
   /// Returns the speed limit ratio based on the distance to the nearest point within the range
-  /// Outputs the coordinates of the point that caused the limitation when restricted
+  /// Outputs the coordinates of the point that caused the restriction if a restriction is applied
   /// @param input_velocity [I] Input velocity
   /// @param obstacle_pose [O] Obstacle coordinates
   /// @return Speed limit ratio (0.0 to 1.0)
   double LimitVelocityRatio(const Twist& input_velocity, geometry_msgs::msg::PoseStamped& obstacle_pose);
 
  private:
-  /// Finds the nearest point within the range
+  /// Finds the point with the shortest distance within the range
   /// @param input_cloud [I] Point cloud
   /// @param input_velocity [I] Moving speed
-  /// @param nearest_pose [O] Nearest point
+  /// @param nearest_pose [O] Point with the shortest distance
   /// @param distance_ratio [O] Ratio of obstacle distance to search distance
-  /// @return Whether found or not true found false not found
+  /// @return Whether found or not true: found, false: not found
   bool FindNearestPoseInRange(const PointCloudPtr& input_cloud, const Twist& input_velocity,
                               geometry_msgs::msg::PoseStamped& nearest_pose, double& distance_ratio);
 
-  /// Calculates the distance from self-position to the farthest point within the elliptical range
+  /// Calculates the distance from the self-position to the farthest point within the elliptical range
   double SearchLongestDistance();
 
-  /// ROS PRAM acquisition
+  /// ROS PRAM retrieval
   void UpdateParameters(std::map<std::string, rclcpp::Parameter>& parameters);
 
   // Parameters
   double radius_x_;
   double radius_y_;
   double center_position_x_;
-  // Maximum distance of search range
+  // Maximum search range distance
   double obstacle_search_distance_;
 };
 }  // namespace tmc_safety_velocity_limiter

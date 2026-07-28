@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 TOYOTA MOTOR CORPORATION
+Copyright (c) 2026 TOYOTA MOTOR CORPORATION
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted (subject to the limitations in the disclaimer
@@ -35,7 +35,7 @@ DAMAGE.
 namespace tmc_base_path_planner {
 
 /// Parameter test
-/// Able to generate parameters
+/// It can generate parameters
 TEST(MapFilterParameterTest, ConstructParameter) {
   // exercise
   const MapFilter::Parameter param = MapFilter::Parameter(0.1, 0.2, 0.3);
@@ -48,7 +48,7 @@ TEST(MapFilterParameterTest, ConstructParameter) {
 
 
 /// Parameter test
-/// If an invalid value is specified, it is generated with the default value
+/// If invalid values are specified, they are generated with default values
 TEST(MapFilterParameterTest, ConstructWithInvalidParameterMakeDefault) {
   // exercise
   const MapFilter::Parameter invalid_param = MapFilter::Parameter(-0.1, -0.1, -0.1);
@@ -68,8 +68,8 @@ class FilterMapOnStartAndGoalTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     /// By default, set conditions to filter both around the start and goal
-    /// Use this as a base to change conditions in each test pattern
-    // Generate a map with origin at (x, y)=(1.0, 1.0), size 2m x 2m, all prohibited area
+    /// Use this as a base and change conditions for each test pattern
+    // Generate a map with origin at (x, y) = (1.0, 1.0), size 2m x 2m, and all areas prohibited
     map_origin_ = Pose2d(1.0, 1.0, 0.0);
     const double map_resolution = 0.05;
     const uint32_t map_width = 40;
@@ -81,8 +81,8 @@ class FilterMapOnStartAndGoalTest : public ::testing::Test {
     // Set to remove areas within a radius of 0.2m around the start and 0.5m around the goal
     param_ = std::make_shared<MapFilter::Parameter>(0.2, 0.5, 0.6);
     map_filter_ = std::make_shared<MapFilter>(*param_);
-    /// If the start and goal locations are at the boundary of map_resolution,
-    /// Slightly shift them to avoid floating-point errors in filter range judgment
+    /// If the start and goal points are on the boundary of map_resolution,
+    /// Floating-point errors in filter range determination prevent proper testing, so adjust slightly
     start_pose_ = Pose2d(1.51, 1.51);
     goal_pose_ = Pose2d(2.51, 2.51);
     /// The self-position is close to the start and sufficiently far from the goal
@@ -97,15 +97,15 @@ class FilterMapOnStartAndGoalTest : public ::testing::Test {
   Pose2d map_origin_;
   // Self-position
   Pose2d global_pose_;
-  // Start location
+  // Start point
   Pose2d start_pose_;
-  // Goal location
+  // Goal point
   Pose2d goal_pose_;
 };
 
 
 /// FilterMapOnStartAndGoal test
-/// Specified range obstacles are removed
+/// Obstacles within the specified range are removed
 TEST_F(FilterMapOnStartAndGoalTest, RemoveObstacleFilterRange) {
   // exercise
   map_filter_->FilterMapOnStartAndGoal(map_, map_origin_, start_pose_, goal_pose_, global_pose_);
@@ -131,10 +131,10 @@ TEST_F(FilterMapOnStartAndGoalTest, RemoveObstacleFilterRange) {
 
 
 /// FilterMapOnStartAndGoal test
-/// Perform filtering around the start until the self-position moves away from the start
+/// Until the self-position moves away from the start point, filtering around the start point is performed
 TEST_F(FilterMapOnStartAndGoalTest, RemoveObstacleAroundStartWhenNearByStart) {
   // setup
-  // Set the self-position within the removal range around the start
+  // Set the self-position within the removal range around the start point
   global_pose_ = Pose2d(start_pose_.x() + param_->map_filter_range_around_start,
                         start_pose_.y(), 0.0);
   // exercise
@@ -161,10 +161,10 @@ TEST_F(FilterMapOnStartAndGoalTest, RemoveObstacleAroundStartWhenNearByStart) {
 
 
 /// FilterMapOnStartAndGoal test
-/// Do not perform filtering around the start once the self-position moves away from it
+/// If the self-position moves away from the start point, filtering around the start point is not performed
 TEST_F(FilterMapOnStartAndGoalTest, NotRemoveObstacleAroundStartWhenFarFromStart) {
   // setup
-  // Move the self-position slightly outside the removal range around the start
+  // Move the self-position slightly outside the removal range around the start point
   global_pose_ = Pose2d(start_pose_.x() + param_->map_filter_range_around_start + 0.01,
                         start_pose_.y(), 0.0);
   // exercise
@@ -189,11 +189,11 @@ TEST_F(FilterMapOnStartAndGoalTest, NotRemoveObstacleAroundStartWhenFarFromStart
 
 
 /// FilterMapOnStartAndGoal test
-/// Perform filtering around the goal until the self-position approaches the goal
+/// Until the self-position approaches the goal point, filtering around the goal is performed
 TEST_F(FilterMapOnStartAndGoalTest, RemoveObstacleAroundGoalWhenFarFromGoal) {
   // setup
-  /// Move the self-position slightly farther from the goal than the distance threshold for removal
-  /// This self-position is far from the start, so the area around the start is not removed
+  /// Move the self-position slightly farther from the goal than the distance threshold for removing areas around the goal
+  /// Since this self-position is far from the start point, areas around the start point are not removed
   global_pose_ = Pose2d(goal_pose_.x() + param_->map_filter_distance_goal_limit + 0.01,
                         goal_pose_.y(), 0.0);
   // exercise
@@ -218,11 +218,11 @@ TEST_F(FilterMapOnStartAndGoalTest, RemoveObstacleAroundGoalWhenFarFromGoal) {
 
 
 /// FilterMapOnStartAndGoal test
-/// Do not perform filtering around the goal once the self-position approaches it
+/// If the self-position approaches the goal point, filtering around the goal is not performed
 TEST_F(FilterMapOnStartAndGoalTest, NotRemoveObstacleAroundGoalWhenNearByGoal) {
   // setup
-  /// Move the self-position slightly closer to the goal than the distance threshold for removal
-  /// This self-position is far from the start, so the area around the start is not removed
+  /// Move the self-position slightly closer to the goal than the distance threshold for removing areas around the goal
+  /// Since this self-position is far from the start point, areas around the start point are not removed
   global_pose_ = Pose2d(goal_pose_.x() + param_->map_filter_distance_goal_limit - 0.01,
                         goal_pose_.y(), 0.0);
   // exercise
@@ -240,11 +240,11 @@ TEST_F(FilterMapOnStartAndGoalTest, NotRemoveObstacleAroundGoalWhenNearByGoal) {
 
 
 /// FilterMapOnStartAndGoal test
-/// Even if the self-position is around the start, do not remove if the goal is within the removal area
+/// Even if the self-position is around the start, if the goal is within the removal area around the start, it is not removed
 TEST_F(FilterMapOnStartAndGoalTest, NotRemoveObstacleAroundStartWhenStartNearByGoal) {
   // setup
   // Include the goal position within the removal range around the start
-  // Since this self-position is close to the goal, it is expected that the area around the goal is not removed
+  // Since this self-position is close to the goal, it is expected that areas around the goal are also not removed
   goal_pose_ = Pose2d(start_pose_.x() + param_->map_filter_range_around_start - 0.01,
                       start_pose_.y(), 0.0);
   // exercise
@@ -262,7 +262,7 @@ TEST_F(FilterMapOnStartAndGoalTest, NotRemoveObstacleAroundStartWhenStartNearByG
 
 
 /// FilterMapOnStartAndGoal test
-/// If the parameter setting is not to filter, then it is not filtered
+/// If the parameters are set not to filter, no filtering is performed
 TEST_F(FilterMapOnStartAndGoalTest, NotRemoveObstacleIfNoFilterSetting) {
   // setup
   param_.reset(new MapFilter::Parameter(0.0, 0.0, 0.6));
