@@ -29,6 +29,7 @@ DAMAGE.
 #define TMC_ASTAR_LIB_LAYERED_COST_MAP_HPP_
 #include <climits>
 #include <stdint.h>
+#include <array>
 #include <limits>
 #include <memory>
 #include <vector>
